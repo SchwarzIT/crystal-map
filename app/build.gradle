@@ -3,9 +3,8 @@ apply plugin: 'android-apt'
 
 buildscript {
     repositories {
-        maven {
-            url "https://maven-repository.kaufland/nexus/content/groups/proxy-repositories/"
-        }
+        jcenter()
+        mavenCentral()
         maven { url uri('libs') }
     }
     dependencies {
