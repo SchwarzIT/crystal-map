@@ -21,20 +21,19 @@ Is a library that generates Entities and methods to modify data easily for [couc
 
 1. Add it in your root build.gradle at the end of repositories:
 
-	 ```
-	buildscript {
+```
+ buildscript {
     repositories {
         maven { url 'https://jitpack.io' }
     }
   }
   ...
   allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
-	}
-	 ```
+    repositories {
+	maven { url 'https://jitpack.io' }
+    }
+  }
+```
 
 2. Add gradle dependency
 
@@ -47,7 +46,7 @@ Is a library that generates Entities and methods to modify data easily for [couc
 
 * Add following Code in your Application.class
 
-	``` java
+``` java
 @Override
     public void onCreate() {
         super.onCreate();
@@ -59,7 +58,7 @@ Is a library that generates Entities and methods to modify data easily for [couc
             }
         });
     }
-	```
+```
   
  * Annotate classes to generate Entities
   
