@@ -52,7 +52,6 @@ Is a library that generates Entities and methods to modify data easily for [couc
 @Override
     public void onCreate() {
         super.onCreate();
-        enableLogging();
         PersistenceConfig.configure(new PersistenceConfig.DatabaseGet() {
             @Override
             public Database getDatabase() {
