@@ -10,6 +10,8 @@ Is a library that generates Entities and methods to modify data easily for [couc
 
 * Easy to use just annotate class and fields
 
+* Also supports child entities or lists of child entities
+
 * No performance loose all Entities are generated on compile time.
 
 * No more String based Map modifications are needed. Framework also generates Constants to use them in Views.
@@ -74,6 +76,12 @@ public class List {
     
     @CblField(value = "image", attachmentType = "image/jpg")
     protected InputStream image;
+    
+    @CblField("sub")
+    Sub sub;
+
+    @CblField("list_sub")
+    java.util.List<Sub> listSub;
    ```
 
  * Annotate classes to generate Entities (All generated Classes has the suffix Entity)
@@ -84,6 +92,7 @@ public class List {
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).
                 setTitle(title).
+		setSub(SubEntity.create().setTest("test")).
                 save();
                 
  ```
