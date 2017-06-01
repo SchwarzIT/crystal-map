@@ -5,7 +5,9 @@ import com.kaufland.generation.CodeGenerator;
 import com.kaufland.model.EntityGenModel;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -39,10 +41,19 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnv) {
-        for (Element elem : roundEnv.getElementsAnnotatedWith(CblEntity.class)) {
+
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(CblEntity.class);
+
+        Map<String, Element> cblFieldAnnotated = new HashMap<>();
+
+        for (Element elem : annotatedElements) {
+            cblFieldAnnotated.put(elem.getSimpleName().toString(), elem);
+        }
+
+        for (Element elem : annotatedElements) {
 
             try {
-                mCodeGenerator.generate(new EntityGenModel(elem), elem);
+                mCodeGenerator.generate(new EntityGenModel(elem, cblFieldAnnotated), elem);
             } catch (IOException e) {
                 mLogger.abortWithError("generation failed", elem);
             }

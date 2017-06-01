@@ -7,6 +7,7 @@ import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JDirectClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JMethod;
@@ -18,8 +19,10 @@ import com.kaufland.util.ElementUtil;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -39,10 +42,13 @@ public class EntityGenModel implements GenerationModel {
 
     private Element mElementClazz;
 
-    public EntityGenModel(Element elem) {
+    private Map<String, ? extends Element> mAnnotatedElements;
+
+    public EntityGenModel(Element elem, Map<String, ? extends Element> annotatedElements) {
         sourceClazzName = elem.getSimpleName().toString();
         sourcePackage = elem.getEnclosingElement().toString();
         mElementClazz = elem;
+        mAnnotatedElements = annotatedElements;
     }
 
     public JCodeModel generateModel() {
@@ -96,26 +102,39 @@ public class EntityGenModel implements GenerationModel {
                         //GetMethod
                         AbstractJClass resturnValue = codeModel.directClass(baseTypeWithGenerics.get(0));
 
+                        AbstractJClass nestedSubEntity = mAnnotatedElements.containsKey(resturnValue.name()) ? resturnValue : null;
+                        boolean isEntityGenericParam = false;
+
                         if (baseTypeWithGenerics.size() > 1) {
                             for (int i = 1; i < baseTypeWithGenerics.size(); i++) {
-                                resturnValue = resturnValue.narrow(Class.forName(baseTypeWithGenerics.get(i)));
+                                JDirectClass clazz = codeModel.directClass(baseTypeWithGenerics.get(i));
+                                resturnValue = resturnValue.narrow(clazz);
+                                if (mAnnotatedElements.containsKey(clazz.name())) {
+                                    nestedSubEntity = codeModel.directClass(baseTypeWithGenerics.get(i));
+                                    isEntityGenericParam = true;
+                                }
                             }
                         }
 
-                        createGetter(genClazz, WordUtils.capitalize(element.getSimpleName().toString()), cblFieldName, resturnValue);
 
                         JMethod setter = genClazz.method(JMod.PUBLIC, genClazz, "set" + WordUtils.capitalize(element.getSimpleName().toString()));
                         setter.param(resturnValue, "value");
 
-                        if (annotation.attachmentType().equals("")) {
+                        if (nestedSubEntity != null) {
+                            String toMapParam = isEntityGenericParam ? "java.util.List<" + nestedSubEntity.name()+">" : nestedSubEntity.name();
+                            setter.body().directStatement("mDocChanges.put(" + cblFieldName.toUpperCase() + ", " + nestedSubEntity.name() + "Entity.toMap((" + toMapParam + ")value)); return this;");
+                            JMethod getter = genClazz.method(JMod.PUBLIC, resturnValue, "get" + WordUtils.capitalize(element.getSimpleName().toString()));
+                            String fromMapParam = isEntityGenericParam ? "java.util.List<java.util.HashMap<String, Object>>" : "java.util.HashMap<String, Object>";
+                            getter.body().directStatement("return (" + resturnValue.fullName() + ") " + nestedSubEntity.name() + "Entity.fromMap((" + fromMapParam + ")mDoc.get(" + cblFieldName.toUpperCase() + "));");
+
+                        } else if (annotation.attachmentType().equals("")) {
                             setter.body().directStatement("mDocChanges.put(" + cblFieldName.toUpperCase() + ", value); return this;");
+                            createGetter(genClazz, WordUtils.capitalize(element.getSimpleName().toString()), cblFieldName, resturnValue);
                         } else {
                             JFieldVar attachment = genClazz.field(JMod.PRIVATE, resturnValue, cblFieldName);
                             setter.body().directStatement(cblFieldName + "= value; return this;");
                             attachmentFields.add(new String[]{cblFieldName, annotation.attachmentType()});
-//                            if (!resturnValue.isAssignableFrom(codeModel.directClass(InputStream.class.getCanonicalName())) && !resturnValue.isAssignableFrom(codeModel.directClass(URL.class.getCanonicalName()))) {
-//                                Logger.getInstance().abortWithError("Attachment only supported by FieldType Inputstream or URL", element);
-//                            }
+                            createGetter(genClazz, WordUtils.capitalize(element.getSimpleName().toString()), cblFieldName, resturnValue);
                         }
 
                         createFieldConstant(genClazz, cblFieldName);
@@ -123,7 +142,12 @@ public class EntityGenModel implements GenerationModel {
                 }
             }
 
+            createFromMap(codeModel, genClazz, codeModel.directClass(sourceClazzName));
+            createToMap(codeModel, genClazz, codeModel.directClass(sourceClazzName));
+
             createSaveMethod(codeModel, genClazz, attachmentFields);
+
+            createDeleteMethod(codeModel, genClazz);
 
 
             AbstractJClass annotatedComponent = codeModel.directClass(mElementClazz.asType().toString());
@@ -132,8 +156,6 @@ public class EntityGenModel implements GenerationModel {
 
         } catch (JClassAlreadyExistsException e) {
             Logger.getInstance().error("Clazz already exists", mElementClazz);
-        } catch (ClassNotFoundException e) {
-            Logger.getInstance().error("Clazz not found", mElementClazz);
         }
 
         return codeModel;
@@ -141,9 +163,46 @@ public class EntityGenModel implements GenerationModel {
 
     }
 
+    private void createDeleteMethod(JCodeModel codeModel, JDefinedClass genClazz) {
+        JMethod delete = genClazz.method(JMod.PUBLIC, codeModel.VOID, "delete");
+        delete._throws(CouchbaseLiteException.class);
+        delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()).delete();");
+    }
+
     private void createGetter(JDefinedClass genClazz, String getName, String cblFieldName, AbstractJClass resturnValue) {
         JMethod getter = genClazz.method(JMod.PUBLIC, resturnValue, "get" + getName);
         getter.body().directStatement("return (" + resturnValue.name() + ") mDoc.get(" + cblFieldName.toUpperCase() + ");");
+    }
+
+    private void createToMap(JCodeModel codeModel, JDefinedClass genClazz, JDirectClass sourceClazz) {
+
+        JMethod toMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "toMap");
+        toMap.param(sourceClazz, "obj");
+        toMap.body().directStatement("java.util.HashMap<String, Object> result = new java.util.HashMap<String, Object>(); result.putAll((("+ genClazz.name() +")obj).mDoc); result.putAll((("+ genClazz.name() +")obj).mDocChanges); return result;");
+
+        JMethod toMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "toMap");
+        toMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(sourceClazz), "obj");
+        toMapList.body().directStatement("java.util.List<java.util.HashMap<String, Object>> result = new java.util.ArrayList<java.util.HashMap<String, Object>>(); for(" + sourceClazz.name() + " entry : obj) {result.add((("+ genClazz.name() +")entry).toMap(entry)); } return result;");
+    }
+
+
+    private void createFromMap(JCodeModel codeModel, JDefinedClass genClazz, JDirectClass sourceClazz) {
+        JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, sourceClazz, "fromMap");
+        fromMap.param(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
+        fromMap.body().directStatement("return new " + genClazz.name() + "(obj);");
+
+        JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(sourceClazz), "fromMap");
+        fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
+
+        StringBuilder mBuilder = new StringBuilder()
+                .append("java.util.List<" + sourceClazz.name() + "> result = new java.util.ArrayList<" + sourceClazz.name() + ">(); \n")
+                .append("for(java.util.HashMap<String, Object> entry : obj) { \n")
+                .append("result.add(new " + genClazz.name() + "(entry)); \n")
+                .append("} \n")
+                .append("return result; \n");
+
+
+        fromMapList.body().directStatement(mBuilder.toString());
     }
 
     private void createSaveMethod(JCodeModel codeModel, JDefinedClass genClazz, List<String[]> attachments) {

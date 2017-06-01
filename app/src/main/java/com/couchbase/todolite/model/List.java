@@ -27,4 +27,9 @@ public class List {
     @CblField("owner")
     String owner;
 
+    @CblField("sub")
+    Sub sub;
+
+    @CblField("list_sub")
+    java.util.List<Sub> listSub;
 }

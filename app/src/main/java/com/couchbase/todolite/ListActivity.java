@@ -29,6 +29,8 @@ import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.TransactionalTask;
 import com.couchbase.lite.util.Log;
 import com.couchbase.todolite.model.ListEntity;
+import com.couchbase.todolite.model.Sub;
+import com.couchbase.todolite.model.SubEntity;
 import com.couchbase.todolite.util.LiveQueryAdapter;
 
 import java.text.SimpleDateFormat;
@@ -163,6 +165,10 @@ public class ListActivity extends AppCompatActivity {
                 setType("list").
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).setTitle(title);
+        mList.setSub(SubEntity.create().setTest("test"));
+        ArrayList<Sub> sub = new ArrayList<>();
+        sub.add(SubEntity.create().setTest("rs"));
+        mList.setListSub(sub);
 
         Application application = (Application) getApplication();
         String userId = application.getCurrentUserId();
