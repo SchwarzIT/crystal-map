@@ -20,6 +20,8 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.SourcePrintWriter;
 import com.kaufland.Logger;
 
+import org.jboss.forge.roaster.Roaster;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;

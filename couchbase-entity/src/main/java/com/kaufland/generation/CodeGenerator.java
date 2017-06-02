@@ -1,7 +1,8 @@
 package com.kaufland.generation;
 
+import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.writer.PrologCodeWriter;
-import com.kaufland.model.EntityGenModel;
+import com.kaufland.model.GenerationModel;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -28,14 +29,14 @@ public class CodeGenerator {
         this.encoding = encoding;
     }
 
-    public void generate(EntityGenModel model, Element ... elements) throws IOException {
+    public void generate(JCodeModel model, Element ... elements) throws IOException {
         Charset charset = getCharset();
 
         SourceCodeWriter sourceCodeWriter = new SourceCodeWriter(filer, charset, elements);
 
         PrologCodeWriter prologWriter = new PrologCodeWriter(sourceCodeWriter, HEADER);
 
-        model.generateModel().build(prologWriter);
+        model.build(prologWriter);
     }
 
     private Charset getCharset() {

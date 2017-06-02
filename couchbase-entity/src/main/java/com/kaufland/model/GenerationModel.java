@@ -1,5 +1,6 @@
 package com.kaufland.model;
 
+import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
 
 /**
@@ -8,5 +9,5 @@ import com.helger.jcodemodel.JCodeModel;
 
 public interface GenerationModel {
 
-    JCodeModel generateModel();
+    JCodeModel generateModel(JCodeModel model) throws JClassAlreadyExistsException;
 }

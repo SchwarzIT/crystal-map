@@ -31,5 +31,5 @@ public class List {
     Sub sub;
 
     @CblField("list_sub")
-    java.util.List<Sub> listSub;
+    ArrayList<Sub> listSub;
 }

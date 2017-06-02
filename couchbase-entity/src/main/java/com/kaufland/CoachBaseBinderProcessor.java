@@ -1,12 +1,14 @@
 package com.kaufland;
 
+import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JCodeModel;
 import com.kaufland.generation.CodeGenerator;
-import com.kaufland.model.EntityGenModel;
+import com.kaufland.model.EntityGeneration;
+import com.kaufland.model.source.CblEntityHolder;
+import com.kaufland.model.source.SourceContentParser;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,14 +53,20 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
         }
 
         for (Element elem : annotatedElements) {
-
             try {
-                mCodeGenerator.generate(new EntityGenModel(elem, cblFieldAnnotated), elem);
+                JCodeModel model = new JCodeModel();
+                CblEntityHolder holder = new SourceContentParser().parse(elem, cblFieldAnnotated, model);
+                new EntityGeneration(holder).generateModel(model);
+                mCodeGenerator.generate(model, elem);
+            } catch (ClassNotFoundException e) {
+                mLogger.abortWithError("Clazz not found", elem);
+            } catch (JClassAlreadyExistsException e) {
+                mLogger.abortWithError("Clazz already exists " + elem.getSimpleName() + "Entity", elem);
             } catch (IOException e) {
                 mLogger.abortWithError("generation failed", elem);
             }
-
         }
+
         return true; // no further processing of this annotation type
     }
 
