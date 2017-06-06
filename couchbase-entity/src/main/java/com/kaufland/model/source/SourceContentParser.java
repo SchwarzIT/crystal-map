@@ -13,10 +13,6 @@ import javax.lang.model.element.ElementKind;
 
 import kaufland.com.coachbasebinderapi.CblField;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class SourceContentParser {
 
 

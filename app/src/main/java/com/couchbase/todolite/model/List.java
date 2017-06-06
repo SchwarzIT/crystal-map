@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
-/**
- * Created by sbra0902 on 24.05.17.
- */
-
 @CblEntity
 public class List {
 

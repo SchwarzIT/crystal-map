@@ -6,10 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.lang.model.element.Element;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class CblFieldHolder {
 
     private String dbField;
@@ -25,7 +21,6 @@ public class CblFieldHolder {
     private boolean subEntityIsTypeParam;
 
     private Element fieldElement;
-
 
 
     public void setType(AbstractJClass type) {
@@ -72,11 +67,11 @@ public class CblFieldHolder {
         this.clazzFieldName = clazzFieldName;
     }
 
-    public boolean isTypeOfSubEntity(){
+    public boolean isTypeOfSubEntity() {
         return !StringUtils.isBlank(subEntityName);
     }
 
-    public boolean isAttachment(){
+    public boolean isAttachment() {
         return !StringUtils.isBlank(attachmentType);
     }
 

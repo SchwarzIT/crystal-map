@@ -10,10 +10,6 @@ import java.nio.charset.UnsupportedCharsetException;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 
-/**
- * Created by sbra0902 on 24.05.17.
- */
-
 public class CodeGenerator {
 
     private final Filer filer;
@@ -28,7 +24,7 @@ public class CodeGenerator {
         this.encoding = encoding;
     }
 
-    public void generate(JCodeModel model, Element ... elements) throws IOException {
+    public void generate(JCodeModel model, Element... elements) throws IOException {
         Charset charset = getCharset();
 
         SourceCodeWriter sourceCodeWriter = new SourceCodeWriter(filer, charset, elements);

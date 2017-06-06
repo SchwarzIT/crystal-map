@@ -9,10 +9,6 @@ import org.junit.Test;
 
 import static com.google.testing.compile.Compiler.javac;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class CoachBaseBinderProcessorTest {
 
     @Test

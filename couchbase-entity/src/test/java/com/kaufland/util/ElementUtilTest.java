@@ -5,14 +5,10 @@ import org.junit.Test;
 
 import java.util.List;
 
-/**
- * Created by sbra0902 on 06.06.17.
- */
-
 public class ElementUtilTest {
 
     @Test
-    public void testWithOneGeneric(){
+    public void testWithOneGeneric() {
 
         String variable = "ArrayList<String>";
 
@@ -24,7 +20,7 @@ public class ElementUtilTest {
     }
 
     @Test
-    public void testWithTwoGeneric(){
+    public void testWithTwoGeneric() {
 
         String variable = "Map<String, Object>";
 
@@ -37,7 +33,7 @@ public class ElementUtilTest {
     }
 
     @Test
-    public void testWithNoGeneric(){
+    public void testWithNoGeneric() {
 
         String variable = "List";
 

@@ -9,10 +9,6 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 
-/**
- * Created by sbra0902 on 06.06.17.
- */
-
 public class LoggerTest {
 
     private ProcessingEnvironment mMock;

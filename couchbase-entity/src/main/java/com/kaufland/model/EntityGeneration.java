@@ -22,10 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class EntityGeneration implements GenerationModel {
 
 

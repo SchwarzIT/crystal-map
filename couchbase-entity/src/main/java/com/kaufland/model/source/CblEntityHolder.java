@@ -7,10 +7,6 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class CblEntityHolder {
 
     private List<CblFieldHolder> mFields = new ArrayList<>();

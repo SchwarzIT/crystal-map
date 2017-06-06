@@ -5,10 +5,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 
-/**
- * Created by sbra0902 on 24.05.17.
- */
-
 public class Logger {
 
 
