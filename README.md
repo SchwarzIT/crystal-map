@@ -1,5 +1,8 @@
 [![](https://jitpack.io/v/Kaufland/andcouchbaseentity.svg)](https://jitpack.io/#Kaufland/andcouchbaseentity)
+[![Build Status](https://travis-ci.org/Kaufland/andcouchbaseentity.svg?branch=master)](https://travis-ci.org/Kaufland/andcouchbaseentity)
+[![codecov](https://codecov.io/gh/Kaufland/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/Kaufland/andcouchbaseentity)
 [![KIS](https://img.shields.io/badge/KIS-awesome-red.svg)](http://www.spannende-it.de)
+
 
 
 Is a library that generates Entities and methods to modify data easily for [couchbase-lite-android](https://github.com/couchbase/couchbase-lite-android).
