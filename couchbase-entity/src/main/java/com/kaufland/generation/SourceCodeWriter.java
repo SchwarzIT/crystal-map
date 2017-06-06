@@ -17,17 +17,11 @@ package com.kaufland.generation;
 
 import com.helger.jcodemodel.AbstractCodeWriter;
 import com.helger.jcodemodel.JPackage;
-import com.helger.jcodemodel.SourcePrintWriter;
-import com.kaufland.Logger;
-
-import org.jboss.forge.roaster.Roaster;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.lang.model.element.Element;
@@ -36,7 +30,7 @@ import javax.tools.JavaFileObject;
 public class SourceCodeWriter extends AbstractCodeWriter {
 
     private static final VoidOutputStream VOID_OUTPUT_STREAM = new VoidOutputStream();
-    private static final Logger LOGGER = Logger.getInstance();
+
     private final Filer filer;
 
     private Element[] mElements;

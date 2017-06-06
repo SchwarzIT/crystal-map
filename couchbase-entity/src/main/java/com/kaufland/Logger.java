@@ -3,22 +3,17 @@ package com.kaufland;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
-import javax.management.RuntimeErrorException;
 import javax.tools.Diagnostic;
-
-/**
- * Created by sbra0902 on 24.05.17.
- */
 
 public class Logger {
 
-    private static Logger currentInstance;
 
     private final Messager messager;
 
+    private boolean hasErrors;
+
     Logger(ProcessingEnvironment processingEnv) {
         this.messager = processingEnv.getMessager();
-        currentInstance = this;
     }
 
     public void info(String msg) {
@@ -34,6 +29,7 @@ public class Logger {
     }
 
     public void error(String msg, Element e) {
+        hasErrors = true;
         messager.printMessage(Diagnostic.Kind.ERROR, msg, e);
     }
 
@@ -42,7 +38,7 @@ public class Logger {
         throw new RuntimeException();
     }
 
-    public static Logger getInstance() {
-        return currentInstance;
+    public boolean hasErrors() {
+        return hasErrors;
     }
 }

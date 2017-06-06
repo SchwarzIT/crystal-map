@@ -13,10 +13,6 @@ import javax.lang.model.element.ElementKind;
 
 import kaufland.com.coachbasebinderapi.CblField;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class SourceContentParser {
 
 
@@ -25,6 +21,7 @@ public class SourceContentParser {
         CblEntityHolder content = new CblEntityHolder();
 
         content.setSourceClazz(model.directClass(cblEntityElement.toString()));
+        content.setSourceElement(cblEntityElement);
 
         for (Element element : cblEntityElement.getEnclosedElements()) {
 
@@ -35,6 +32,7 @@ public class SourceContentParser {
 
                     CblFieldHolder fieldHolder = new CblFieldHolder();
 
+                    fieldHolder.setFieldElement(element);
                     fieldHolder.setDbField(annotation.value().equals("") ? element.getSimpleName().toString() : annotation.value());
                     fieldHolder.setAttachmentType(annotation.attachmentType());
                     fieldHolder.setClazzFieldName(element.toString());

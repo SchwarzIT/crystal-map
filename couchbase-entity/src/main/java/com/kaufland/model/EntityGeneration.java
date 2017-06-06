@@ -22,10 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
-
 public class EntityGeneration implements GenerationModel {
 
 
@@ -140,11 +136,6 @@ public class EntityGeneration implements GenerationModel {
         JMethod delete = genClazz.method(JMod.PUBLIC, codeModel.VOID, "delete");
         delete._throws(CouchbaseLiteException.class);
         delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()).delete();");
-    }
-
-    private void createGetterBodyDefault(JDefinedClass genClazz, String getName, String cblFieldName, AbstractJClass resturnValue) {
-        JMethod getter = genClazz.method(JMod.PUBLIC, resturnValue, "get" + getName);
-        getter.body().directStatement("return (" + resturnValue.name() + ") mDoc.get(" + cblFieldName.toUpperCase() + ");");
     }
 
     private void createGetterBodyDefault(AbstractJClass resturnValue, String dbField, JMethod getter) {

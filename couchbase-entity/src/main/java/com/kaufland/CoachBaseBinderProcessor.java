@@ -6,6 +6,7 @@ import com.kaufland.generation.CodeGenerator;
 import com.kaufland.model.EntityGeneration;
 import com.kaufland.model.source.CblEntityHolder;
 import com.kaufland.model.source.SourceContentParser;
+import com.kaufland.model.validation.CblEntityValidator;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -56,7 +57,12 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
             try {
                 JCodeModel model = new JCodeModel();
                 CblEntityHolder holder = new SourceContentParser().parse(elem, cblFieldAnnotated, model);
-                new EntityGeneration(holder).generateModel(model);
+
+                new CblEntityValidator().validate(holder, mLogger);
+
+                if (!mLogger.hasErrors()) {
+                    new EntityGeneration(holder).generateModel(model);
+                }
                 mCodeGenerator.generate(model, elem);
             } catch (ClassNotFoundException e) {
                 mLogger.abortWithError("Clazz not found", elem);
@@ -65,6 +71,10 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 mLogger.abortWithError("generation failed", elem);
             }
+        }
+
+        if(mLogger.hasErrors()){
+            throw new RuntimeException();
         }
 
         return true; // no further processing of this annotation type

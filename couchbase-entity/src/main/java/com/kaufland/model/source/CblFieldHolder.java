@@ -1,29 +1,27 @@
 package com.kaufland.model.source;
 
 import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JDirectClass;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-
-/**
- * Created by sbra0902 on 02.06.17.
- */
+import javax.lang.model.element.Element;
 
 public class CblFieldHolder {
 
-    public String dbField;
+    private String dbField;
 
-    public String clazzFieldName;
+    private String clazzFieldName;
 
-    public AbstractJClass type;
+    private AbstractJClass type;
 
-    public String attachmentType;
+    private String attachmentType;
 
-    public String subEntityName;
+    private String subEntityName;
 
-    public boolean subEntityIsTypeParam;
+    private boolean subEntityIsTypeParam;
+
+    private Element fieldElement;
+
 
     public void setType(AbstractJClass type) {
         this.type = type;
@@ -69,15 +67,23 @@ public class CblFieldHolder {
         this.clazzFieldName = clazzFieldName;
     }
 
-    public boolean isTypeOfSubEntity(){
+    public boolean isTypeOfSubEntity() {
         return !StringUtils.isBlank(subEntityName);
     }
 
-    public boolean isAttachment(){
+    public boolean isAttachment() {
         return !StringUtils.isBlank(attachmentType);
     }
 
     public AbstractJClass getType() {
         return type;
+    }
+
+    public Element getFieldElement() {
+        return fieldElement;
+    }
+
+    public void setFieldElement(Element fieldElement) {
+        this.fieldElement = fieldElement;
     }
 }

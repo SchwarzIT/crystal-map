@@ -1,14 +1,11 @@
 package com.kaufland.model.source;
 
 import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JDirectClass;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by sbra0902 on 02.06.17.
- */
+import javax.lang.model.element.Element;
 
 public class CblEntityHolder {
 
@@ -16,14 +13,11 @@ public class CblEntityHolder {
 
     private AbstractJClass sourceClazz;
 
+    private Element sourceElement;
 
 
     public List<CblFieldHolder> getFields() {
         return mFields;
-    }
-
-    public void setFields(List<CblFieldHolder> fields) {
-        mFields = fields;
     }
 
     public AbstractJClass getSourceClazz() {
@@ -32,5 +26,13 @@ public class CblEntityHolder {
 
     public void setSourceClazz(AbstractJClass sourceClazz) {
         this.sourceClazz = sourceClazz;
+    }
+
+    public Element getSourceElement() {
+        return sourceElement;
+    }
+
+    public void setSourceElement(Element sourceElement) {
+        this.sourceElement = sourceElement;
     }
 }
