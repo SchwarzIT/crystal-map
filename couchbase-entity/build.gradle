@@ -1,5 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'jacoco'
+apply plugin: 'pmd'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -25,6 +27,15 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
+}
+
+jacocoTestReport {
+    group 'verification'
+    dependsOn 'test'
+    reports {
+        xml.enabled = true
+        html.enabled = false
+    }
 }
 
 artifacts {
