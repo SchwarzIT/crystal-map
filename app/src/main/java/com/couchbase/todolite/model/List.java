@@ -13,23 +13,23 @@ import kaufland.com.coachbasebinderapi.CblField;
 public class List {
 
     @CblField
-    String type;
+    private String type;
 
     @CblField("title")
-    String title;
+    private String title;
 
     @CblField("created_at")
-    String createdAt;
+    private String createdAt;
 
     @CblField("members")
-    ArrayList<String> members;
+    private ArrayList<String> members;
 
     @CblField("owner")
-    String owner;
+    private String owner;
 
     @CblField("sub")
-    Sub sub;
+    private Sub sub;
 
     @CblField("list_sub")
-    ArrayList<Sub> listSub;
+    private ArrayList<Sub> listSub;
 }

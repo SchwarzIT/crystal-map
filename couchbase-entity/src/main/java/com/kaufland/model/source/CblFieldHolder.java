@@ -7,23 +7,29 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 
+import javax.lang.model.element.Element;
+
 /**
  * Created by sbra0902 on 02.06.17.
  */
 
 public class CblFieldHolder {
 
-    public String dbField;
+    private String dbField;
 
-    public String clazzFieldName;
+    private String clazzFieldName;
 
-    public AbstractJClass type;
+    private AbstractJClass type;
 
-    public String attachmentType;
+    private String attachmentType;
 
-    public String subEntityName;
+    private String subEntityName;
 
-    public boolean subEntityIsTypeParam;
+    private boolean subEntityIsTypeParam;
+
+    private Element fieldElement;
+
+
 
     public void setType(AbstractJClass type) {
         this.type = type;
@@ -79,5 +85,13 @@ public class CblFieldHolder {
 
     public AbstractJClass getType() {
         return type;
+    }
+
+    public Element getFieldElement() {
+        return fieldElement;
+    }
+
+    public void setFieldElement(Element fieldElement) {
+        this.fieldElement = fieldElement;
     }
 }

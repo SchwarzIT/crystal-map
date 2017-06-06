@@ -17,9 +17,11 @@ public class ElementUtil {
         List<String> result = new ArrayList<>();
         if(name.contains("<")){
 
-            result.add(name.substring(0, name.indexOf("<")));
-            result.addAll(Arrays.asList(name.substring(name.indexOf("<") + 1, name.indexOf(">")).split(",")));
+            result.add(name.substring(0, name.indexOf("<")).trim());
 
+            for (String item : Arrays.asList(name.substring(name.indexOf("<") + 1, name.indexOf(">")).split(","))){
+                result.add(item.trim());
+            }
         }else{
             result.add(name);
         }

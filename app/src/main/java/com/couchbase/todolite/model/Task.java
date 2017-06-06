@@ -22,23 +22,22 @@ public class Task {
 
 
     @CblField("type")
-            protected String type;
+    private String type;
 
     @CblField("title")
-            protected String title;
+    private String title;
 
     @CblField("checked")
-            protected boolean checked;
+    private boolean checked;
 
     @CblField("created_at")
-    protected String createdAt;
+    private String createdAt;
 
     @CblField("list_id")
-    protected String listId;
+    private String listId;
 
     @CblField(value = "image", attachmentType = "image/jpg")
-    protected InputStream image;
-
+    private InputStream image;
 
 
 }

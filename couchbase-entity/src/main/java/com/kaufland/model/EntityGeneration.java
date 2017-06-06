@@ -142,11 +142,6 @@ public class EntityGeneration implements GenerationModel {
         delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()).delete();");
     }
 
-    private void createGetterBodyDefault(JDefinedClass genClazz, String getName, String cblFieldName, AbstractJClass resturnValue) {
-        JMethod getter = genClazz.method(JMod.PUBLIC, resturnValue, "get" + getName);
-        getter.body().directStatement("return (" + resturnValue.name() + ") mDoc.get(" + cblFieldName.toUpperCase() + ");");
-    }
-
     private void createGetterBodyDefault(AbstractJClass resturnValue, String dbField, JMethod getter) {
         getter.body().directStatement("return (" + resturnValue.fullName() + ") mDoc.get(" + dbField.toUpperCase() + ");");
     }

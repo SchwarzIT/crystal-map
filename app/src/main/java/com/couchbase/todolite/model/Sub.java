@@ -10,6 +10,6 @@ import kaufland.com.coachbasebinderapi.CblField;
 public class Sub {
 
     @CblField
-    protected String test;
+    private String test;
 
 }
