@@ -1,11 +1,8 @@
 package com.kaufland.model.source;
 
 import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JDirectClass;
 
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
 
 import javax.lang.model.element.Element;
 

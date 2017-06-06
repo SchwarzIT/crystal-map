@@ -2,7 +2,6 @@ package com.kaufland.generation;
 
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.writer.PrologCodeWriter;
-import com.kaufland.model.GenerationModel;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

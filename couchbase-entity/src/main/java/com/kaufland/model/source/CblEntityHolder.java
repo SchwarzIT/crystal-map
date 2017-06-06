@@ -1,7 +1,6 @@
 package com.kaufland.model.source;
 
 import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JDirectClass;
 
 import java.util.ArrayList;
 import java.util.List;
