@@ -5,21 +5,21 @@
 
 
 
-Is a library that generates Entities and methods to modify data easily for [couchbase-lite-android](https://github.com/couchbase/couchbase-lite-android).
+Is a library that generates entities and methods to easily modify data for [couchbase-lite-android](https://github.com/couchbase/couchbase-lite-android).
 
 
 
 ## Features
 
-* Easy to use just annotate class and fields
+* Easy to use - just annotate class and fields
 
 * Also supports child entities or lists of child entities
 
-* No performance loose all Entities are generated on compile time.
+* No performance loss - all entities are being generated during compile time.
 
-* No more String based Map modifications are needed. Framework also generates Constants to use them in Views.
+* No more string-based map modifications - the framework also generates constants for usage in views.
 
-* Entities updates can be performed with a fluent-Api
+* Entities updates can be performed with a fluent API
 
 ## Implementation
 
@@ -47,9 +47,9 @@ Is a library that generates Entities and methods to modify data easily for [couc
     apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.0.4'
     ```
 
-3. Configure Library 
+3. Configure library 
 
-* Add following Code in your Application.class
+* Add the following Code in your Application.class
 
 ``` java
 @Override
@@ -64,7 +64,7 @@ Is a library that generates Entities and methods to modify data easily for [couc
     }
 ```
   
- * Annotate classes to generate Entities
+ * Annotate classes to generate entities
   
   ``` java
 @CblEntity
@@ -86,7 +86,7 @@ public class List {
     java.util.List<Sub> listSub;
    ```
 
- * Annotate classes to generate Entities (All generated Classes has the suffix Entity)
+ * Annotate classes to generate entities (All generated Classes have the suffix Entity)
 
  ``` java
   ListEntity mList = ListEntity.create().
