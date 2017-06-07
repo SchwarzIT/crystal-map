@@ -73,10 +73,6 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
             }
         }
 
-        if(mLogger.hasErrors()){
-            throw new RuntimeException();
-        }
-
         return true; // no further processing of this annotation type
     }
 

@@ -2,6 +2,7 @@ package com.kaufland.model.validation;
 
 import com.kaufland.Logger;
 import com.kaufland.model.source.CblEntityHolder;
+import com.sun.tools.javac.code.Symbol;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -22,10 +23,10 @@ public class CblEntityValidator {
     public void validate(CblEntityHolder holder, Logger logger) throws ClassNotFoundException {
 
         if (holder.getSourceElement().getModifiers().contains(Modifier.PRIVATE)) {
-            logger.error(CblEntity.class.getName() + " can not be private", holder.getSourceElement());
+            logger.error(CblEntity.class.getSimpleName() + " can not be private", holder.getSourceElement());
         }
         if (holder.getSourceElement().getModifiers().contains(Modifier.FINAL)) {
-            logger.error(CblEntity.class.getName() + " can not be final", holder.getSourceElement());
+            logger.error(CblEntity.class.getSimpleName() + " can not be final", holder.getSourceElement());
         }
 
 
@@ -36,13 +37,13 @@ public class CblEntityValidator {
                 CblField fieldAnnotation = member.getAnnotation(CblField.class);
                 if (fieldAnnotation != null) {
                     if (!member.getModifiers().contains(Modifier.PRIVATE)) {
-                        logger.error(CblField.class.getName() + " must be private", member);
+                        logger.error(CblField.class.getSimpleName() + " must be private", member);
                     }
 
                     if (!fieldAnnotation.attachmentType().equals("")) {
                         Class<?> classTypeOfField = Class.forName(member.asType().toString());
                         if (!InputStream.class.isAssignableFrom(classTypeOfField) && !URL.class.isAssignableFrom(classTypeOfField)) {
-                            logger.error(CblField.class.getName() + " attachments must be Inputstream or URL", member);
+                            logger.error(CblField.class.getSimpleName() + " attachments must be Inputstream or URL", member);
                         }
                     }
 
@@ -50,10 +51,10 @@ public class CblEntityValidator {
 
             } else if (member.getKind() == ElementKind.CONSTRUCTOR) {
 
-                List<ExecutableElement> constructors = ElementFilter.constructorsIn(member.getEnclosedElements());
+                Symbol.MethodSymbol constructor = (Symbol.MethodSymbol)member;
 
-                if (constructors.size() != 0) {
-                    logger.error(CblEntity.class.getName() + " should not have a contructor", member);
+                if (constructor.getParameters().size() != 0) {
+                    logger.error(CblEntity.class.getSimpleName() + " should not have a contructor", member);
                 }
             }
 
