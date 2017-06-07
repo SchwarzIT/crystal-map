@@ -94,7 +94,7 @@ public class List {
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).
                 setTitle(title).
-		setSub(SubEntity.create().setTest("test")).
+                setSub(SubEntity.create().setTest("test")).
                 save();
                 
  ```
