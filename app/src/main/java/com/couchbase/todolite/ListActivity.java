@@ -162,7 +162,6 @@ public class ListActivity extends AppCompatActivity {
         String currentTimeString = mDateFormatter.format(new Date());
 
         ListEntity mList = ListEntity.create().
-                setType("list").
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).setTitle(title);
         mList.setSub(SubEntity.create().setTest("test"));

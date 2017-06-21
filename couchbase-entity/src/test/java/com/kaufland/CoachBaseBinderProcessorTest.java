@@ -26,17 +26,18 @@ public class CoachBaseBinderProcessorTest {
                                 "import java.util.ArrayList;\n" +
                                 "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
                                 "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                                "import kaufland.com.coachbasebinderapi.CblConstant;\n" +
                                 "import java.io.InputStream;\n" +
                                 "\n" +
                                 "@CblEntity\n" +
                                 "public class ListTest {\n" +
                                 "\n" +
                                 "\n" +
-                                "    @CblField\n" +
-                                "    private String type;\n" +
-                                "\n" +
                                 "    @CblField(\"title\")\n" +
                                 "    private String title;\n" +
+                                "\n" +
+                                "    @CblConstant(value = \"type\", constant = \"List\")\n" +
+                                "    private String type;\n" +
                                 "\n" +
                                 "    @CblField(\"created_at\")\n" +
                                 "    private String createdAt;\n" +

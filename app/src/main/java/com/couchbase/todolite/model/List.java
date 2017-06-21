@@ -2,13 +2,14 @@ package com.couchbase.todolite.model;
 
 import java.util.ArrayList;
 
+import kaufland.com.coachbasebinderapi.CblConstant;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
 @CblEntity
 public class List {
 
-    @CblField
+    @CblConstant(value = "type", constant = "List")
     private String type;
 
     @CblField("title")

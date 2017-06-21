@@ -14,6 +14,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.util.ElementFilter;
 
+import kaufland.com.coachbasebinderapi.CblConstant;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
@@ -35,7 +36,13 @@ public class CblEntityValidator {
             if (member.getKind() == ElementKind.FIELD) {
 
                 CblField fieldAnnotation = member.getAnnotation(CblField.class);
+                CblConstant constantAnnotation = member.getAnnotation(CblConstant.class);
                 if (fieldAnnotation != null) {
+
+                    if(constantAnnotation != null){
+                        logger.error("Element can´t be "+ CblField.class.getName() + " and "+ CblConstant.class.getName() + " at the same time", member);
+                    }
+
                     if (!member.getModifiers().contains(Modifier.PRIVATE)) {
                         logger.error(CblField.class.getSimpleName() + " must be private", member);
                     }
@@ -46,7 +53,15 @@ public class CblEntityValidator {
                             logger.error(CblField.class.getSimpleName() + " attachments must be Inputstream or URL", member);
                         }
                     }
+                }else if(constantAnnotation != null){
 
+                    if(fieldAnnotation != null){
+                        logger.error("Element can´t be "+ CblField.class.getName() + " and "+ CblConstant.class.getName() + " at the same time", member);
+                    }
+
+                    if (!member.getModifiers().contains(Modifier.PRIVATE)) {
+                        logger.error(CblConstant.class.getSimpleName() + " must be private", member);
+                    }
                 }
 
             } else if (member.getKind() == ElementKind.CONSTRUCTOR) {

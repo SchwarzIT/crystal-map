@@ -6,13 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.lang.model.element.Element;
 
-public class CblFieldHolder {
+public class CblFieldHolder extends CblBaseFieldHolder{
 
-    private String dbField;
-
-    private String clazzFieldName;
-
-    private AbstractJClass type;
 
     private String attachmentType;
 
@@ -20,12 +15,6 @@ public class CblFieldHolder {
 
     private boolean subEntityIsTypeParam;
 
-    private Element fieldElement;
-
-
-    public void setType(AbstractJClass type) {
-        this.type = type;
-    }
 
     public String getAttachmentType() {
         return attachmentType;
@@ -51,22 +40,6 @@ public class CblFieldHolder {
         this.subEntityIsTypeParam = subEntityIsTypeParam;
     }
 
-    public String getDbField() {
-        return dbField;
-    }
-
-    public void setDbField(String dbField) {
-        this.dbField = dbField;
-    }
-
-    public String getClazzFieldName() {
-        return clazzFieldName;
-    }
-
-    public void setClazzFieldName(String clazzFieldName) {
-        this.clazzFieldName = clazzFieldName;
-    }
-
     public boolean isTypeOfSubEntity() {
         return !StringUtils.isBlank(subEntityName);
     }
@@ -75,15 +48,4 @@ public class CblFieldHolder {
         return !StringUtils.isBlank(attachmentType);
     }
 
-    public AbstractJClass getType() {
-        return type;
-    }
-
-    public Element getFieldElement() {
-        return fieldElement;
-    }
-
-    public void setFieldElement(Element fieldElement) {
-        this.fieldElement = fieldElement;
-    }
 }

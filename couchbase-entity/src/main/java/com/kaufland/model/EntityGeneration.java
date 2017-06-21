@@ -12,6 +12,8 @@ import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JPackage;
+import com.kaufland.model.source.CblBaseFieldHolder;
+import com.kaufland.model.source.CblConstantHolder;
 import com.kaufland.model.source.CblEntityHolder;
 import com.kaufland.model.source.CblFieldHolder;
 
@@ -60,12 +62,23 @@ public class EntityGeneration implements GenerationModel {
 
         List<CblFieldHolder> attachmentFields = new ArrayList<>();
 
-        for (CblFieldHolder fieldHolder : mHolder.getFields()) {
+        List<CblConstantHolder> constantFields = new ArrayList<>();
 
+        for (CblBaseFieldHolder baseFieldHolder : mHolder.getFields()) {
+            JMethod getter = genClazz.method(JMod.PUBLIC, baseFieldHolder.getType(), "get" + WordUtils.capitalize(baseFieldHolder.getClazzFieldName()));
+
+            createFieldConstant(genClazz, baseFieldHolder.getDbField());
+
+            if (baseFieldHolder instanceof CblConstantHolder) {
+                createGetterBodyDefault(baseFieldHolder.getType(), baseFieldHolder.getDbField(), getter);
+                constantFields.add((CblConstantHolder) baseFieldHolder);
+                continue;
+            }
+
+            CblFieldHolder fieldHolder = (CblFieldHolder) baseFieldHolder;
             JMethod setter = genClazz.method(JMod.PUBLIC, genClazz, "set" + WordUtils.capitalize(fieldHolder.getClazzFieldName().toString()));
             setter.param(fieldHolder.getType(), "value");
 
-            JMethod getter = genClazz.method(JMod.PUBLIC, fieldHolder.getType(), "get" + WordUtils.capitalize(fieldHolder.getClazzFieldName()));
 
             if (fieldHolder.isTypeOfSubEntity()) {
                 createSetterBodySubEntity(fieldHolder, setter);
@@ -81,16 +94,12 @@ public class EntityGeneration implements GenerationModel {
                 attachmentFields.add(fieldHolder);
                 createGetterBodyDefault(fieldHolder.getType(), fieldHolder.getDbField(), getter);
             }
-
-            createFieldConstant(genClazz, fieldHolder.getDbField());
-
-
         }
 
         createFromMap(codeModel, genClazz);
         createToMap(codeModel, genClazz);
 
-        createSaveMethod(codeModel, genClazz, attachmentFields);
+        createSaveMethod(codeModel, genClazz, attachmentFields, constantFields);
 
         createDeleteMethod(codeModel, genClazz);
 
@@ -173,12 +182,16 @@ public class EntityGeneration implements GenerationModel {
         fromMapList.body().directStatement(mBuilder.toString());
     }
 
-    private void createSaveMethod(JCodeModel codeModel, JDefinedClass genClazz, List<CblFieldHolder> attachments) {
+    private void createSaveMethod(JCodeModel codeModel, JDefinedClass genClazz, List<CblFieldHolder> attachments, List<CblConstantHolder> constantFields) {
         JMethod mSave = genClazz.method(JMod.PUBLIC, codeModel.VOID, "save");
         mSave._throws(CouchbaseLiteException.class);
 
         StringBuilder builder = new StringBuilder();
         builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()); \n");
+
+        for (CblConstantHolder constant: constantFields) {
+            builder.append("mDocChanges.put(\"" + constant.getDbField() + "\",\"" + constant.getConstantValue() + "\"); \n");
+        }
 
         if (attachments.size() <= 0) {
             builder.append("doc.putProperties(mDocChanges); \n");

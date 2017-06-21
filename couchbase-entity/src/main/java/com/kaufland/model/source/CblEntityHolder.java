@@ -9,14 +9,14 @@ import javax.lang.model.element.Element;
 
 public class CblEntityHolder {
 
-    private List<CblFieldHolder> mFields = new ArrayList<>();
+    private List<CblBaseFieldHolder> mFields = new ArrayList<>();
 
     private AbstractJClass sourceClazz;
 
     private Element sourceElement;
 
 
-    public List<CblFieldHolder> getFields() {
+    public List<CblBaseFieldHolder> getFields() {
         return mFields;
     }
 
