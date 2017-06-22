@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ElementUtil {
+public final class ElementUtil {
 
     public static List<String> splitGenericIfNeeded(String name) {
 

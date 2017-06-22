@@ -165,7 +165,7 @@ public class ListActivity extends AppCompatActivity {
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).setTitle(title);
         mList.setSub(SubEntity.create().setTest("test"));
-        ArrayList<Sub> sub = new ArrayList<>();
+        ArrayList<SubEntity> sub = new ArrayList<>();
         sub.add(SubEntity.create().setTest("rs"));
         mList.setListSub(sub);
 

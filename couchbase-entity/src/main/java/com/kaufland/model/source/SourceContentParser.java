@@ -48,17 +48,22 @@ public class SourceContentParser {
                     cblFieldHolder.setDbField(annotation.value().equals("") ? element.getSimpleName().toString() : annotation.value());
 
                     if (allAnnotatedFields.containsKey(fieldType.name())) {
-                        cblFieldHolder.setSubEntityName(fieldType.name());
+                        cblFieldHolder.setSubEntityName(fieldType.name()+ "Entity");
+                        fieldType = model.directClass(fieldType.fullName()+ "Entity");
                     }
 
                     if (baseTypeWithGenerics.size() > 1) {
                         for (int i = 1; i < baseTypeWithGenerics.size(); i++) {
 
+
                             JDirectClass mClazz = model.directClass(baseTypeWithGenerics.get(i));
-                            fieldType = fieldType.narrow(mClazz);
+
                             if (allAnnotatedFields.containsKey(mClazz.name())) {
                                 cblFieldHolder.setSubEntityIsTypeParam(true);
-                                cblFieldHolder.setSubEntityName(mClazz.name());
+                                cblFieldHolder.setSubEntityName(mClazz.name() + "Entity");
+                                fieldType = fieldType.narrow(model.directClass(mClazz.fullName()+ "Entity"));
+                            }else{
+                                fieldType = fieldType.narrow(mClazz);
                             }
                         }
                     }

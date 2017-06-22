@@ -16,6 +16,7 @@ import com.kaufland.model.source.CblBaseFieldHolder;
 import com.kaufland.model.source.CblConstantHolder;
 import com.kaufland.model.source.CblEntityHolder;
 import com.kaufland.model.source.CblFieldHolder;
+import com.kaufland.util.ConversionUtil;
 
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -67,10 +68,11 @@ public class EntityGeneration implements GenerationModel {
         for (CblBaseFieldHolder baseFieldHolder : mHolder.getFields()) {
             JMethod getter = genClazz.method(JMod.PUBLIC, baseFieldHolder.getType(), "get" + WordUtils.capitalize(baseFieldHolder.getClazzFieldName()));
 
-            createFieldConstant(genClazz, baseFieldHolder.getDbField());
+            createFieldConstant(genClazz, baseFieldHolder.getDbField(), ConversionUtil.convertCamelToUnderscore(baseFieldHolder.getDbField()).toUpperCase());
 
             if (baseFieldHolder instanceof CblConstantHolder) {
                 createGetterBodyDefault(baseFieldHolder.getType(), baseFieldHolder.getDbField(), getter);
+                createFieldConstant(genClazz, ((CblConstantHolder) baseFieldHolder).getConstantValue(), "DOC_" + ConversionUtil.convertCamelToUnderscore(baseFieldHolder.getDbField()).toUpperCase());
                 constantFields.add((CblConstantHolder) baseFieldHolder);
                 continue;
             }
@@ -116,7 +118,7 @@ public class EntityGeneration implements GenerationModel {
 
     private void createGetterBodySubEntity(CblFieldHolder fieldHolder, JMethod getter) {
         StringBuilder builder = new StringBuilder();
-        builder.append("return (" + fieldHolder.getType().fullName() + ") " + fieldHolder.getSubEntityName() + "Entity.fromMap((");
+        builder.append("return (" + fieldHolder.getType().fullName() + ") " + fieldHolder.getSubEntityName() + ".fromMap((");
         if (fieldHolder.isSubEntityIsTypeParam()) {
             builder.append("java.util.List<java.util.HashMap<String, Object>>");
         } else {
@@ -129,10 +131,10 @@ public class EntityGeneration implements GenerationModel {
 
     private void createSetterBodySubEntity(CblFieldHolder fieldHolder, JMethod setter) {
         StringBuilder builder = new StringBuilder();
-        builder.append("mDocChanges.put(" + fieldHolder.getDbField().toUpperCase() + ", " + fieldHolder.getSubEntityName() + "Entity.toMap((");
+        builder.append("mDocChanges.put(" + fieldHolder.getDbField().toUpperCase() + ", " + fieldHolder.getSubEntityName() + ".toMap((");
 
         if (fieldHolder.isSubEntityIsTypeParam()) {
-            builder.append("java.util.List<" + fieldHolder.getSubEntityName() + ">");
+            builder.append(fieldHolder.getType().fullName());
         } else {
             builder.append(fieldHolder.getSubEntityName());
         }
@@ -154,27 +156,42 @@ public class EntityGeneration implements GenerationModel {
     private void createToMap(JCodeModel codeModel, JDefinedClass genClazz) {
 
         JMethod toMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "toMap");
-        toMap.param(mHolder.getSourceClazz(), "obj");
-        toMap.body().directStatement("java.util.HashMap<String, Object> result = new java.util.HashMap<String, Object>(); result.putAll(((" + genClazz.name() + ")obj).mDoc); result.putAll(((" + genClazz.name() + ")obj).mDocChanges); return result;");
+        toMap.param(genClazz, "obj");
+
+        StringBuilder builderSingle = new StringBuilder();
+        builderSingle.append("java.util.HashMap<String, Object> result = new java.util.HashMap<String, Object>(); \n");
+        builderSingle.append("result.putAll(((" + genClazz.name() + ")obj).mDoc); \n");
+        builderSingle.append("result.putAll(((" + genClazz.name() + ")obj).mDocChanges);\n");
+        builderSingle.append("return result;\n");
+        toMap.body().directStatement(builderSingle.toString());
 
         JMethod toMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "toMap");
-        toMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(mHolder.getSourceClazz()), "obj");
-        toMapList.body().directStatement("java.util.List<java.util.HashMap<String, Object>> result = new java.util.ArrayList<java.util.HashMap<String, Object>>(); for(" + mHolder.getSourceClazz().name() + " entry : obj) {result.add(((" + genClazz.name() + ")entry).toMap(entry)); } return result;");
+        toMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "obj");
+
+        StringBuilder builderMulti = new StringBuilder();
+        builderMulti.append("java.util.List<java.util.HashMap<String, Object>> result = new java.util.ArrayList<java.util.HashMap<String, Object>>(); \n");
+        builderMulti.append("for(" + genClazz.name() + " entry : obj) {\n");
+        builderMulti.append("result.add(((" + genClazz.name() + ")entry).toMap(entry));\n");
+        builderMulti.append("}\n");
+        builderMulti.append("return result;\n");
+        toMapList.body().directStatement(builderMulti.toString());
     }
 
 
     private void createFromMap(JCodeModel codeModel, JDefinedClass genClazz) {
-        JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, mHolder.getSourceClazz(), "fromMap");
+        JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "fromMap");
         fromMap.param(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
         fromMap.body().directStatement("return new " + genClazz.name() + "(obj);");
 
-        JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(mHolder.getSourceClazz()), "fromMap");
+        JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "fromMap");
         fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
 
         StringBuilder mBuilder = new StringBuilder()
-                .append("java.util.List<" + mHolder.getSourceClazz().name() + "> result = new java.util.ArrayList<" + mHolder.getSourceClazz().name() + ">(); \n")
+                .append("java.util.List<" + genClazz.name() + "> result = new java.util.ArrayList<" + genClazz.name() + ">(); \n")
+                .append("if(obj != null) { \n")
                 .append("for(java.util.HashMap<String, Object> entry : obj) { \n")
                 .append("result.add(new " + genClazz.name() + "(entry)); \n")
+                .append("} \n")
                 .append("} \n")
                 .append("return result; \n");
 
@@ -189,7 +206,7 @@ public class EntityGeneration implements GenerationModel {
         StringBuilder builder = new StringBuilder();
         builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()); \n");
 
-        for (CblConstantHolder constant: constantFields) {
+        for (CblConstantHolder constant : constantFields) {
             builder.append("mDocChanges.put(\"" + constant.getDbField() + "\",\"" + constant.getConstantValue() + "\"); \n");
         }
 
@@ -208,8 +225,8 @@ public class EntityGeneration implements GenerationModel {
         mSave.body().directStatement(builder.toString());
     }
 
-    private void createFieldConstant(JDefinedClass genClazz, String fieldName) {
-        JFieldVar constant = genClazz.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, String.class, fieldName.toUpperCase());
+    private void createFieldConstant(JDefinedClass genClazz, String fieldName, String constName) {
+        JFieldVar constant = genClazz.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, String.class, constName);
         constant.init(JExpr.lit(fieldName));
     }
 }
