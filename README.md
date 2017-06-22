@@ -70,8 +70,8 @@ Is a library that generates entities and methods to easily modify data for [couc
 @CblEntity
 public class List {
 
-    @CblField
-    String type;
+    @CblConstant(value = "type", constant = "List")
+    private String type;
 
     @CblField("title")
     String title;
