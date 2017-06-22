@@ -43,8 +43,8 @@ Is a library that generates entities and methods to easily modify data for [couc
 2. Add gradle dependency
 
     ```
-    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:0.0.4'
-    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.0.4'
+    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:0.9.0'
+    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.9.0'
     ```
 
 3. Configure library 
@@ -89,8 +89,7 @@ public class List {
  * Annotate classes to generate entities (All generated Classes have the suffix Entity)
 
  ``` java
-  ListEntity mList = ListEntity.create().
-                setType("list").
+  ListEntity mList = ListEntity.create().           
                 setCreatedAt(currentTimeString).
                 setMembers(new ArrayList<String>()).
                 setTitle(title).
