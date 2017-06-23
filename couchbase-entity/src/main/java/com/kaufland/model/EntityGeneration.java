@@ -113,7 +113,7 @@ public class EntityGeneration implements GenerationModel {
     }
 
     private void createSetterBodyDefault(CblFieldHolder fieldHolder, JMethod setter) {
-        setter.body().directStatement("mDocChanges.put(" + fieldHolder.getDbField().toUpperCase() + ", value); return this;");
+        setter.body().directStatement("mDocChanges.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", value); return this;");
     }
 
     private void createGetterBodySubEntity(CblFieldHolder fieldHolder, JMethod getter) {
@@ -124,14 +124,14 @@ public class EntityGeneration implements GenerationModel {
         } else {
             builder.append("java.util.HashMap<String, Object>");
         }
-        builder.append(")mDoc.get(" + fieldHolder.getDbField().toUpperCase() + "));");
+        builder.append(")mDoc.get(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "));");
 
         getter.body().directStatement(builder.toString());
     }
 
     private void createSetterBodySubEntity(CblFieldHolder fieldHolder, JMethod setter) {
         StringBuilder builder = new StringBuilder();
-        builder.append("mDocChanges.put(" + fieldHolder.getDbField().toUpperCase() + ", " + fieldHolder.getSubEntityName() + ".toMap((");
+        builder.append("mDocChanges.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", " + fieldHolder.getSubEntityName() + ".toMap((");
 
         if (fieldHolder.isSubEntityIsTypeParam()) {
             builder.append(fieldHolder.getType().fullName());
@@ -150,7 +150,7 @@ public class EntityGeneration implements GenerationModel {
     }
 
     private void createGetterBodyDefault(AbstractJClass resturnValue, String dbField, JMethod getter) {
-        getter.body().directStatement("return (" + resturnValue.fullName() + ") mDoc.get(" + dbField.toUpperCase() + ");");
+        getter.body().directStatement("return (" + resturnValue.fullName() + ") mDoc.get(" + ConversionUtil.convertCamelToUnderscore(dbField).toUpperCase() + ");");
     }
 
     private void createToMap(JCodeModel codeModel, JDefinedClass genClazz) {
