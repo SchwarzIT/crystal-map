@@ -59,7 +59,12 @@ public class EntityGeneration implements GenerationModel {
 
         JMethod ctr = genClazz.constructor(JMod.PUBLIC);
         ctr.param(mapClazz, "doc");
-        ctr.body().directStatement("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>(); mDocChanges = new java.util.HashMap<String, Object>();");
+        ctr.body().directStatement("rebind(doc);");
+
+        JMethod rebindMethod = genClazz.method(JMod.PUBLIC, codeModel.VOID, "rebind");
+        rebindMethod.param(mapClazz, "doc");
+        rebindMethod.body().directStatement("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>(); mDocChanges = new java.util.HashMap<String, Object>();");
+
 
         List<CblFieldHolder> attachmentFields = new ArrayList<>();
 
@@ -216,10 +221,15 @@ public class EntityGeneration implements GenerationModel {
             builder.append("com.couchbase.lite.UnsavedRevision rev = doc.createRevision(); \n");
             builder.append("rev.setProperties(mDocChanges); \n");
             for (CblFieldHolder attachment : attachments) {
+
+                builder.append("if("+attachment.getDbField() + " != null){ \n");
                 builder.append("rev.setAttachment(\"" + attachment.getDbField() + "\", \"" + attachment.getAttachmentType() + "\", " + attachment.getDbField() + "); \n");
+                builder.append("} \n");
             }
 
             builder.append("rev.save(); \n");
+            builder.append("rebind(doc.getProperties()); \n");
+
         }
 
         mSave.body().directStatement(builder.toString());
