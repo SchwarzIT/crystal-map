@@ -222,15 +222,14 @@ public class EntityGeneration implements GenerationModel {
             builder.append("rev.setProperties(mDocChanges); \n");
             for (CblFieldHolder attachment : attachments) {
 
-                builder.append("if("+attachment.getDbField() + " != null){ \n");
+                builder.append("if(" + attachment.getDbField() + " != null){ \n");
                 builder.append("rev.setAttachment(\"" + attachment.getDbField() + "\", \"" + attachment.getAttachmentType() + "\", " + attachment.getDbField() + "); \n");
                 builder.append("} \n");
             }
 
             builder.append("rev.save(); \n");
-            builder.append("rebind(doc.getProperties()); \n");
-
         }
+        builder.append("rebind(doc.getProperties()); \n");
 
         mSave.body().directStatement(builder.toString());
     }

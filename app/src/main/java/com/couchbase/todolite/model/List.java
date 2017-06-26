@@ -9,7 +9,7 @@ import kaufland.com.coachbasebinderapi.CblField;
 @CblEntity
 public class List {
 
-    @CblConstant(value = "type", constant = "List")
+    @CblConstant(value = "type", constant = "list")
     private String type;
 
     @CblField("title")
