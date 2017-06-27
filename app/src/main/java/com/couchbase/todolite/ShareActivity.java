@@ -115,9 +115,14 @@ public class ShareActivity extends AppCompatActivity {
         }
     }
 
-    private class UserAdapter extends LiveQueryAdapter {
+    private class UserAdapter extends LiveQueryAdapter<Document> {
         public UserAdapter(Context context, LiveQuery query) {
             super(context, query);
+        }
+
+        @Override
+        protected Document docToEntity(Document doc) {
+            return doc;
         }
 
         private boolean isListOwner(Document user) {

@@ -6,10 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
 import com.couchbase.lite.QueryEnumerator;
 
-public class LiveQueryAdapter extends BaseAdapter {
+public abstract class LiveQueryAdapter<T> extends BaseAdapter {
     private LiveQuery query;
     private QueryEnumerator enumerator;
     private Context context;
@@ -40,8 +41,10 @@ public class LiveQueryAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int i) {
-        return enumerator != null ? enumerator.getRow(i).getDocument() : null;
+        return enumerator != null ? docToEntity(enumerator.getRow(i).getDocument()) : null;
     }
+
+    protected abstract T docToEntity(Document doc);
 
     @Override
     public long getItemId(int i) {

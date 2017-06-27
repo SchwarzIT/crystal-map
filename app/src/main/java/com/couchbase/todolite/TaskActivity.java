@@ -69,7 +69,7 @@ public class TaskActivity extends AppCompatActivity {
     private Database mDatabase;
     private TaskAdapter mAdapter;
     private String mImagePathToBeAttached;
-    private Document mCurrentTaskToAttachImage;
+    private TaskEntity mCurrentTaskToAttachImage;
     private Bitmap mImageToBeAttached;
 
     @Override
@@ -173,7 +173,7 @@ public class TaskActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        Document task = (Document) mAdapter.getItem(pos - 1);
+                        TaskEntity task = (TaskEntity) mAdapter.getItem(pos - 1);
                         handleTaskPopupAction(item, task);
                         return true;
                     }
@@ -184,7 +184,7 @@ public class TaskActivity extends AppCompatActivity {
         });
     }
 
-    private void handleTaskPopupAction(MenuItem item, Document task) {
+    private void handleTaskPopupAction(MenuItem item, TaskEntity task) {
         switch (item.getItemId()) {
             case R.id.update:
                 updateTask(task);
@@ -243,28 +243,27 @@ public class TaskActivity extends AppCompatActivity {
         }
     }
 
-    private void updateTask(final Document task) {
+    private void updateTask(final TaskEntity task) {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle(getResources().getString(R.string.title_dialog_update));
 
         final EditText input = new EditText(this);
         input.setMaxLines(1);
         input.setSingleLine(true);
-        String text = (String) task.getProperty("title");
+        String text = (String) task.getTitle();
         input.setText(text);
         alert.setView(input);
         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+
                 String currentTimeString = mDateFormatter.format(new Date());
 
-                Map<String, Object> updatedProperties = new HashMap<String, Object>();
-                updatedProperties.putAll(task.getProperties());
-                updatedProperties.put("title", input.getText().toString());
-                updatedProperties.put("updated_at", currentTimeString);
-
                 try {
-                    task.putProperties(updatedProperties);
+                    task
+                            .setTitle(input.getText().toString())
+                            .setUpdatedAt(currentTimeString)
+                            .save();
                 } catch (CouchbaseLiteException e) {
                     e.printStackTrace();
                 }
@@ -273,7 +272,7 @@ public class TaskActivity extends AppCompatActivity {
         alert.show();
     }
 
-    private void deleteTask(final Document task) {
+    private void deleteTask(final TaskEntity task) {
         try {
             task.delete();
         } catch (CouchbaseLiteException e) {
@@ -281,29 +280,27 @@ public class TaskActivity extends AppCompatActivity {
         }
     }
 
-    private void attachImage(Document task, Bitmap image) {
+    private void attachImage(TaskEntity task, Bitmap image) {
         if (task == null || image == null) return;
 
-        UnsavedRevision revision = task.createRevision();
+
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 50, out);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        revision.setAttachment("image", "image/jpg", in);
+        task.setImage(in);
 
         try {
-            revision.save();
+            task.save();
         } catch (CouchbaseLiteException e) {
             Log.e(Application.TAG, "Cannot attach image", e);
         }
     }
 
-    private void updateCheckedStatus(Document task, boolean checked) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.putAll(task.getProperties());
-        properties.put("checked", checked);
+    private void updateCheckedStatus(TaskEntity task, boolean checked) {
 
         try {
-            task.putProperties(properties);
+            task.setChecked(checked).save();
         } catch (CouchbaseLiteException e) {
             Log.e(Application.TAG, "Cannot update checked status", e);
         }
@@ -353,7 +350,7 @@ public class TaskActivity extends AppCompatActivity {
         imageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_camera));
     }
 
-    private void displayAttachImageDialog(final Document task) {
+    private void displayAttachImageDialog(final TaskEntity task) {
         CharSequence[] items;
         if (mImageToBeAttached != null)
             items = new CharSequence[]{"Take photo", "Choose photo", "Delete photo"};
@@ -439,9 +436,14 @@ public class TaskActivity extends AppCompatActivity {
     }
 
 
-    private class TaskAdapter extends LiveQueryAdapter {
+    private class TaskAdapter extends LiveQueryAdapter<TaskEntity> {
         public TaskAdapter(Context context, LiveQuery query) {
             super(context, query);
+        }
+
+        @Override
+        protected TaskEntity docToEntity(Document doc) {
+            return TaskEntity.create(doc.getId());
         }
 
         @Override
@@ -452,10 +454,7 @@ public class TaskActivity extends AppCompatActivity {
                 convertView = inflater.inflate(R.layout.view_task, null);
             }
 
-            final Document task = (Document) getItem(position);
-            if (task == null || task.getCurrentRevision() == null) {
-                return convertView;
-            }
+            final TaskEntity task = (TaskEntity) getItem(position);
 
             Bitmap thumbnail = getTaskThumbnail(task);
             ImageView imageView = (ImageView) convertView.findViewById(R.id.image);
@@ -467,20 +466,24 @@ public class TaskActivity extends AppCompatActivity {
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (task.getCurrentRevision().getAttachment("image") != null) {
-                        Intent intent = new Intent(TaskActivity.this, ImageActivity.class);
-                        intent.putExtra(ImageActivity.INTENT_TASK_DOC_ID, task.getId());
-                        startActivity(intent);
-                    } else
-                        displayAttachImageDialog(task);
+                    try {
+                        if (task.getImage() != null) {
+                            Intent intent = new Intent(TaskActivity.this, ImageActivity.class);
+                            intent.putExtra(ImageActivity.INTENT_TASK_DOC_ID, task.getId());
+                            startActivity(intent);
+                        } else
+                            displayAttachImageDialog(task);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
             TextView text = (TextView) convertView.findViewById(R.id.text);
-            text.setText((String) task.getProperty("title"));
+            text.setText((String) task.getTitle());
 
             final CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checked);
-            Boolean checkedProperty = (Boolean) task.getProperty("checked");
+            Boolean checkedProperty = (Boolean) task.getChecked();
             boolean checked = checkedProperty != null ? checkedProperty.booleanValue() : false;
             checkBox.setChecked(checked);
             checkBox.setOnClickListener(new View.OnClickListener() {
@@ -493,26 +496,29 @@ public class TaskActivity extends AppCompatActivity {
             return convertView;
         }
 
-        private Bitmap getTaskThumbnail(Document task) {
-            List<Attachment> attachments = task.getCurrentRevision().getAttachments();
-            if (attachments.size() == 0)
-                return null;
+        private Bitmap getTaskThumbnail(TaskEntity task) {
 
-            Bitmap bitmap = null;
             InputStream is = null;
             final int size = THUMBNAIL_SIZE;
             try {
+                is = task.getImage();
+                Bitmap bitmap = null;
+
+                if(is == null){
+                    return null;
+                }
+
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
-                is = attachments.get(0).getContent();
                 BitmapFactory.decodeStream(is, null, options);
                 options.inSampleSize = ImageUtil.calculateInSampleSize(options, size, size);
                 is.close();
 
                 options.inJustDecodeBounds = false;
-                is = task.getCurrentRevision().getAttachments().get(0).getContent();
+                is = task.getImage();
                 bitmap = BitmapFactory.decodeStream(is, null, options);
                 bitmap = ThumbnailUtils.extractThumbnail(bitmap, size, size);
+                return bitmap;
             } catch (Exception e) {
                 Log.e(Application.TAG, "Cannot decode the attached image", e);
             } finally {
@@ -521,7 +527,7 @@ public class TaskActivity extends AppCompatActivity {
                 } catch (IOException e) {
                 }
             }
-            return bitmap;
+            return null;
         }
     }
 }

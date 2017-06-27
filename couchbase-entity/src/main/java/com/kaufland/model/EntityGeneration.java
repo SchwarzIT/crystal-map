@@ -99,7 +99,7 @@ public class EntityGeneration implements GenerationModel {
                 JFieldVar attachment = genClazz.field(JMod.PRIVATE, fieldHolder.getType(), fieldHolder.getDbField());
                 setter.body().directStatement(fieldHolder.getDbField() + "= value; return this;");
                 attachmentFields.add(fieldHolder);
-                createGetterBodyDefault(fieldHolder.getType(), fieldHolder.getDbField(), getter);
+                createGetterBodyAttachment(fieldHolder.getType(), fieldHolder.getDbField(), getter);
             }
         }
 
@@ -114,6 +114,23 @@ public class EntityGeneration implements GenerationModel {
 
         return codeModel;
 
+
+    }
+
+    private void createGetterBodyAttachment(AbstractJClass resturnValue, String dbField, JMethod getter) {
+
+
+        getter._throws(CouchbaseLiteException.class);
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()); \n");
+
+        builder.append("if(doc.getCurrentRevision() != null && doc.getCurrentRevision().getAttachments() != null &&  doc.getCurrentRevision().getAttachments().size() > 0) {\n");
+        builder.append("return doc.getCurrentRevision().getAttachments().get(0).getContent(); \n");
+        builder.append("} \n");
+        builder.append("return null; \n");
+
+        getter.body().directStatement(builder.toString());
 
     }
 
@@ -215,18 +232,24 @@ public class EntityGeneration implements GenerationModel {
             builder.append("mDocChanges.put(\"" + constant.getDbField() + "\",\"" + constant.getConstantValue() + "\"); \n");
         }
 
-        if (attachments.size() <= 0) {
-            builder.append("doc.putProperties(mDocChanges); \n");
-        } else {
+        builder.append("java.util.HashMap<String, Object> temp = new java.util.HashMap<String, Object>(); \n");
+        builder.append("if(doc.getProperties() != null){ \n");
+        builder.append("temp.putAll(doc.getProperties()); \n");
+        builder.append("} \n");
+        builder.append("if(mDocChanges != null){ \n");
+        builder.append("temp.putAll(mDocChanges); \n");
+        builder.append("} \n");
+        builder.append("doc.putProperties(temp); \n");
+
+        if (attachments.size() > 0) {
+
             builder.append("com.couchbase.lite.UnsavedRevision rev = doc.createRevision(); \n");
-            builder.append("rev.setProperties(mDocChanges); \n");
             for (CblFieldHolder attachment : attachments) {
 
                 builder.append("if(" + attachment.getDbField() + " != null){ \n");
                 builder.append("rev.setAttachment(\"" + attachment.getDbField() + "\", \"" + attachment.getAttachmentType() + "\", " + attachment.getDbField() + "); \n");
                 builder.append("} \n");
             }
-
             builder.append("rev.save(); \n");
         }
         builder.append("rebind(doc.getProperties()); \n");

@@ -21,6 +21,9 @@ public class Task {
     @CblField("created_at")
     private String createdAt;
 
+    @CblField("updated_at")
+    private String updatedAt;
+
     @CblField("list_id")
     private String listId;
 

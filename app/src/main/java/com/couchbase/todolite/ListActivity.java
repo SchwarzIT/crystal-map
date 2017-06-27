@@ -64,7 +64,7 @@ public class ListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Document list = (Document) mAdapter.getItem(i);
+                ListEntity list = (ListEntity) mAdapter.getItem(i);
                 showTasks(list);
             }
         });
@@ -213,7 +213,7 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-    private void showTasks(Document list) {
+    private void showTasks(ListEntity list) {
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra(TaskActivity.INTENT_LIST_ID, list.getId());
         startActivity(intent);
@@ -224,9 +224,14 @@ public class ListActivity extends AppCompatActivity {
         application.logout();
     }
 
-    private class ListAdapter extends LiveQueryAdapter {
+    private class ListAdapter extends LiveQueryAdapter<ListEntity> {
         public ListAdapter(Context context, LiveQuery query) {
             super(context, query);
+        }
+
+        @Override
+        protected ListEntity docToEntity(Document doc) {
+            return ListEntity.create(doc.getId());
         }
 
         @Override
@@ -237,9 +242,9 @@ public class ListActivity extends AppCompatActivity {
                 convertView = inflater.inflate(R.layout.view_list, null);
             }
 
-            final Document list = (Document) getItem(position);
+            final ListEntity list = (ListEntity) getItem(position);
             TextView text = (TextView) convertView.findViewById(R.id.text);
-            text.setText((String) list.getProperty("title"));
+            text.setText(list.getTitle());
             return convertView;
         }
     }
