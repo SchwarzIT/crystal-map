@@ -181,9 +181,12 @@ public class EntityGeneration implements GenerationModel {
         toMap.param(genClazz, "obj");
 
         StringBuilder builderSingle = new StringBuilder();
+        builderSingle.append("if(obj == null){ \n");
+        builderSingle.append("return null; \n");
+        builderSingle.append("} \n");
         builderSingle.append("java.util.HashMap<String, Object> result = new java.util.HashMap<String, Object>(); \n");
-        builderSingle.append("result.putAll(((" + genClazz.name() + ")obj).mDoc); \n");
-        builderSingle.append("result.putAll(((" + genClazz.name() + ")obj).mDocChanges);\n");
+        builderSingle.append("result.putAll(obj.mDoc); \n");
+        builderSingle.append("result.putAll(obj.mDocChanges);\n");
         builderSingle.append("return result;\n");
         toMap.body().directStatement(builderSingle.toString());
 
@@ -191,6 +194,7 @@ public class EntityGeneration implements GenerationModel {
         toMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "obj");
 
         StringBuilder builderMulti = new StringBuilder();
+        builderMulti.append("if(obj == null) return null; \n");
         builderMulti.append("java.util.List<java.util.HashMap<String, Object>> result = new java.util.ArrayList<java.util.HashMap<String, Object>>(); \n");
         builderMulti.append("for(" + genClazz.name() + " entry : obj) {\n");
         builderMulti.append("result.add(((" + genClazz.name() + ")entry).toMap(entry));\n");
@@ -203,19 +207,20 @@ public class EntityGeneration implements GenerationModel {
     private void createFromMap(JCodeModel codeModel, JDefinedClass genClazz) {
         JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "fromMap");
         fromMap.param(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
-        fromMap.body().directStatement("return new " + genClazz.name() + "(obj);");
+        fromMap.body().directStatement("return obj != null ? new " + genClazz.name() + "(obj) : null;");
 
         JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "fromMap");
         fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
 
         StringBuilder mBuilder = new StringBuilder()
-                .append("java.util.List<" + genClazz.name() + "> result = new java.util.ArrayList<" + genClazz.name() + ">(); \n")
                 .append("if(obj != null) { \n")
+                .append("java.util.List<" + genClazz.name() + "> result = new java.util.ArrayList<" + genClazz.name() + ">(); \n")
                 .append("for(java.util.HashMap<String, Object> entry : obj) { \n")
                 .append("result.add(new " + genClazz.name() + "(entry)); \n")
                 .append("} \n")
+                .append("return result; \n")
                 .append("} \n")
-                .append("return result; \n");
+                .append("return null; \n");
 
 
         fromMapList.body().directStatement(mBuilder.toString());
