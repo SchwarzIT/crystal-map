@@ -43,8 +43,8 @@ Is a library that generates entities and methods to easily modify data for [couc
 2. Add gradle dependency
 
     ```
-    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:0.9.0'
-    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.9.0'
+    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:0.9.5'
+    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.9.5'
     ```
 
 3. Configure library 
