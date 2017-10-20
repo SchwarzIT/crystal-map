@@ -142,9 +142,9 @@ public class EntityGeneration implements GenerationModel {
         StringBuilder builder = new StringBuilder();
         builder.append("return (" + fieldHolder.getType().fullName() + ") " + fieldHolder.getSubEntityName() + ".fromMap((");
         if (fieldHolder.isSubEntityIsTypeParam()) {
-            builder.append("java.util.List<java.util.HashMap<String, Object>>");
+            builder.append("java.util.List<java.util.Map<String, Object>>");
         } else {
-            builder.append("java.util.HashMap<String, Object>");
+            builder.append("java.util.Map<String, Object>");
         }
         builder.append(")mDoc.get(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "));");
 
@@ -206,16 +206,16 @@ public class EntityGeneration implements GenerationModel {
 
     private void createFromMap(JCodeModel codeModel, JDefinedClass genClazz) {
         JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "fromMap");
-        fromMap.param(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
+        fromMap.param(codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
         fromMap.body().directStatement("return obj != null ? new " + genClazz.name() + "(obj) : null;");
 
         JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "fromMap");
-        fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
+        fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
 
         StringBuilder mBuilder = new StringBuilder()
                 .append("if(obj != null) { \n")
                 .append("java.util.List<" + genClazz.name() + "> result = new java.util.ArrayList<" + genClazz.name() + ">(); \n")
-                .append("for(java.util.HashMap<String, Object> entry : obj) { \n")
+                .append("for(java.util.Map<String, Object> entry : obj) { \n")
                 .append("result.add(new " + genClazz.name() + "(entry)); \n")
                 .append("} \n")
                 .append("return result; \n")
