@@ -14,7 +14,7 @@ public class PersistenceConfig {
     }
 
     public interface DatabaseGet {
-        Database getDatabase();
+        Database getDatabase(String name);
     }
 
     public static void configure(DatabaseGet databaseGet) {
@@ -22,13 +22,13 @@ public class PersistenceConfig {
         mInstance = new PersistenceConfig(databaseGet);
     }
 
-    public Document createOrGet(String docId) {
+    public Document createOrGet(String docId, String name) {
 
 
-        Document doc = mDatabaseGet.getDatabase().getDocument(docId);
+        Document doc = mDatabaseGet.getDatabase(name).getDocument(docId);
 
         if (doc == null) {
-            doc = mDatabaseGet.getDatabase().createDocument();
+            doc = mDatabaseGet.getDatabase(name).createDocument();
         }
 
         return doc;

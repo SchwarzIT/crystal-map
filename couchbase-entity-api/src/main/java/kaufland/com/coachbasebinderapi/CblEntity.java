@@ -16,4 +16,6 @@ public @interface CblEntity {
      * @return the implementation class
      */
     Class<?> value() default Void.class;
+
+    String database() default "";
 }

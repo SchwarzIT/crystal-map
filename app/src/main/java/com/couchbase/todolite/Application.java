@@ -61,7 +61,7 @@ public class Application extends android.app.Application implements Replication.
         enableLogging();
         PersistenceConfig.configure(new PersistenceConfig.DatabaseGet() {
             @Override
-            public Database getDatabase() {
+            public Database getDatabase(String name) {
                 return Application.this.getDatabase();
             }
         });
