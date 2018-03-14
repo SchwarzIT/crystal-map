@@ -46,10 +46,10 @@ public class EntityGeneration implements GenerationModel {
 
         JMethod mUpsert = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "create");
         mUpsert.param(String.class, "id");
-        mUpsert.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(id).getProperties());");
+        mUpsert.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(id, \""+mHolder.getDbName() +"\").getProperties());");
 
         JMethod mCreate = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "create");
-        mCreate.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(null).getProperties());");
+        mCreate.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(null, \""+mHolder.getDbName() +"\").getProperties());");
 
         AbstractJClass mapClazz = codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class, Object.class);
 
@@ -123,7 +123,7 @@ public class EntityGeneration implements GenerationModel {
         getter._throws(CouchbaseLiteException.class);
         StringBuilder builder = new StringBuilder();
 
-        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()); \n");
+        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \""+mHolder.getDbName() +"\"); \n");
 
         builder.append("if(doc.getCurrentRevision() != null && doc.getCurrentRevision().getAttachments() != null &&  doc.getCurrentRevision().getAttachments().size() > 0) {\n");
         builder.append("return doc.getCurrentRevision().getAttachments().get(0).getContent(); \n");
@@ -168,7 +168,7 @@ public class EntityGeneration implements GenerationModel {
     private void createDeleteMethod(JCodeModel codeModel, JDefinedClass genClazz) {
         JMethod delete = genClazz.method(JMod.PUBLIC, codeModel.VOID, "delete");
         delete._throws(CouchbaseLiteException.class);
-        delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()).delete();");
+        delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \""+mHolder.getDbName() +"\").delete();");
     }
 
     private void createGetterBodyDefault(AbstractJClass resturnValue, String dbField, JMethod getter) {
@@ -231,7 +231,7 @@ public class EntityGeneration implements GenerationModel {
         mSave._throws(CouchbaseLiteException.class);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId()); \n");
+        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \""+mHolder.getDbName() +"\"); \n");
 
         for (CblConstantHolder constant : constantFields) {
             builder.append("mDocChanges.put(\"" + constant.getDbField() + "\",\"" + constant.getConstantValue() + "\"); \n");

@@ -12,6 +12,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 
 import kaufland.com.coachbasebinderapi.CblConstant;
+import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
 public class SourceContentParser {
@@ -23,6 +24,7 @@ public class SourceContentParser {
 
         content.setSourceClazz(model.directClass(cblEntityElement.toString()));
         content.setSourceElement(cblEntityElement);
+        content.setDbName(cblEntityElement.getAnnotation(CblEntity.class).database());
 
         for (Element element : cblEntityElement.getEnclosedElements()) {
 
