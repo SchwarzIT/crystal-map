@@ -18,4 +18,6 @@ public @interface CblEntity {
     Class<?> value() default Void.class;
 
     String database() default "";
+
+    String id() default "";
 }

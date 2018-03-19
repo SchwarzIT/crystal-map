@@ -1,10 +1,6 @@
 package com.kaufland.model.source;
 
-import com.helger.jcodemodel.AbstractJClass;
-
 import org.apache.commons.lang3.StringUtils;
-
-import javax.lang.model.element.Element;
 
 public class CblFieldHolder extends CblBaseFieldHolder{
 
@@ -15,6 +11,7 @@ public class CblFieldHolder extends CblBaseFieldHolder{
 
     private boolean subEntityIsTypeParam;
 
+    private CblDefaultHolder defaultHolder;
 
     public String getAttachmentType() {
         return attachmentType;
@@ -38,6 +35,14 @@ public class CblFieldHolder extends CblBaseFieldHolder{
 
     public void setSubEntityIsTypeParam(boolean subEntityIsTypeParam) {
         this.subEntityIsTypeParam = subEntityIsTypeParam;
+    }
+
+    public CblDefaultHolder getDefaultHolder() {
+        return defaultHolder;
+    }
+
+    public void setDefaultHolder(CblDefaultHolder defaultHolder) {
+        this.defaultHolder = defaultHolder;
     }
 
     public boolean isTypeOfSubEntity() {

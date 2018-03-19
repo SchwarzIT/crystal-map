@@ -29,6 +29,7 @@ import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.TransactionalTask;
 import com.couchbase.lite.util.Log;
 import com.couchbase.todolite.model.ListEntity;
+import com.couchbase.todolite.model.ListUserEntity;
 import com.couchbase.todolite.model.Sub;
 import com.couchbase.todolite.model.SubEntity;
 import com.couchbase.todolite.util.LiveQueryAdapter;
@@ -77,13 +78,31 @@ public class ListActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        Document list = (Document) mAdapter.getItem(pos);
-                        String owner = (String) list.getProperties().get("owner");
-                        Application application = (Application) getApplication();
-                        if (owner == null || owner.equals("p:" + application.getCurrentUserId()))
-                            deleteList(list);
-                        else
-                            application.showErrorMessage("Only owner can delete the list", null);
+
+                        ListEntity list = (ListEntity) mAdapter.getItem(pos);
+                        if (item.getItemId() == R.id.delete) {
+                            String owner = list.getOwner();
+                            Application application = (Application) getApplication();
+                            if (owner == null || owner.equals("p:" + application.getCurrentUserId()))
+                                deleteList(list);
+                            else
+                                application.showErrorMessage("Only owner can delete the list", null);
+                            return true;
+                        }
+
+                        if(list.getMembers() != null && list.getMembers().size() > 1){
+                            ArrayList<ListUserEntity> members = list.getMembers();
+                            members.remove(0);
+                            list.setMembers(members);
+                            try {
+                                list.save();
+                            } catch (CouchbaseLiteException e) {
+                                Log.e(Application.TAG, "Cannot remove member", e);
+                            }
+                        }
+
+
+
                         return true;
                     }
                 });
@@ -161,9 +180,13 @@ public class ListActivity extends AppCompatActivity {
     private ListEntity create(String title) throws CouchbaseLiteException {
         String currentTimeString = mDateFormatter.format(new Date());
 
+        ArrayList<ListUserEntity> members = new ArrayList<>();
+        members.add(ListUserEntity.create().setDisplayName("test1").setUserName("test1"));
+        members.add(ListUserEntity.create().setDisplayName("test2").setUserName("test2"));
+
         ListEntity mList = ListEntity.create().
                 setCreatedAt(currentTimeString).
-                setMembers(new ArrayList<String>()).setTitle(title);
+                setMembers(members).setTitle(title);
         mList.setSub(SubEntity.create().setTest("test"));
         ArrayList<SubEntity> sub = new ArrayList<>();
         sub.add(SubEntity.create().setTest("rs"));
@@ -179,7 +202,7 @@ public class ListActivity extends AppCompatActivity {
         return mList;
     }
 
-    private void deleteList(final Document list) {
+    private void deleteList(final ListEntity list) {
         Application application = (Application) getApplication();
         final Query query = application.getTasksView().createQuery();
         query.setDescending(true);

@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import java.util.Locale;
 
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
@@ -27,6 +28,7 @@ public class CoachBaseBinderProcessorTest {
                                 "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
                                 "import kaufland.com.coachbasebinderapi.CblField;\n" +
                                 "import kaufland.com.coachbasebinderapi.CblConstant;\n" +
+                                "import kaufland.com.coachbasebinderapi.CblDefault;\n" +
                                 "import java.io.InputStream;\n" +
                                 "\n" +
                                 "@CblEntity\n" +
@@ -40,6 +42,7 @@ public class CoachBaseBinderProcessorTest {
                                 "    private String type;\n" +
                                 "\n" +
                                 "    @CblField(\"created_at\")\n" +
+                                "    @CblDefault(\"1970\")\n" +
                                 "    private String createdAt;\n" +
                                 "\n" +
                                 "    @CblField(\"members\")\n" +
@@ -53,6 +56,11 @@ public class CoachBaseBinderProcessorTest {
                                 "\n" +
                                 "}"));
 
+        if(compilation.status() == Compilation.Status.FAILURE){
+            Diagnostic<? extends JavaFileObject> diagnostic = compilation.diagnostics().get(0);
+            Assert.fail(diagnostic.getMessage(Locale.GERMAN));
+            return;
+        }
         Assert.assertEquals(compilation.status(), Compilation.Status.SUCCESS);
     }
 
