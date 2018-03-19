@@ -43,8 +43,8 @@ Is a library that generates entities and methods to easily modify data for [couc
 2. Add gradle dependency
 
     ```
-    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:0.9.5'
-    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:0.9.5'
+    compile 'com.github.Kaufland.andcouchbaseentity:couchbase-entity-api:1.0.0'
+    apt 'com.github.Kaufland.andcouchbaseentity:couchbase-entity:1.0.0'
     ```
 
 3. Configure library 
@@ -57,7 +57,7 @@ Is a library that generates entities and methods to easily modify data for [couc
         super.onCreate();
         PersistenceConfig.configure(new PersistenceConfig.DatabaseGet() {
             @Override
-            public Database getDatabase() {
+            public Database getDatabase(String name) {
                 return Application.this.getDatabase();
             }
         });
@@ -74,6 +74,7 @@ public class List {
     private String type;
 
     @CblField("title")
+    @CblDefault(value = "foo")
     String title;
     
     @CblField(value = "image", attachmentType = "image/jpg")
