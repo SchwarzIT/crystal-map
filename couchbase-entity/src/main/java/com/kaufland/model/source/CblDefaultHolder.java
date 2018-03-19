@@ -15,8 +15,4 @@ public class CblDefaultHolder{
     public String getDefaultValue() {
         return defaultValue;
     }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
 }
