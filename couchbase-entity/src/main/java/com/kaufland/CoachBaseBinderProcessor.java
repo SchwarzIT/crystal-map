@@ -53,10 +53,11 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
             cblFieldAnnotated.put(elem.getSimpleName().toString(), elem);
         }
 
+        SourceContentParser parser = new SourceContentParser();
         for (Element elem : annotatedElements) {
             try {
                 JCodeModel model = new JCodeModel();
-                CblEntityHolder holder = new SourceContentParser().parse(elem, cblFieldAnnotated, model);
+                CblEntityHolder holder = parser.parse(elem, cblFieldAnnotated, model);
 
                 new CblEntityValidator().validate(holder, mLogger);
 
@@ -65,7 +66,8 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
                 }
                 mCodeGenerator.generate(model, elem);
             } catch (ClassNotFoundException e) {
-                mLogger.abortWithError("Clazz not found", elem);
+                e.printStackTrace();
+                mLogger.abortWithError("Clazz not found", parser.getCurrentWorkingObject() != null ? parser.getCurrentWorkingObject() : elem);
             } catch (JClassAlreadyExistsException e) {
                 mLogger.abortWithError("Clazz already exists " + elem.getSimpleName() + "Entity", elem);
             } catch (IOException e) {

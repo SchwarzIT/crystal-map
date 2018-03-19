@@ -5,10 +5,11 @@ import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
 @CblEntity
-public class Sub {
+public class ListUser {
 
-    @CblField
-    @CblDefault(value = "foo")
-    private String test;
+    @CblField(value = "display")
+    private String displayName;
 
+    @CblField("user")
+    private String userName;
 }

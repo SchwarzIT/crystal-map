@@ -19,7 +19,7 @@ public class List {
     private String createdAt;
 
     @CblField("members")
-    private ArrayList<String> members;
+    private ArrayList<ListUser> members;
 
     @CblField("owner")
     private String owner;

@@ -5,5 +5,5 @@ import com.helger.jcodemodel.JCodeModel;
 
 interface GenerationModel {
 
-    JCodeModel generateModel(JCodeModel model) throws JClassAlreadyExistsException;
+    JCodeModel generateModel(JCodeModel model) throws JClassAlreadyExistsException, ClassNotFoundException;
 }

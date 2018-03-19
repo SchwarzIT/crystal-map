@@ -12,11 +12,13 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 
 import kaufland.com.coachbasebinderapi.CblConstant;
+import kaufland.com.coachbasebinderapi.CblDefault;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
 public class SourceContentParser {
 
+    private Element currentWorkingObject;
 
     public CblEntityHolder parse(Element cblEntityElement, Map<String, Element> allAnnotatedFields, JCodeModel model) throws ClassNotFoundException {
 
@@ -24,9 +26,13 @@ public class SourceContentParser {
 
         content.setSourceClazz(model.directClass(cblEntityElement.toString()));
         content.setSourceElement(cblEntityElement);
-        content.setDbName(cblEntityElement.getAnnotation(CblEntity.class).database());
+        CblEntity entityAnnotation = cblEntityElement.getAnnotation(CblEntity.class);
+        content.setDbName(entityAnnotation.database());
+        content.setId(entityAnnotation.id().equals("") ? null : entityAnnotation.id());
 
         for (Element element : cblEntityElement.getEnclosedElements()) {
+
+            currentWorkingObject = element;
 
             if (element.getKind() == ElementKind.FIELD) {
 
@@ -38,6 +44,7 @@ public class SourceContentParser {
 
                 CblField annotation = element.getAnnotation(CblField.class);
                 CblConstant constant = element.getAnnotation(CblConstant.class);
+                CblDefault defaulta = element.getAnnotation(CblDefault.class);
 
                 if(annotation == null && constant == null){
                     continue;
@@ -46,6 +53,9 @@ public class SourceContentParser {
                 if (annotation != null) {
                     CblFieldHolder cblFieldHolder = new CblFieldHolder();
 
+                    if(defaulta != null){
+                        cblFieldHolder.setDefaultHolder(new CblDefaultHolder(defaulta.value()));
+                    }
                     cblFieldHolder.setAttachmentType(annotation.attachmentType());
                     cblFieldHolder.setDbField(annotation.value().equals("") ? element.getSimpleName().toString() : annotation.value());
 
@@ -97,5 +107,9 @@ public class SourceContentParser {
 
         return content;
 
+    }
+
+    public Element getCurrentWorkingObject() {
+        return currentWorkingObject;
     }
 }

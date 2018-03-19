@@ -35,7 +35,7 @@ public class EntityGeneration implements GenerationModel {
     }
 
     @Override
-    public JCodeModel generateModel(JCodeModel codeModel) throws JClassAlreadyExistsException {
+    public JCodeModel generateModel(JCodeModel codeModel) throws JClassAlreadyExistsException, ClassNotFoundException {
 
         codeModel._ref(UnsavedRevision.class);
         codeModel._ref(Document.class);
@@ -63,8 +63,10 @@ public class EntityGeneration implements GenerationModel {
 
         JMethod rebindMethod = genClazz.method(JMod.PUBLIC, codeModel.VOID, "rebind");
         rebindMethod.param(mapClazz, "doc");
-        rebindMethod.body().directStatement("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>(); mDocChanges = new java.util.HashMap<String, Object>();");
 
+        StringBuilder rebindBuilder = new StringBuilder();
+        rebindBuilder.append("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>();\n");
+        rebindBuilder.append("mDocChanges = new java.util.HashMap<String, Object>();\n");
 
         List<CblFieldHolder> attachmentFields = new ArrayList<>();
 
@@ -86,6 +88,12 @@ public class EntityGeneration implements GenerationModel {
             JMethod setter = genClazz.method(JMod.PUBLIC, genClazz, "set" + WordUtils.capitalize(fieldHolder.getClazzFieldName().toString()));
             setter.param(fieldHolder.getType(), "value");
 
+            if(fieldHolder.getDefaultHolder() != null){
+                rebindBuilder.append("if(!mDoc.containsKey(\"" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "\")){\n");
+                rebindBuilder.append("mDoc.put(\"" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "\", "+ convertDefaultValue(fieldHolder) + ");\n");
+                rebindBuilder.append("}");
+            }
+
 
             if (fieldHolder.isTypeOfSubEntity()) {
                 createSetterBodySubEntity(fieldHolder, setter);
@@ -103,6 +111,8 @@ public class EntityGeneration implements GenerationModel {
             }
         }
 
+        rebindMethod.body().directStatement(rebindBuilder.toString());
+
         createFromMap(codeModel, genClazz);
         createToMap(codeModel, genClazz);
 
@@ -115,6 +125,15 @@ public class EntityGeneration implements GenerationModel {
         return codeModel;
 
 
+    }
+
+    private String convertDefaultValue(CblFieldHolder fieldHolder) throws ClassNotFoundException {
+
+        Class<?> clazz = Class.forName(fieldHolder.getType().fullName());
+        if(clazz == String.class){
+            return "\"" + fieldHolder.getDefaultHolder().getDefaultValue() + "\"";
+        }
+        return fieldHolder.getDefaultHolder().getDefaultValue();
     }
 
     private void createGetterBodyAttachment(AbstractJClass resturnValue, String dbField, JMethod getter) {
