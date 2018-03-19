@@ -89,8 +89,8 @@ public class EntityGeneration implements GenerationModel {
             setter.param(fieldHolder.getType(), "value");
 
             if(fieldHolder.getDefaultHolder() != null){
-                rebindBuilder.append("if(!mDoc.containsKey(\"" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "\")){\n");
-                rebindBuilder.append("mDoc.put(\"" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "\", "+ convertDefaultValue(fieldHolder) + ");\n");
+                rebindBuilder.append("if(!mDoc.containsKey(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ")){\n");
+                rebindBuilder.append("mDoc.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", "+ convertDefaultValue(fieldHolder) + ");\n");
                 rebindBuilder.append("}");
             }
 

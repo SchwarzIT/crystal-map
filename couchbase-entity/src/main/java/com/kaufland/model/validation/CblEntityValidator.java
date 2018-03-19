@@ -55,7 +55,7 @@ public class CblEntityValidator {
 
                     if (defaultAnnotation != null) {
                         List<String> clazzes = ElementUtil.splitGenericIfNeeded(member.asType().toString());
-                        if (clazzes.size() > 1 || !Arrays.asList(String.class, Long.class, Double.class, Integer.class).contains(Class.forName(clazzes.get(0)))) {
+                        if (clazzes.size() > 1 || !Arrays.asList(String.class, Long.class, Double.class, Integer.class, Boolean.class).contains(Class.forName(clazzes.get(0)))) {
                             logger.error(CblDefault.class.getSimpleName() + " must be must be String.class, Long.class, Double.class or Integer.class", member);
                         }
                     }
