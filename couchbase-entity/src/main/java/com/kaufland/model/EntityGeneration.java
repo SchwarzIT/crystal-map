@@ -11,6 +11,7 @@ import com.kaufland.model.source.CblFieldHolder;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -38,6 +39,7 @@ public class EntityGeneration implements GenerationModel {
                 addMethods(create(holder)).
                 addMethod(contructor(holder)).
                 addMethod(getId()).
+                addField(idConstant()).
                 superclass(TypeName.get(holder.getSourceElement().asType()));
 
         MethodSpec.Builder rebind = MethodSpec.methodBuilder("rebind").
@@ -87,12 +89,18 @@ public class EntityGeneration implements GenerationModel {
 
     }
 
+    private FieldSpec idConstant() {
+        return FieldSpec.builder(String.class, "_ID", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL).
+                initializer("$S", "_id").
+                build();
+    }
+
     private MethodSpec getId() {
 
         return MethodSpec.methodBuilder("getId").
                 addModifiers(Modifier.PUBLIC).
                 returns(String.class).
-                addStatement("return ($T) mDoc.get($S)", String.class, "_id").
+                addStatement("return ($T) mDoc.get($N)", String.class, "_ID").
                 build();
     }
 
@@ -187,8 +195,9 @@ public class EntityGeneration implements GenerationModel {
             for (CblAttachmentFieldHolder attachmentField : holder.getFieldAttachments()) {
 
                 saveBuilder.addCode(CodeBlock.builder().beginControlFlow("if($N != null)", attachmentField.getDbField()).
-                        addStatement("rev.setAttachment($S, $S, $N)", attachmentField.getDbField(), attachmentField.getAttachmentType(), attachmentField.getDbField()).
+                        addStatement("rev.setAttachment($N, $S, $N)", attachmentField.getConstantName(), attachmentField.getAttachmentType(), attachmentField.getDbField()).
                         endControlFlow().build());
+                saveBuilder.addStatement("rev.save()");
             }
         }
 

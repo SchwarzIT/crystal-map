@@ -96,7 +96,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
             builder.addStatement("mDocChanges.put($N, $N.toMap(($T)value))", getConstantName(), getSubEntityName(), fieldType);
             builder.addStatement("return this");
         } else {
-            builder.addStatement("mDocChanges.put($S, value)", getConstantName());
+            builder.addStatement("mDocChanges.put($N, value)", getConstantName());
             builder.addStatement("return this");
         }
 
