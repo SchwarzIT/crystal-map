@@ -1,15 +1,19 @@
 package com.kaufland;
 
-import com.helger.jcodemodel.JClassAlreadyExistsException;
-import com.helger.jcodemodel.JCodeModel;
 import com.kaufland.generation.CodeGenerator;
 import com.kaufland.model.EntityGeneration;
 import com.kaufland.model.source.CblEntityHolder;
 import com.kaufland.model.source.SourceContentParser;
 import com.kaufland.model.validation.CblEntityValidator;
+import com.squareup.javapoet.JavaFile;
+import com.sun.tools.javac.code.Symbol;
+import com.thoughtworks.qdox.JavaProjectBuilder;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,15 +34,15 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
 
     private Logger mLogger;
 
-    private JCodeModel mCodeModel;
+    private List<JavaFile> mFilesToGenerate;
 
     private CodeGenerator mCodeGenerator;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         mLogger = new Logger(processingEnvironment);
-        mCodeModel = new JCodeModel();
-        mCodeGenerator = new CodeGenerator(processingEnvironment.getFiler(), "TODO");
+        mFilesToGenerate = new ArrayList<>();
+        mCodeGenerator = new CodeGenerator(processingEnvironment.getFiler());
         super.init(processingEnvironment);
     }
 
@@ -48,29 +52,37 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(CblEntity.class);
 
         Map<String, Element> cblFieldAnnotated = new HashMap<>();
+        JavaProjectBuilder builder = new JavaProjectBuilder();
 
         for (Element elem : annotatedElements) {
             cblFieldAnnotated.put(elem.getSimpleName().toString(), elem);
+            try {
+                builder.addSource(((Symbol.ClassSymbol) elem).sourcefile.openReader(false));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         SourceContentParser parser = new SourceContentParser();
+        CblEntityValidator validator = new CblEntityValidator();
+        EntityGeneration generation = new EntityGeneration();
+
         for (Element elem : annotatedElements) {
             try {
-                JCodeModel model = new JCodeModel();
-                CblEntityHolder holder = parser.parse(elem, cblFieldAnnotated, model);
+                CblEntityHolder holder = parser.parse(elem, cblFieldAnnotated, builder.getClassByName(elem.toString()));
 
-                new CblEntityValidator().validate(holder, mLogger);
+                validator.validate(holder, mLogger);
 
                 if (!mLogger.hasErrors()) {
-                    new EntityGeneration(holder).generateModel(model);
+                    JavaFile entityFile = generation.generateModel(holder);
+                    mCodeGenerator.generate(entityFile);
                 }
-                mCodeGenerator.generate(model, elem);
+
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
                 mLogger.abortWithError("Clazz not found", parser.getCurrentWorkingObject() != null ? parser.getCurrentWorkingObject() : elem);
-            } catch (JClassAlreadyExistsException e) {
-                mLogger.abortWithError("Clazz already exists " + elem.getSimpleName() + "Entity", elem);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 mLogger.abortWithError("generation failed", elem);
             }
         }

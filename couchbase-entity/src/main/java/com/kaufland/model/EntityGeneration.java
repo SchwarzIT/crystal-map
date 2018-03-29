@@ -3,292 +3,232 @@ package com.kaufland.model;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.UnsavedRevision;
-import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JClassAlreadyExistsException;
-import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JExpr;
-import com.helger.jcodemodel.JFieldVar;
-import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JMod;
-import com.helger.jcodemodel.JPackage;
+import com.kaufland.model.source.CblAttachmentFieldHolder;
 import com.kaufland.model.source.CblBaseFieldHolder;
 import com.kaufland.model.source.CblConstantHolder;
 import com.kaufland.model.source.CblEntityHolder;
 import com.kaufland.model.source.CblFieldHolder;
-import com.kaufland.util.ConversionUtil;
-
-import org.apache.commons.lang3.text.WordUtils;
+import com.kaufland.util.TypeUtil;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import javax.lang.model.element.Modifier;
+
+import kaufland.com.coachbasebinderapi.PersistenceConfig;
 
 public class EntityGeneration implements GenerationModel {
 
 
-    private final CblEntityHolder mHolder;
-
-    public EntityGeneration(CblEntityHolder holder) {
-        mHolder = holder;
-    }
-
     @Override
-    public JCodeModel generateModel(JCodeModel codeModel) throws JClassAlreadyExistsException, ClassNotFoundException {
+    public JavaFile generateModel(CblEntityHolder holder) {
 
-        codeModel._ref(UnsavedRevision.class);
-        codeModel._ref(Document.class);
+        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
+                addModifiers(Modifier.PUBLIC).
+                addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
+                addField(TypeUtil.createMapStringObject(), "mDocChanges", Modifier.PRIVATE).
+                addMethods(create(holder)).
+                addMethod(contructor(holder)).
+                addMethod(getId()).
+                superclass(TypeName.get(holder.getSourceElement().asType()));
 
-        JPackage mJPackage = codeModel._package(mHolder.getSourceClazz()._package().name());
-
-        JDefinedClass genClazz = mJPackage._class(mHolder.getSourceClazz().name() + "Entity");
-
-        JMethod mUpsert = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "create");
-        mUpsert.param(String.class, "id");
-        mUpsert.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(id, \"" + mHolder.getDbName() + "\").getProperties());");
-
-        JMethod mCreate = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "create");
-        mCreate.body().directStatement("return new " + genClazz.name() + "(kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(null, \"" + mHolder.getDbName() + "\").getProperties());");
-
-        AbstractJClass mapClazz = codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class, Object.class);
-
-        genClazz.field(JMod.PRIVATE, mapClazz, "mDoc");
-
-        genClazz.field(JMod.PRIVATE, mapClazz, "mDocChanges");
-
-        JMethod ctr = genClazz.constructor(JMod.PUBLIC);
-        ctr.param(mapClazz, "doc");
-        ctr.body().directStatement("rebind(doc);");
-
-        JMethod rebindMethod = genClazz.method(JMod.PUBLIC, codeModel.VOID, "rebind");
-        rebindMethod.param(mapClazz, "doc");
-
-        StringBuilder rebindBuilder = new StringBuilder();
-        rebindBuilder.append("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>();\n");
-        rebindBuilder.append("mDocChanges = new java.util.HashMap<String, Object>();\n");
-        rebindBuilder.append("java.util.Map<String, Object> mDocDefaults = new java.util.HashMap<String, Object>();\n");
-
-        List<CblFieldHolder> attachmentFields = new ArrayList<>();
-
-        List<CblConstantHolder> constantFields = new ArrayList<>();
-
-        for (CblBaseFieldHolder baseFieldHolder : mHolder.getFields()) {
-            JMethod getter = genClazz.method(JMod.PUBLIC, baseFieldHolder.getType(), "get" + WordUtils.capitalize(baseFieldHolder.getClazzFieldName()));
-
-            createFieldConstant(genClazz, baseFieldHolder.getDbField(), ConversionUtil.convertCamelToUnderscore(baseFieldHolder.getDbField()).toUpperCase());
-
-            if (baseFieldHolder instanceof CblConstantHolder) {
-                createGetterBodyDefault(baseFieldHolder.getType(), baseFieldHolder.getDbField(), getter);
-                createFieldConstant(genClazz, ((CblConstantHolder) baseFieldHolder).getConstantValue(), "DOC_" + ConversionUtil.convertCamelToUnderscore(baseFieldHolder.getDbField()).toUpperCase());
-                constantFields.add((CblConstantHolder) baseFieldHolder);
-                continue;
-            }
-
-            CblFieldHolder fieldHolder = (CblFieldHolder) baseFieldHolder;
-            JMethod setter = genClazz.method(JMod.PUBLIC, genClazz, "set" + WordUtils.capitalize(fieldHolder.getClazzFieldName().toString()));
-            setter.param(fieldHolder.getType(), "value");
-
-            if (fieldHolder.getDefaultHolder() != null) {
-                rebindBuilder.append("if(!mDoc.containsKey(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ")){\n");
-                rebindBuilder.append("mDocDefaults.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", " + convertDefaultValue(fieldHolder) + ");\n");
-                rebindBuilder.append("}");
-            }
+        MethodSpec.Builder rebind = MethodSpec.methodBuilder("rebind").
+                addParameter(TypeUtil.createMapStringObject(), "doc").
+                addStatement("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>()").
+                addStatement("mDocChanges = new java.util.HashMap<String, Object>()").
+                addStatement("$T mDocDefaults = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject());
 
 
-            if (fieldHolder.isTypeOfSubEntity()) {
-                createSetterBodySubEntity(fieldHolder, setter);
-                createGetterBodySubEntity(fieldHolder, getter);
+        for (CblBaseFieldHolder fieldHolder : holder.getAllFields()) {
 
-            } else if (!fieldHolder.isAttachment()) {
-                createSetterBodyDefault(fieldHolder, setter);
-                createGetterBodyDefault(fieldHolder.getType(), fieldHolder.getDbField(), getter);
-            } else {
+            typeBuilder.addFields(fieldHolder.createFieldConstant());
+            typeBuilder.addMethod(fieldHolder.getter(holder.getDbName()));
 
-                JFieldVar attachment = genClazz.field(JMod.PRIVATE, fieldHolder.getType(), fieldHolder.getDbField());
-                setter.body().directStatement(fieldHolder.getDbField() + "= value; return this;");
-                attachmentFields.add(fieldHolder);
-                createGetterBodyAttachment(fieldHolder.getType(), fieldHolder.getDbField(), getter);
+            MethodSpec setter = fieldHolder.setter(holder.getDbName(), holder.getEntityTypeName());
+            if (setter != null) {
+                typeBuilder.addMethod(setter);
             }
         }
 
-        rebindBuilder.append("if(mDocDefaults.size()>0){\n");
-        rebindBuilder.append("mDoc.putAll(mDocDefaults);\n");
-        rebindBuilder.append("}\n");
+        for (CblFieldHolder fieldHolder : holder.getFields()) {
+            if (fieldHolder.getDefaultHolder() != null) {
+
+                rebind.addCode(CodeBlock.builder().
+                        beginControlFlow("if(!mDoc.containsKey($N))", fieldHolder.getConstantName()).
+                        addStatement("mDocDefaults.put($N, $N)", fieldHolder.getConstantName(), convertDefaultValue(fieldHolder)).
+                        endControlFlow().
+                        build());
+            }
+        }
+
+        rebind.addCode(CodeBlock.builder().
+                beginControlFlow("if(mDocDefaults.size()>0)").
+                addStatement("mDoc.putAll(mDocDefaults)").
+                endControlFlow().
+                build());
 
 
-        rebindMethod.body().directStatement(rebindBuilder.toString());
+        typeBuilder.addMethod(rebind.build());
+        typeBuilder.addMethod(delete(holder));
+        typeBuilder.addMethods(fromMap(holder));
+        typeBuilder.addMethods(toMap(holder));
+        typeBuilder.addMethod(save(holder));
 
-        createFromMap(codeModel, genClazz);
-        createToMap(codeModel, genClazz);
-
-        createSaveMethod(codeModel, genClazz, attachmentFields, constantFields);
-
-        createDeleteMethod(codeModel, genClazz);
-
-        genClazz._extends(mHolder.getSourceClazz());
-
-        return codeModel;
-
+        return JavaFile.builder(holder.getPackage(), typeBuilder.build()).
+                build();
 
     }
 
-    private String convertDefaultValue(CblFieldHolder fieldHolder) throws ClassNotFoundException {
+    private MethodSpec getId() {
 
-        Class<?> clazz = Class.forName(fieldHolder.getType().fullName());
-        if (clazz == String.class) {
+        return MethodSpec.methodBuilder("getId").
+                addModifiers(Modifier.PUBLIC).
+                returns(String.class).
+                addStatement("return ($T) mDoc.get($S)", String.class, "_id").
+                build();
+    }
+
+    private MethodSpec delete(CblEntityHolder holder) {
+        return MethodSpec.methodBuilder("delete").addModifiers(Modifier.PUBLIC).
+                addException(CouchbaseLiteException.class).
+                addStatement("$N.getInstance().createOrGet(getId(), $S).delete()", PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
+                build();
+    }
+
+    private List<MethodSpec> toMap(CblEntityHolder holder) {
+        CodeBlock nullCheck = CodeBlock.builder().
+                beginControlFlow("if(obj == null)").
+                addStatement("return null").
+                endControlFlow().
+                build();
+
+        return Arrays.asList(MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(holder.getEntityTypeName(), "obj").
+                        returns(TypeUtil.createMapStringObject()).
+                        addCode(nullCheck).
+                        addStatement("$T result = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject()).
+                        addStatement("result.putAll(obj.mDoc)").
+                        addStatement("result.putAll(obj.mDocChanges)").
+                        addStatement("return result").
+                        build(),
+
+                MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), "obj").
+                        returns(TypeUtil.createListWithMapStringObject()).
+                        addCode(nullCheck).
+                        addStatement("$T result = new $T()", TypeUtil.createListWithMapStringObject(), TypeUtil.createArrayListWithMapStringObject()).
+                        addCode(CodeBlock.builder().beginControlFlow("for($N entry : obj)", holder.getEntitySimpleName()).
+                                addStatement("result.add((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
+                                endControlFlow().
+                                build()).
+                        addStatement("return result").
+                        build());
+    }
+
+    private List<MethodSpec> fromMap(CblEntityHolder holder) {
+        CodeBlock nullCheck = CodeBlock.builder().
+                beginControlFlow("if(obj == null)").
+                addStatement("return null").
+                endControlFlow().
+                build();
+
+        return Arrays.asList(MethodSpec.methodBuilder("fromMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(TypeUtil.createMapStringObject(), "obj").
+                        returns(holder.getEntityTypeName()).
+                        addCode(nullCheck).
+                        addStatement("return new $T(obj)", holder.getEntityTypeName()).
+                        build(),
+
+                MethodSpec.methodBuilder("fromMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(ParameterizedTypeName.get(ClassName.get(List.class), TypeUtil.createMapStringObject()), "obj").
+                        returns(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName())).
+                        addCode(nullCheck).
+                        addStatement("$T result = new $T()", ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), ParameterizedTypeName.get(ClassName.get(ArrayList.class), holder.getEntityTypeName())).
+                        addCode(CodeBlock.builder().beginControlFlow("for($T entry : obj)", TypeUtil.createMapStringObject()).
+                                addStatement("result.add(new $N(entry))", holder.getEntitySimpleName()).
+                                endControlFlow().
+                                build()).
+                        addStatement("return result").
+                        build()
+        );
+    }
+
+    private MethodSpec save(CblEntityHolder holder) {
+        MethodSpec.Builder saveBuilder = MethodSpec.methodBuilder("save").addModifiers(Modifier.PUBLIC).
+                addException(CouchbaseLiteException.class).
+                addStatement("$T doc = $T.getInstance().createOrGet(getId(), $S)", Document.class, PersistenceConfig.class, holder.getDbName());
+
+        for (CblConstantHolder constantField : holder.getFieldConstants()) {
+            saveBuilder.addStatement("mDocChanges.put($S, $S)", constantField.getDbField(), constantField.getConstantValue());
+        }
+
+        saveBuilder.addStatement("$1T temp = new $1T()", TypeUtil.createHashMapStringObject());
+        saveBuilder.addCode(CodeBlock.builder().
+                beginControlFlow("if(doc.getProperties() != null)").
+                addStatement("temp.putAll(doc.getProperties())").
+                endControlFlow().
+                beginControlFlow("if(mDocChanges != null)").
+                addStatement("temp.putAll(mDocChanges)").
+                endControlFlow().
+                addStatement("doc.putProperties(temp)").
+                build());
+
+
+        if (!holder.getFieldAttachments().isEmpty()) {
+            saveBuilder.addStatement("$T rev = doc.createRevision()", ClassName.get(UnsavedRevision.class));
+            for (CblAttachmentFieldHolder attachmentField : holder.getFieldAttachments()) {
+
+                saveBuilder.addCode(CodeBlock.builder().beginControlFlow("if($N != null)", attachmentField.getDbField()).
+                        addStatement("rev.setAttachment($S, $S, $N)", attachmentField.getDbField(), attachmentField.getAttachmentType(), attachmentField.getDbField()).
+                        endControlFlow().build());
+            }
+        }
+
+        saveBuilder.addStatement("rebind(doc.getProperties())");
+
+        return saveBuilder.build();
+    }
+
+    private MethodSpec contructor(CblEntityHolder holder) {
+        return MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).
+                addParameter(TypeUtil.createMapStringObject(), "doc").
+                addStatement("rebind(doc)").
+                build();
+    }
+
+    private List<MethodSpec> create(CblEntityHolder holder) {
+
+        return Arrays.asList(
+                MethodSpec.methodBuilder("create").
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(String.class, "id").
+                        addStatement("return new $N ($N.getInstance().createOrGet(id, $S).getProperties())",
+                                holder.getEntitySimpleName(), PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
+                        returns(holder.getEntityTypeName()).
+                        build(),
+                MethodSpec.methodBuilder("create").
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addStatement("return new $N ($N.getInstance().createOrGet(null, $S).getProperties())",
+                                holder.getEntitySimpleName(), PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
+                        returns(holder.getEntityTypeName()).
+                        build()
+        );
+    }
+
+    private String convertDefaultValue(CblFieldHolder fieldHolder) {
+
+        if (fieldHolder.getMetaField().getType().getCanonicalName().equals(String.class.getCanonicalName())) {
             return "\"" + fieldHolder.getDefaultHolder().getDefaultValue() + "\"";
         }
         return fieldHolder.getDefaultHolder().getDefaultValue();
     }
 
-    private void createGetterBodyAttachment(AbstractJClass resturnValue, String dbField, JMethod getter) {
-
-
-        getter._throws(CouchbaseLiteException.class);
-        StringBuilder builder = new StringBuilder();
-
-        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \"" + mHolder.getDbName() + "\"); \n");
-
-        builder.append("if(doc.getCurrentRevision() != null && doc.getCurrentRevision().getAttachments() != null &&  doc.getCurrentRevision().getAttachments().size() > 0) {\n");
-        builder.append("return doc.getCurrentRevision().getAttachments().get(0).getContent(); \n");
-        builder.append("} \n");
-        builder.append("return null; \n");
-
-        getter.body().directStatement(builder.toString());
-
-    }
-
-    private void createSetterBodyDefault(CblFieldHolder fieldHolder, JMethod setter) {
-        setter.body().directStatement("mDocChanges.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", value); return this;");
-    }
-
-    private void createGetterBodySubEntity(CblFieldHolder fieldHolder, JMethod getter) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("return (" + fieldHolder.getType().fullName() + ") " + fieldHolder.getSubEntityName() + ".fromMap((");
-        if (fieldHolder.isSubEntityIsTypeParam()) {
-            builder.append("java.util.List<java.util.Map<String, Object>>");
-        } else {
-            builder.append("java.util.Map<String, Object>");
-        }
-        builder.append(")mDoc.get(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + "));");
-
-        getter.body().directStatement(builder.toString());
-    }
-
-    private void createSetterBodySubEntity(CblFieldHolder fieldHolder, JMethod setter) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("mDocChanges.put(" + ConversionUtil.convertCamelToUnderscore(fieldHolder.getDbField()).toUpperCase() + ", " + fieldHolder.getSubEntityName() + ".toMap((");
-
-        if (fieldHolder.isSubEntityIsTypeParam()) {
-            builder.append(fieldHolder.getType().fullName());
-        } else {
-            builder.append(fieldHolder.getSubEntityName());
-        }
-
-        builder.append(")value)); return this;");
-        setter.body().directStatement(builder.toString());
-    }
-
-    private void createDeleteMethod(JCodeModel codeModel, JDefinedClass genClazz) {
-        JMethod delete = genClazz.method(JMod.PUBLIC, codeModel.VOID, "delete");
-        delete._throws(CouchbaseLiteException.class);
-        delete.body().directStatement("kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \"" + mHolder.getDbName() + "\").delete();");
-    }
-
-    private void createGetterBodyDefault(AbstractJClass resturnValue, String dbField, JMethod getter) {
-        getter.body().directStatement("return (" + resturnValue.fullName() + ") mDoc.get(" + ConversionUtil.convertCamelToUnderscore(dbField).toUpperCase() + ");");
-    }
-
-    private void createToMap(JCodeModel codeModel, JDefinedClass genClazz) {
-
-        JMethod toMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "toMap");
-        toMap.param(genClazz, "obj");
-
-        StringBuilder builderSingle = new StringBuilder();
-        builderSingle.append("if(obj == null){ \n");
-        builderSingle.append("return null; \n");
-        builderSingle.append("} \n");
-        builderSingle.append("java.util.HashMap<String, Object> result = new java.util.HashMap<String, Object>(); \n");
-        builderSingle.append("result.putAll(obj.mDoc); \n");
-        builderSingle.append("result.putAll(obj.mDocChanges);\n");
-        builderSingle.append("return result;\n");
-        toMap.body().directStatement(builderSingle.toString());
-
-        JMethod toMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(HashMap.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "toMap");
-        toMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "obj");
-
-        StringBuilder builderMulti = new StringBuilder();
-        builderMulti.append("if(obj == null) return null; \n");
-        builderMulti.append("java.util.List<java.util.HashMap<String, Object>> result = new java.util.ArrayList<java.util.HashMap<String, Object>>(); \n");
-        builderMulti.append("for(" + genClazz.name() + " entry : obj) {\n");
-        builderMulti.append("result.add(((" + genClazz.name() + ")entry).toMap(entry));\n");
-        builderMulti.append("}\n");
-        builderMulti.append("return result;\n");
-        toMapList.body().directStatement(builderMulti.toString());
-    }
-
-
-    private void createFromMap(JCodeModel codeModel, JDefinedClass genClazz) {
-        JMethod fromMap = genClazz.method(JMod.PUBLIC | JMod.STATIC, genClazz, "fromMap");
-        fromMap.param(codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class).narrow(Object.class), "obj");
-        fromMap.body().directStatement("return obj != null ? new " + genClazz.name() + "(obj) : null;");
-
-        JMethod fromMapList = genClazz.method(JMod.PUBLIC | JMod.STATIC, codeModel.directClass(List.class.getCanonicalName()).narrow(genClazz), "fromMap");
-        fromMapList.param(codeModel.directClass(List.class.getCanonicalName()).narrow(codeModel.directClass(Map.class.getCanonicalName()).narrow(String.class).narrow(Object.class)), "obj");
-
-        StringBuilder mBuilder = new StringBuilder()
-                .append("if(obj != null) { \n")
-                .append("java.util.List<" + genClazz.name() + "> result = new java.util.ArrayList<" + genClazz.name() + ">(); \n")
-                .append("for(java.util.Map<String, Object> entry : obj) { \n")
-                .append("result.add(new " + genClazz.name() + "(entry)); \n")
-                .append("} \n")
-                .append("return result; \n")
-                .append("} \n")
-                .append("return null; \n");
-
-
-        fromMapList.body().directStatement(mBuilder.toString());
-    }
-
-    private void createSaveMethod(JCodeModel codeModel, JDefinedClass genClazz, List<CblFieldHolder> attachments, List<CblConstantHolder> constantFields) {
-        JMethod mSave = genClazz.method(JMod.PUBLIC, codeModel.VOID, "save");
-        mSave._throws(CouchbaseLiteException.class);
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("com.couchbase.lite.Document doc = kaufland.com.coachbasebinderapi.PersistenceConfig.getInstance().createOrGet(getId(), \"" + mHolder.getDbName() + "\"); \n");
-
-        for (CblConstantHolder constant : constantFields) {
-            builder.append("mDocChanges.put(\"" + constant.getDbField() + "\",\"" + constant.getConstantValue() + "\"); \n");
-        }
-
-        builder.append("java.util.HashMap<String, Object> temp = new java.util.HashMap<String, Object>(); \n");
-        builder.append("if(doc.getProperties() != null){ \n");
-        builder.append("temp.putAll(doc.getProperties()); \n");
-        builder.append("} \n");
-        builder.append("if(mDocChanges != null){ \n");
-        builder.append("temp.putAll(mDocChanges); \n");
-        builder.append("} \n");
-        builder.append("doc.putProperties(temp); \n");
-
-        if (attachments.size() > 0) {
-
-            builder.append("com.couchbase.lite.UnsavedRevision rev = doc.createRevision(); \n");
-            for (CblFieldHolder attachment : attachments) {
-
-                builder.append("if(" + attachment.getDbField() + " != null){ \n");
-                builder.append("rev.setAttachment(\"" + attachment.getDbField() + "\", \"" + attachment.getAttachmentType() + "\", " + attachment.getDbField() + "); \n");
-                builder.append("} \n");
-            }
-            builder.append("rev.save(); \n");
-        }
-        builder.append("rebind(doc.getProperties()); \n");
-
-        mSave.body().directStatement(builder.toString());
-    }
-
-    private void createFieldConstant(JDefinedClass genClazz, String fieldName, String constName) {
-        JFieldVar constant = genClazz.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, String.class, constName);
-        constant.init(JExpr.lit(fieldName));
-    }
 }

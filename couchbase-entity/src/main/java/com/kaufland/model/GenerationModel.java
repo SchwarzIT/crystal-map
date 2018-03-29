@@ -1,9 +1,9 @@
 package com.kaufland.model;
 
-import com.helger.jcodemodel.JClassAlreadyExistsException;
-import com.helger.jcodemodel.JCodeModel;
+import com.kaufland.model.source.CblEntityHolder;
+import com.squareup.javapoet.JavaFile;
 
 interface GenerationModel {
 
-    JCodeModel generateModel(JCodeModel model) throws JClassAlreadyExistsException, ClassNotFoundException;
+    JavaFile generateModel(CblEntityHolder holder);
 }
