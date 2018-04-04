@@ -1,11 +1,14 @@
 package kaufland.com.demo;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.LiveQuery;
 
@@ -35,6 +38,12 @@ public class ProductAdapter extends LiveQueryAdapter<ProductEntity> {
         final ProductEntity list = (ProductEntity) getItem(position);
         TextView text = convertView.findViewById(R.id.text);
         text.setText(list.getName());
+        ImageView img = convertView.findViewById(R.id.image);
+        try {
+            img.setImageBitmap(BitmapFactory.decodeStream(list.getInputStream()));
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
         return convertView;
     }
 }

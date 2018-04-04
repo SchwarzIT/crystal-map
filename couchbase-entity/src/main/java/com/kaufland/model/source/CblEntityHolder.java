@@ -1,6 +1,8 @@
 package com.kaufland.model.source;
 
-import com.helger.jcodemodel.AbstractJClass;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
+import com.sun.tools.javac.code.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +11,11 @@ import javax.lang.model.element.Element;
 
 public class CblEntityHolder {
 
-    private List<CblBaseFieldHolder> mFields = new ArrayList<>();
+    private List<CblFieldHolder> mFields = new ArrayList<>();
 
-    private AbstractJClass sourceClazz;
+    private List<CblConstantHolder> mFieldConstants = new ArrayList<>();
+
+    private List<CblAttachmentFieldHolder> mFieldAttachments = new ArrayList<>();
 
     private Element sourceElement;
 
@@ -36,16 +40,40 @@ public class CblEntityHolder {
         this.dbName = dbName;
     }
 
-    public List<CblBaseFieldHolder> getFields() {
+    public List<CblFieldHolder> getFields() {
         return mFields;
     }
 
-    public AbstractJClass getSourceClazz() {
-        return sourceClazz;
+    public List<CblBaseFieldHolder> getAllFields() {
+        List<CblBaseFieldHolder> allField = new ArrayList<>();
+        allField.addAll(getFields());
+        allField.addAll(getFieldAttachments());
+        allField.addAll(getFieldConstants());
+        return allField;
     }
 
-    public void setSourceClazz(AbstractJClass sourceClazz) {
-        this.sourceClazz = sourceClazz;
+    public List<CblConstantHolder> getFieldConstants() {
+        return mFieldConstants;
+    }
+
+    public List<CblAttachmentFieldHolder> getFieldAttachments() {
+        return mFieldAttachments;
+    }
+
+    public String getSourceClazzSimpleName() {
+        return ((Symbol.ClassSymbol) getSourceElement()).getSimpleName().toString();
+    }
+
+    public String getEntitySimpleName() {
+        return getSourceClazzSimpleName() + "Entity";
+    }
+
+    public String getPackage() {
+        return ((Symbol.ClassSymbol) getSourceElement()).packge().toString();
+    }
+
+    public TypeName getEntityTypeName() {
+        return ClassName.get(getPackage(), getEntitySimpleName());
     }
 
     public Element getSourceElement() {

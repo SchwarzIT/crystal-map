@@ -1,5 +1,6 @@
 package kaufland.com.demo.entity;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import kaufland.com.coachbasebinderapi.CblConstant;
@@ -17,4 +18,7 @@ public class Product {
 
     @CblField("comments")
     private ArrayList<UserComment> comments;
+
+    @CblField(value = "image", attachmentType = "image/jpg")
+    private InputStream inputStream;
 }

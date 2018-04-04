@@ -69,15 +69,27 @@ public class Application extends android.app.Application {
         try {
             ProductEntity.create().setName("Beer").
                     setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("very awesome"), UserCommentEntity.create().setComment("tasty")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
                     save();
             ProductEntity.create().setName("Beer (no alcohol)").
                     setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("very bad"), UserCommentEntity.create().setComment("not tasty")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
                     save();
             ProductEntity.create().setName("Wodka").
                     setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("feeling like touch the sky")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
                     save();
             ProductEntity.create().setName("Gin").
                     setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("hipster drink but great"), UserCommentEntity.create().setComment("tasty!!!")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
+                    save();
+            ProductEntity.create().setName("Apple").
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("mhmhmh tasty!"), UserCommentEntity.create().setComment("dont like it")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
+                    save();
+            ProductEntity.create().setName("Tomatoes").
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("don't like there color"), UserCommentEntity.create().setComment("worst experience ever!!")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
                     save();
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();

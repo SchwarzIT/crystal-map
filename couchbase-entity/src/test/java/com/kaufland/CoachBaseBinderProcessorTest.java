@@ -78,7 +78,7 @@ public class CoachBaseBinderProcessorTest {
                 "public class ListTest {\n" +
                 "\n" +
                 "    @CblField(\"list_sub\")\n" +
-                "    private ArrayList<Sub> listSub;\n" +
+                "    private ArrayList<com.kaufland.testModels.Sub> listSub;\n" +
                 "    @CblField(\"sub\")\n" +
                 "    private Sub sub;" +
                 "}");

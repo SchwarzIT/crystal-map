@@ -1,11 +1,14 @@
 package com.kaufland.model.source;
 
-import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JDirectClass;
-import com.kaufland.util.ElementUtil;
+import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaField;
+import com.thoughtworks.qdox.model.JavaGenericDeclaration;
+import com.thoughtworks.qdox.model.JavaType;
+import com.thoughtworks.qdox.model.JavaTypeVariable;
+import com.thoughtworks.qdox.model.impl.DefaultJavaParameterizedType;
 
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
 
 import javax.lang.model.element.Element;
@@ -20,11 +23,10 @@ public class SourceContentParser {
 
     private Element currentWorkingObject;
 
-    public CblEntityHolder parse(Element cblEntityElement, Map<String, Element> allAnnotatedFields, JCodeModel model) throws ClassNotFoundException {
+    public CblEntityHolder parse(Element cblEntityElement, Map<String, Element> allAnnotatedClazzes, JavaClass clazzWithAnnotation) throws ClassNotFoundException {
 
         CblEntityHolder content = new CblEntityHolder();
 
-        content.setSourceClazz(model.directClass(cblEntityElement.toString()));
         content.setSourceElement(cblEntityElement);
         CblEntity entityAnnotation = cblEntityElement.getAnnotation(CblEntity.class);
         content.setDbName(entityAnnotation.database());
@@ -36,74 +38,32 @@ public class SourceContentParser {
 
             if (element.getKind() == ElementKind.FIELD) {
 
-                CblBaseFieldHolder fieldHolder = null;
+                JavaField metaField = clazzWithAnnotation.getFieldByName(element.getSimpleName().toString());
 
-                List<String> baseTypeWithGenerics = ElementUtil.splitGenericIfNeeded(element.asType().toString());
+                CblField cblField = element.getAnnotation(CblField.class);
+                CblConstant cblConstant = element.getAnnotation(CblConstant.class);
+                CblDefault cblDefault = element.getAnnotation(CblDefault.class);
 
-                AbstractJClass fieldType = model.directClass(baseTypeWithGenerics.get(0));
-
-                CblField annotation = element.getAnnotation(CblField.class);
-                CblConstant constant = element.getAnnotation(CblConstant.class);
-                CblDefault defaulta = element.getAnnotation(CblDefault.class);
-
-                if(annotation == null && constant == null){
+                if (cblField == null && cblConstant == null) {
                     continue;
                 }
 
-                if (annotation != null) {
-                    CblFieldHolder cblFieldHolder = new CblFieldHolder();
+                if (cblField != null) {
 
-                    if(defaulta != null){
-                        cblFieldHolder.setDefaultHolder(new CblDefaultHolder(defaulta.value()));
+                    if (StringUtils.isNotBlank(cblField.attachmentType())) {
+                        content.getFieldAttachments().add(new CblAttachmentFieldHolder(cblField, element, metaField));
+                    } else {
+                        CblDefaultHolder defaultHolder = cblDefault != null ? new CblDefaultHolder(cblDefault.value()) : null;
+                        CblFieldHolder cblFieldHolder = new CblFieldHolder(cblField, element, metaField, defaultHolder, allAnnotatedClazzes);
+                        content.getFields().add(cblFieldHolder);
                     }
-                    cblFieldHolder.setAttachmentType(annotation.attachmentType());
-                    cblFieldHolder.setDbField(annotation.value().equals("") ? element.getSimpleName().toString() : annotation.value());
-
-                    if (allAnnotatedFields.containsKey(fieldType.name())) {
-                        cblFieldHolder.setSubEntityName(fieldType.name()+ "Entity");
-                        fieldType = model.directClass(fieldType.fullName()+ "Entity");
-                    }
-
-                    if (baseTypeWithGenerics.size() > 1) {
-                        for (int i = 1; i < baseTypeWithGenerics.size(); i++) {
-
-
-                            JDirectClass mClazz = model.directClass(baseTypeWithGenerics.get(i));
-
-                            if (allAnnotatedFields.containsKey(mClazz.name())) {
-                                cblFieldHolder.setSubEntityIsTypeParam(true);
-                                cblFieldHolder.setSubEntityName(mClazz.name() + "Entity");
-                                fieldType = fieldType.narrow(model.directClass(mClazz.fullName()+ "Entity"));
-                            }else{
-                                fieldType = fieldType.narrow(mClazz);
-                            }
-                        }
-                    }
-                    fieldHolder = cblFieldHolder;
                 }
 
-                if(constant != null){
-                    CblConstantHolder holder = new CblConstantHolder();
-                    holder.setConstantValue(constant.constant());
-                    holder.setDbField(constant.value().equals("") ? element.getSimpleName().toString() : constant.value());
-                    fieldHolder = holder;
+                if (cblConstant != null) {
+                    content.getFieldConstants().add(new CblConstantHolder(cblConstant, element, metaField));
                 }
-
-                fieldHolder.setType(fieldType);
-                fieldHolder.setClazzFieldName(element.toString());
-                fieldHolder.setFieldElement(element);
-
-                content.getFields().add(fieldHolder);
             }
         }
-
-        //Add Id Field
-        CblFieldHolder idHolder = new CblFieldHolder();
-        idHolder.setClazzFieldName("id");
-        idHolder.setDbField("_id");
-        idHolder.setType(model.directClass(String.class.getCanonicalName()));
-
-        content.getFields().add(idHolder);
 
         return content;
 
