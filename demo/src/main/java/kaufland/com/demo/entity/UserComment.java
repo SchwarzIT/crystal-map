@@ -1,10 +1,10 @@
 package kaufland.com.demo.entity;
 
+import kaufland.com.coachbasebinderapi.CblChild;
 import kaufland.com.coachbasebinderapi.CblDefault;
-import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
-@CblEntity
+@CblChild
 public class UserComment {
 
     @CblField(value = "comment")

@@ -84,6 +84,47 @@ public class CoachBaseBinderProcessorTest {
                 "}");
         JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
                 "\n" +
+                "import kaufland.com.coachbasebinderapi.CblChild;\n" +
+                "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "\n" +
+                "/**\n" +
+                " * Created by sbra0902 on 31.05.17.\n" +
+                " */\n" +
+                "@CblChild\n" +
+                "public class Sub {\n" +
+                "\n" +
+                "    @CblField\n" +
+                "    private String test;\n" +
+                "\n" +
+                "}");
+        Compilation compilation =
+                javac()
+                        .withProcessors(new CoachBaseBinderProcessor())
+                        .compile(mMainEntity, subEntity);
+
+        Assert.assertEquals(compilation.status(), Compilation.Status.SUCCESS);
+    }
+
+    @Test
+    public void testWrongAssignedSubEntityProcessing() {
+
+        JavaFileObject mMainEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.ListTest", "package com.kaufland.testModels;\n" +
+                "\n" +
+                "import java.util.ArrayList;\n" +
+                "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
+                "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "import java.io.InputStream;\n" +
+                "\n" +
+                "@CblEntity\n" +
+                "public class ListTest {\n" +
+                "\n" +
+                "    @CblField(\"list_sub\")\n" +
+                "    private ArrayList<com.kaufland.testModels.Sub> listSub;\n" +
+                "    @CblField(\"sub\")\n" +
+                "    private Sub sub;" +
+                "}");
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
+                "\n" +
                 "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
                 "import kaufland.com.coachbasebinderapi.CblField;\n" +
                 "\n" +
@@ -102,7 +143,10 @@ public class CoachBaseBinderProcessorTest {
                         .withProcessors(new CoachBaseBinderProcessor())
                         .compile(mMainEntity, subEntity);
 
-        Assert.assertEquals(compilation.status(), Compilation.Status.SUCCESS);
+        Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
+        Assert.assertEquals(compilation.diagnostics().size(), 2);
+        Assert.assertEquals(compilation.diagnostics().get(0).getMessage(Locale.GERMAN), "CblEntity not valid to use as member needs to be CblChild");
+        Assert.assertEquals(compilation.diagnostics().get(1).getMessage(Locale.GERMAN), "CblEntity not valid to use as member needs to be CblChild");
     }
 
     @Test
@@ -112,6 +156,7 @@ public class CoachBaseBinderProcessorTest {
                 "\n" +
                 "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
                 "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "import kaufland.com.coachbasebinderapi.CblConstant;\n" +
                 "\n" +
                 "/**\n" +
                 " * Created by sbra0902 on 31.05.17.\n" +
@@ -124,6 +169,8 @@ public class CoachBaseBinderProcessorTest {
                 "\n" +
                 "    @CblField\n" +
                 "    public String test;\n" +
+                "    @CblConstant(value = \"type\", constant = \"product\")\n" +
+                "    public String test2;\n" +
                 "\n" +
                 "}");
 
@@ -135,8 +182,113 @@ public class CoachBaseBinderProcessorTest {
 
 
         Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
-        Assert.assertEquals(compilation.diagnostics().size(), 2);
+        Assert.assertEquals(compilation.diagnostics().size(), 3);
         Assert.assertEquals(compilation.diagnostics().get(0).getMessage(Locale.GERMAN), "CblEntity should not have a contructor");
         Assert.assertEquals(compilation.diagnostics().get(1).getMessage(Locale.GERMAN), "CblField must be private");
+        Assert.assertEquals(compilation.diagnostics().get(2).getMessage(Locale.GERMAN), "CblConstant must be private");
     }
+
+    @Test
+    public void testFailPrivateInnerClass() {
+
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
+                "\n" +
+                "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
+                "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "\n" +
+                "/**\n" +
+                " * Created by sbra0902 on 31.05.17.\n" +
+                " */\n" +
+                "@CblEntity\n" +
+                "public class Sub {\n" +
+                "\n" +
+                "    @CblField\n" +
+                "    private String test;\n" +
+                "\n" +
+                "@CblEntity\n" +
+                "private class Bad {}\n" +
+                "}");
+
+
+        Compilation compilation =
+                javac()
+                        .withProcessors(new CoachBaseBinderProcessor())
+                        .compile(subEntity);
+
+
+        Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
+        Assert.assertEquals(compilation.diagnostics().size(), 1);
+        Assert.assertEquals(compilation.diagnostics().get(0).getMessage(Locale.GERMAN), "CblEntity can not be private");
+    }
+
+    @Test
+    public void testFailFinalInnerClass() {
+
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
+                "\n" +
+                "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
+                "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "\n" +
+                "/**\n" +
+                " * Created by sbra0902 on 31.05.17.\n" +
+                " */\n" +
+                "@CblEntity\n" +
+                "public class Sub {\n" +
+                "\n" +
+                "    @CblField\n" +
+                "    private String test;\n" +
+                "\n" +
+                "@CblEntity\n" +
+                "public final class Bad {}\n" +
+                "}");
+
+
+        Compilation compilation =
+                javac()
+                        .withProcessors(new CoachBaseBinderProcessor())
+                        .compile(subEntity);
+
+
+        Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
+        Assert.assertEquals(compilation.diagnostics().size(), 1);
+        Assert.assertEquals(compilation.diagnostics().get(0).getMessage(Locale.GERMAN), "CblEntity can not be final");
+    }
+
+    @Test
+    public void testFieldAndConstantSameTime() {
+
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
+                "\n" +
+                "import kaufland.com.coachbasebinderapi.CblEntity;\n" +
+                "import kaufland.com.coachbasebinderapi.CblField;\n" +
+                "import kaufland.com.coachbasebinderapi.CblConstant;\n" +
+                "\n" +
+                "/**\n" +
+                " * Created by sbra0902 on 31.05.17.\n" +
+                " */\n" +
+                "@CblEntity\n" +
+                "public class Sub {\n" +
+                "\n" +
+                "    @CblField\n" +
+                "    @CblConstant(value = \"type\", constant = \"product\")\n" +
+                "    private String test;\n" +
+                "\n" +
+                "}");
+
+
+        Compilation compilation =
+                javac()
+                        .withProcessors(new CoachBaseBinderProcessor())
+                        .compile(subEntity);
+
+
+        Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
+        Assert.assertEquals(compilation.diagnostics().size(), 1);
+        Assert.assertEquals(compilation.diagnostics().get(0).getMessage(Locale.GERMAN), "Element can´t be CblField and CblConstant at the same time");
+    }
+
+
+
 }
+
+

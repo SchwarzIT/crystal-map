@@ -1,4 +1,4 @@
-package com.kaufland.model.source;
+package com.kaufland.model.field;
 
 /**
  * Created by sbra0902 on 21.06.17.
