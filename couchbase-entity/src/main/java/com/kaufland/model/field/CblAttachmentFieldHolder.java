@@ -1,4 +1,4 @@
-package com.kaufland.model.source;
+package com.kaufland.model.field;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
@@ -52,7 +52,7 @@ public class CblAttachmentFieldHolder extends CblBaseFieldHolder {
     }
 
     @Override
-    public MethodSpec setter(String dbName, TypeName entityTypeName) {
+    public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
 
         TypeName fieldType = TypeUtil.parseMetaType(getMetaField().getType(), null);
         MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + WordUtils.capitalize(getMetaField().getName())).

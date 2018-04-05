@@ -1,11 +1,15 @@
-package com.kaufland.model.source;
+package com.kaufland.model;
 
+import com.kaufland.ElementMetaModel;
+import com.kaufland.model.entity.CblBaseEntityHolder;
+import com.kaufland.model.entity.CblChildEntityHolder;
+import com.kaufland.model.entity.CblEntityHolder;
+import com.kaufland.model.field.CblAttachmentFieldHolder;
+import com.kaufland.model.field.CblConstantHolder;
+import com.kaufland.model.field.CblDefaultHolder;
+import com.kaufland.model.field.CblFieldHolder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
-import com.thoughtworks.qdox.model.JavaGenericDeclaration;
-import com.thoughtworks.qdox.model.JavaType;
-import com.thoughtworks.qdox.model.JavaTypeVariable;
-import com.thoughtworks.qdox.model.impl.DefaultJavaParameterizedType;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,26 +23,26 @@ import kaufland.com.coachbasebinderapi.CblDefault;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
 
-public class SourceContentParser {
+public class EntityFactory {
 
-    private Element currentWorkingObject;
+    public static CblEntityHolder createEntityHolder(Element cblEntityElement, ElementMetaModel metaModel) {
+        return (CblEntityHolder) create(cblEntityElement, metaModel, new CblEntityHolder(cblEntityElement.getAnnotation(CblEntity.class).database()));
+    }
 
-    public CblEntityHolder parse(Element cblEntityElement, Map<String, Element> allAnnotatedClazzes, JavaClass clazzWithAnnotation) throws ClassNotFoundException {
+    public static CblChildEntityHolder createChildEntityHolder(Element cblEntityElement, ElementMetaModel metaModel) {
 
-        CblEntityHolder content = new CblEntityHolder();
+        return (CblChildEntityHolder) create(cblEntityElement, metaModel, new CblChildEntityHolder());
+    }
+
+    private static CblBaseEntityHolder create(Element cblEntityElement, ElementMetaModel metaModel, CblBaseEntityHolder content) {
 
         content.setSourceElement(cblEntityElement);
-        CblEntity entityAnnotation = cblEntityElement.getAnnotation(CblEntity.class);
-        content.setDbName(entityAnnotation.database());
-        content.setId(entityAnnotation.id().equals("") ? null : entityAnnotation.id());
 
         for (Element element : cblEntityElement.getEnclosedElements()) {
 
-            currentWorkingObject = element;
-
             if (element.getKind() == ElementKind.FIELD) {
 
-                JavaField metaField = clazzWithAnnotation.getFieldByName(element.getSimpleName().toString());
+                JavaField metaField = metaModel.getMetaFor(cblEntityElement).getFieldByName(element.getSimpleName().toString());
 
                 CblField cblField = element.getAnnotation(CblField.class);
                 CblConstant cblConstant = element.getAnnotation(CblConstant.class);
@@ -54,7 +58,7 @@ public class SourceContentParser {
                         content.getFieldAttachments().add(new CblAttachmentFieldHolder(cblField, element, metaField));
                     } else {
                         CblDefaultHolder defaultHolder = cblDefault != null ? new CblDefaultHolder(cblDefault.value()) : null;
-                        CblFieldHolder cblFieldHolder = new CblFieldHolder(cblField, element, metaField, defaultHolder, allAnnotatedClazzes);
+                        CblFieldHolder cblFieldHolder = new CblFieldHolder(cblField, element, metaField, defaultHolder, metaModel);
                         content.getFields().add(cblFieldHolder);
                     }
                 }
@@ -67,9 +71,5 @@ public class SourceContentParser {
 
         return content;
 
-    }
-
-    public Element getCurrentWorkingObject() {
-        return currentWorkingObject;
     }
 }

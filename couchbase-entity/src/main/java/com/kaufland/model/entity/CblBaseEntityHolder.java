@@ -1,6 +1,11 @@
-package com.kaufland.model.source;
+package com.kaufland.model.entity;
 
+import com.kaufland.model.field.CblAttachmentFieldHolder;
+import com.kaufland.model.field.CblBaseFieldHolder;
+import com.kaufland.model.field.CblConstantHolder;
+import com.kaufland.model.field.CblFieldHolder;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeName;
 import com.sun.tools.javac.code.Symbol;
 
@@ -9,7 +14,7 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 
-public class CblEntityHolder {
+public abstract class CblBaseEntityHolder {
 
     private List<CblFieldHolder> mFields = new ArrayList<>();
 
@@ -19,25 +24,8 @@ public class CblEntityHolder {
 
     private Element sourceElement;
 
-    private String dbName;
-
-    private String id;
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getDbName() {
-        return dbName;
-    }
-
-    public void setDbName(String dbName) {
-        this.dbName = dbName;
+    public List<CblAttachmentFieldHolder> getFieldAttachments() {
+        return mFieldAttachments;
     }
 
     public List<CblFieldHolder> getFields() {
@@ -54,10 +42,6 @@ public class CblEntityHolder {
 
     public List<CblConstantHolder> getFieldConstants() {
         return mFieldConstants;
-    }
-
-    public List<CblAttachmentFieldHolder> getFieldAttachments() {
-        return mFieldAttachments;
     }
 
     public String getSourceClazzSimpleName() {

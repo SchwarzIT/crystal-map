@@ -1,4 +1,4 @@
-package com.kaufland.model.source;
+package com.kaufland.model.field;
 
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.FieldSpec;
@@ -9,7 +9,6 @@ import com.thoughtworks.qdox.model.JavaField;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -51,7 +50,7 @@ public class CblConstantHolder extends CblBaseFieldHolder {
     }
 
     @Override
-    public MethodSpec setter(String dbName, TypeName entityTypeName) {
+    public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
         return null;
     }
 

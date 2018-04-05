@@ -1,4 +1,4 @@
-package com.kaufland.model.source;
+package com.kaufland.model.field;
 
 import com.kaufland.util.ConversionUtil;
 import com.squareup.javapoet.FieldSpec;
@@ -33,7 +33,7 @@ public abstract class CblBaseFieldHolder {
 
     public abstract MethodSpec getter(String dbName);
 
-    public abstract MethodSpec setter(String dbName, TypeName entityTypeName);
+    public abstract MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges);
 
     public abstract List<FieldSpec> createFieldConstant();
 

@@ -1,5 +1,6 @@
-package com.kaufland.model.source;
+package com.kaufland.model.field;
 
+import com.kaufland.ElementMetaModel;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -28,18 +29,18 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     private CblDefaultHolder defaultHolder;
 
-    public CblFieldHolder(CblField field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, Map<String, Element> allAnnotatedClazzes) {
+    public CblFieldHolder(CblField field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, ElementMetaModel metaModel) {
         super(field.value(), fieldElement, metaField);
         this.defaultHolder = defaultHolder;
 
-        String typeName = metaField.getType().getSimpleName();
-        if (allAnnotatedClazzes.containsKey(typeName)) {
+        String typeName = metaField.getType().getCanonicalName();
+        if (metaModel.isChildEntity(typeName)) {
             subEntityName = typeName + "Entity";
         } else if (metaField.getType() instanceof DefaultJavaParameterizedType) {
             for (JavaType typeParameter : ((DefaultJavaParameterizedType) metaField.getType()).getActualTypeArguments()) {
 
-                String simpleName = ((DefaultJavaParameterizedType) typeParameter).getSimpleName();
-                if (allAnnotatedClazzes.containsKey(simpleName)) {
+                String simpleName = typeParameter.getCanonicalName();
+                if (metaModel.isChildEntity(simpleName)) {
                     subEntityName = simpleName + "Entity";
                     subEntityIsTypeParam = true;
                     break;
@@ -85,18 +86,20 @@ public class CblFieldHolder extends CblBaseFieldHolder {
     }
 
     @Override
-    public MethodSpec setter(String dbName, TypeName entityTypeName) {
+    public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
         TypeName fieldType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntityName());
         MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + WordUtils.capitalize(getMetaField().getName())).
                 addModifiers(Modifier.PUBLIC).
                 addParameter(fieldType, "value").
                 returns(entityTypeName);
 
+        String docName = useMDocChanges ? "mDocChanges" : "mDoc";
+
         if (isTypeOfSubEntity()) {
-            builder.addStatement("mDocChanges.put($N, $N.toMap(($T)value))", getConstantName(), getSubEntityName(), fieldType);
+            builder.addStatement("$N.put($N, $N.toMap(($T)value))", docName, getConstantName(), getSubEntityName(), fieldType);
             builder.addStatement("return this");
         } else {
-            builder.addStatement("mDocChanges.put($N, value)", getConstantName());
+            builder.addStatement("$N.put($N, value)", docName, getConstantName());
             builder.addStatement("return this");
         }
 

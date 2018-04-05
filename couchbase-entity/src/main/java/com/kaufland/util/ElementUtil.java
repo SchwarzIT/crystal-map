@@ -2,7 +2,11 @@ package com.kaufland.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import javax.lang.model.element.Element;
 
 public final class ElementUtil {
 
