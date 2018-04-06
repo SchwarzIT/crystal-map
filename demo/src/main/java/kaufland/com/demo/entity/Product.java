@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import kaufland.com.coachbasebinderapi.CblConstant;
 import kaufland.com.coachbasebinderapi.CblEntity;
 import kaufland.com.coachbasebinderapi.CblField;
+import kaufland.com.demo.Application;
 
-@CblEntity
+@CblEntity(database = Application.DB)
 public class Product {
 
     @CblConstant(value = "type", constant = "product")

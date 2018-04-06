@@ -19,7 +19,7 @@ public class Application extends android.app.Application {
 
 
     private static final String TAG = Application.class.getName();
-    private static final String DB = "mydb_db";
+    public static final String DB = "mydb_db";
     private Manager mManager;
 
     @Override
@@ -39,14 +39,17 @@ public class Application extends android.app.Application {
         PersistenceConfig.configure(new PersistenceConfig.DatabaseGet() {
             @Override
             public Database getDatabase(String name) {
-                return Application.this.getDatabase();
+                if (DB.equals(name)) {
+                    return Application.this.getDatabase();
+                }
+                throw new RuntimeException("wrong db name defined!!");
             }
         });
         createMockArticle();
     }
 
     private void deleteDbIfExists() {
-        if(getDatabase().exists()){
+        if (getDatabase().exists()) {
             try {
                 getDatabase().delete();
             } catch (CouchbaseLiteException e) {
