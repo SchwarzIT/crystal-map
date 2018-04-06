@@ -13,10 +13,10 @@ public class RebindMethodGeneration {
 
         MethodSpec.Builder rebind = MethodSpec.methodBuilder("rebind").
                 addParameter(TypeUtil.createMapStringObject(), "doc").
-                addStatement("mDoc = doc != null ? doc : new java.util.HashMap<String, Object>()");
+                addStatement("mDoc = doc != null ? new $1T(doc) : new $1T()", TypeUtil.createHashMapStringObject());
 
         if (clearMDocChanges) {
-            rebind.addStatement("mDocChanges = new java.util.HashMap<String, Object>()");
+            rebind.addStatement("mDocChanges = new $T()", TypeUtil.createHashMapStringObject());
         }
 
         rebind.addStatement("$T mDocDefaults = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject());

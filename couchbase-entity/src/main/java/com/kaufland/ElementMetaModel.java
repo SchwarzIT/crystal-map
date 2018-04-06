@@ -62,6 +62,10 @@ public class ElementMetaModel {
     }
 
     public <T extends Element> JavaClass getMetaFor(T annotatedClass){
-        return builder.getClassByName(annotatedClass.toString());
+        return getMetaFor(annotatedClass.toString());
+    }
+
+    public JavaClass getMetaFor(String clazzName){
+        return builder.getClassByName(clazzName);
     }
 }

@@ -41,7 +41,7 @@ public class CommentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
-        final ArrayList<UserCommentEntity> data = getParentEntity().getComments();
+        final List<UserCommentEntity> data = getParentEntity().getComments();
 
         mAdapter = new ArrayAdapter<String>(this, R.layout.comment_item_view, R.id.txt_comment, map(data)) {
             @NonNull
@@ -70,7 +70,7 @@ public class CommentActivity extends AppCompatActivity {
         findViewById(R.id.btn_post).setOnClickListener(new android.view.View.OnClickListener() {
             @Override
             public void onClick(android.view.View v) {
-                ArrayList<UserCommentEntity> mComments = getParentEntity().getComments();
+                List<UserCommentEntity> mComments = getParentEntity().getComments();
                 mComments.add(UserCommentEntity.create().
                         setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
                         setUserName("you"));
@@ -85,7 +85,7 @@ public class CommentActivity extends AppCompatActivity {
         });
     }
 
-    private List<String> map(ArrayList<UserCommentEntity> userCommentEntities) {
+    private List<String> map(List<UserCommentEntity> userCommentEntities) {
         List<String> result = new ArrayList<>();
 
         for (UserCommentEntity entity : userCommentEntities) {

@@ -2,9 +2,11 @@ package com.kaufland.model.field;
 
 import com.kaufland.ElementMetaModel;
 import com.kaufland.util.TypeUtil;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
+import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaType;
 import com.thoughtworks.qdox.model.impl.DefaultJavaParameterizedType;
@@ -23,7 +25,9 @@ import kaufland.com.coachbasebinderapi.CblField;
 
 public class CblFieldHolder extends CblBaseFieldHolder {
 
-    private String subEntityName;
+    private String subEntityPackage;
+
+    private String subEntitySimpleName;
 
     private boolean subEntityIsTypeParam;
 
@@ -33,15 +37,19 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         super(field.value(), fieldElement, metaField);
         this.defaultHolder = defaultHolder;
 
+
         String typeName = metaField.getType().getCanonicalName();
         if (metaModel.isChildEntity(typeName)) {
-            subEntityName = typeName + "Entity";
+            subEntitySimpleName = metaField.getType().getSimpleName() + "Entity";
+            subEntityPackage = metaField.getType().getPackageName();
         } else if (metaField.getType() instanceof DefaultJavaParameterizedType) {
             for (JavaType typeParameter : ((DefaultJavaParameterizedType) metaField.getType()).getActualTypeArguments()) {
 
-                String simpleName = typeParameter.getCanonicalName();
-                if (metaModel.isChildEntity(simpleName)) {
-                    subEntityName = simpleName + "Entity";
+                String canonicalName = typeParameter.getCanonicalName();
+                if (metaModel.isChildEntity(canonicalName)) {
+                    JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
+                    subEntitySimpleName = metaClazz.getSimpleName() + "Entity";
+                    subEntityPackage = metaClazz.getPackageName();
                     subEntityIsTypeParam = true;
                     break;
                 }
@@ -49,8 +57,12 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         }
     }
 
-    public String getSubEntityName() {
-        return subEntityName;
+    public String getSubEntitySimpleName() {
+        return subEntitySimpleName;
+    }
+
+    public TypeName getSubEntityTypeName() {
+        return ClassName.get(subEntityPackage, subEntitySimpleName);
     }
 
     public boolean isSubEntityIsTypeParam() {
@@ -62,12 +74,12 @@ public class CblFieldHolder extends CblBaseFieldHolder {
     }
 
     public boolean isTypeOfSubEntity() {
-        return !StringUtils.isBlank(subEntityName);
+        return !StringUtils.isBlank(subEntitySimpleName);
     }
 
     @Override
     public MethodSpec getter(String dbName) {
-        TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntityName());
+        TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).
                 addModifiers(Modifier.PUBLIC).
@@ -75,9 +87,9 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
 
         if (isTypeOfSubEntity()) {
-            returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntityName());
+            returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
             TypeName castType = isSubEntityIsTypeParam() ? TypeUtil.createListWithMapStringObject() : TypeUtil.createMapStringObject();
-            builder.addStatement("return ($T) $N.fromMap(($T)mDoc.get($N))", returnType, getSubEntityName(), castType, getConstantName());
+            builder.addStatement("return ($T) $T.fromMap(($T)mDoc.get($N))", returnType, getSubEntityTypeName(), castType, getConstantName());
         } else {
             builder.addStatement("return ($T) mDoc.get($N)", returnType, getConstantName());
         }
@@ -87,7 +99,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     @Override
     public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
-        TypeName fieldType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntityName());
+        TypeName fieldType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
         MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + WordUtils.capitalize(getMetaField().getName())).
                 addModifiers(Modifier.PUBLIC).
                 addParameter(fieldType, "value").
@@ -96,7 +108,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         String docName = useMDocChanges ? "mDocChanges" : "mDoc";
 
         if (isTypeOfSubEntity()) {
-            builder.addStatement("$N.put($N, $N.toMap(($T)value))", docName, getConstantName(), getSubEntityName(), fieldType);
+            builder.addStatement("$N.put($N, $T.toMap(($T)value))", docName, getConstantName(), getSubEntityTypeName(), fieldType);
             builder.addStatement("return this");
         } else {
             builder.addStatement("$N.put($N, value)", docName, getConstantName());
