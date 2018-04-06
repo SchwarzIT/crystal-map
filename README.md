@@ -52,49 +52,73 @@ Is a library that generates entities and methods to easily modify data for [couc
 * Add the following Code in your Application.class
 
 ``` java
-@Override
+    @Override
     public void onCreate() {
         super.onCreate();
         PersistenceConfig.configure(new PersistenceConfig.DatabaseGet() {
             @Override
             public Database getDatabase(String name) {
-                return Application.this.getDatabase();
+                if (DB.equals(name)) {
+                    return Application.this.getDatabase();
+                }
+                throw new RuntimeException("wrong db name defined!!");
             }
         });
     }
 ```
   
- * Annotate classes to generate entities
+ * Annotate classes to generate entities (All generated Classes have the suffix Entity)
   
   ``` java
-@CblEntity
-public class List {
+@CblEntity(database = Application.DB)
+public class Product {
 
-    @CblConstant(value = "type", constant = "List")
+    @CblConstant(value = "type", constant = "product")
     private String type;
 
-    @CblField("title")
-    @CblDefault(value = "foo")
-    String title;
-    
-    @CblField(value = "image", attachmentType = "image/jpg")
-    protected InputStream image;
-    
-    @CblField("sub")
-    Sub sub;
+    @CblField("name")
+    private String name;
 
-    @CblField("list_sub")
-    java.util.List<Sub> listSub;
+    @CblField("comments")
+    private ArrayList<UserComment> comments;
+
+    @CblField(value = "image", attachmentType = "image/jpg")
+    private InputStream inputStream;
+}
+   ```
+   * Use CblChild to define ChildEntities
+   ``` java
+@CblChild
+public class UserComment {
+
+    @CblField(value = "comment")
+    private String comment;
+
+    @CblField("user")
+    @CblDefault("anonymous")
+    private String userName;
+}
    ```
 
- * Annotate classes to generate entities (All generated Classes have the suffix Entity)
+ * Use generated classes and be happy :-)
 
  ``` java
-  ListEntity mList = ListEntity.create().           
-                setCreatedAt(currentTimeString).
-                setMembers(new ArrayList<String>()).
-                setTitle(title).
-                setSub(SubEntity.create().setTest("test")).
-                save();
+   ProductEntity.create().setName("Beer").
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("very awesome"), UserCommentEntity.create().setComment("tasty")))).
+                    setInputStream(getResources().openRawResource(R.raw.ic_kaufland_placeholder)).
+                    save();
                 
  ```
+  * hint: to modify childEntities its neccessary to invoke setter before save the parent entity
+  
+ ``` java
+        ArrayList<UserCommentEntity> data = getParentEntity().getComments();
+        data.remove(0);
+        try {
+            getParentEntity().setComments(data).save();
+        } catch (CouchbaseLiteException e) {
+            Log.e(TAG, "failed to save Entity", e);
+        }
+                
+ ```  
+  
