@@ -2,8 +2,11 @@ package kaufland.com.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -38,9 +41,28 @@ public class CommentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
-        ArrayList<UserCommentEntity> data = getParentEntity().getComments();
+        final ArrayList<UserCommentEntity> data = getParentEntity().getComments();
 
-        mAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, map(data));
+        mAdapter = new ArrayAdapter<String>(this, R.layout.comment_item_view, R.id.txt_comment, map(data)) {
+            @NonNull
+            @Override
+            public android.view.View getView(final int position, @Nullable android.view.View convertView, @NonNull ViewGroup parent) {
+                android.view.View view = super.getView(position, convertView, parent);
+                view.findViewById(R.id.btn_delete).setOnClickListener(new android.view.View.OnClickListener() {
+                    @Override
+                    public void onClick(android.view.View v) {
+                        data.remove(position);
+                        try {
+                            getParentEntity().setComments(data).save();
+                        } catch (CouchbaseLiteException e) {
+                            Log.e(TAG, "failed to save Entity", e);
+                        }
+                        recreate();
+                    }
+                });
+                return view;
+            }
+        };
 
         ListView listView = findViewById(R.id.list);
         listView.setAdapter(mAdapter);
