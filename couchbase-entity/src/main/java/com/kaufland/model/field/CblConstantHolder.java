@@ -39,7 +39,7 @@ public class CblConstantHolder extends CblBaseFieldHolder {
     }
 
     @Override
-    public MethodSpec getter(String dbName) {
+    public MethodSpec getter(String dbName, boolean useMDocChanges) {
         TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), null);
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).

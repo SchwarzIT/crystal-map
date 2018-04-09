@@ -3,6 +3,7 @@ package com.kaufland.model.field;
 import com.kaufland.ElementMetaModel;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
@@ -16,7 +17,6 @@ import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -78,7 +78,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
     }
 
     @Override
-    public MethodSpec getter(String dbName) {
+    public MethodSpec getter(String dbName, boolean useMDocChanges) {
         TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).
@@ -89,13 +89,43 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         if (isTypeOfSubEntity()) {
             returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
             TypeName castType = isSubEntityIsTypeParam() ? TypeUtil.createListWithMapStringObject() : TypeUtil.createMapStringObject();
-            builder.addStatement("return ($T) $T.fromMap(($T)mDoc.get($N))", returnType, getSubEntityTypeName(), castType, getConstantName());
+
+            if (useMDocChanges) {
+                builder.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey($N))", getConstantName()).
+                        addStatement("return ($T) $T.fromMap(($T)mDocChanges.get($N))", returnType, getSubEntityTypeName(), castType, getConstantName()).
+                        endControlFlow().
+                        build());
+            }
+            builder.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey($N))", getConstantName()).
+                    addStatement("return ($T) $T.fromMap(($T)mDoc.get($N))", returnType, getSubEntityTypeName(), castType, getConstantName()).
+                    endControlFlow().
+                    build());
+
+            builder.addStatement("return null");
         } else {
-            builder.addStatement("return ($T) mDoc.get($N)", returnType, getConstantName());
+            if (useMDocChanges) {
+                builder.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey($N))", getConstantName()).
+                        addStatement("return ($T) mDocChanges.get($N)", returnType, getConstantName()).
+                        endControlFlow().
+                        build());
+            }
+
+            builder.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey($N))", getConstantName()).
+                    addStatement("return ($T) mDoc.get($N)", returnType, getConstantName()).
+                    endControlFlow().
+                    build());
+
+            if (defaultHolder != null) {
+                builder.addStatement("return ($T) mDocDefaults.get($N)", returnType, getConstantName());
+            } else {
+                builder.addStatement("return null");
+            }
+
         }
 
         return builder.build();
     }
+
 
     @Override
     public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {

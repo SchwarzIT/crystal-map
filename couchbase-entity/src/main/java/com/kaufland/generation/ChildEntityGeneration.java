@@ -1,19 +1,11 @@
 package com.kaufland.generation;
 
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Document;
-import com.couchbase.lite.UnsavedRevision;
 import com.kaufland.model.entity.CblBaseEntityHolder;
 import com.kaufland.model.entity.CblChildEntityHolder;
-import com.kaufland.model.entity.CblEntityHolder;
-import com.kaufland.model.field.CblAttachmentFieldHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
-import com.kaufland.model.field.CblConstantHolder;
-import com.kaufland.model.field.CblFieldHolder;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -26,14 +18,13 @@ import java.util.List;
 
 import javax.lang.model.element.Modifier;
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig;
-
 public class ChildEntityGeneration {
     
     public JavaFile generateModel(CblChildEntityHolder holder) {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
+                addField(CblDefaultGeneration.field()).
                 addMethods(create(holder)).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
                 addMethod(contructor()).
@@ -42,7 +33,7 @@ public class ChildEntityGeneration {
         for (CblBaseFieldHolder fieldHolder : holder.getAllFields()) {
 
             typeBuilder.addFields(fieldHolder.createFieldConstant());
-            typeBuilder.addMethod(fieldHolder.getter(null));
+            typeBuilder.addMethod(fieldHolder.getter(null, false));
 
             MethodSpec setter = fieldHolder.setter(null, holder.getEntityTypeName(), false);
             if (setter != null) {
@@ -50,8 +41,8 @@ public class ChildEntityGeneration {
             }
         }
 
-
-        typeBuilder.addMethod(new RebindMethodGeneration().generate(holder.getFields(), false));
+        typeBuilder.addStaticBlock(CblDefaultGeneration.staticInitialiser(holder));
+        typeBuilder.addMethod(new RebindMethodGeneration().generate(false));
         typeBuilder.addMethods(fromMap(holder));
         typeBuilder.addMethods(toMap(holder));
 

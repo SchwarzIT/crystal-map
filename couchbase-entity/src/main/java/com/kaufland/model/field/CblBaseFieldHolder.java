@@ -31,7 +31,7 @@ public abstract class CblBaseFieldHolder {
     }
 
 
-    public abstract MethodSpec getter(String dbName);
+    public abstract MethodSpec getter(String dbName, boolean useMDocChanges);
 
     public abstract MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges);
 

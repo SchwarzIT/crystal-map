@@ -9,7 +9,7 @@ import java.util.List;
 
 public class RebindMethodGeneration {
 
-    public MethodSpec generate(List<CblFieldHolder> fieldHolders, boolean clearMDocChanges) {
+    public MethodSpec generate(boolean clearMDocChanges) {
 
         MethodSpec.Builder rebind = MethodSpec.methodBuilder("rebind").
                 addParameter(TypeUtil.createMapStringObject(), "doc").
@@ -19,34 +19,7 @@ public class RebindMethodGeneration {
             rebind.addStatement("mDocChanges = new $T()", TypeUtil.createHashMapStringObject());
         }
 
-        rebind.addStatement("$T mDocDefaults = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject());
-
-        for (CblFieldHolder fieldHolder : fieldHolders) {
-            if (fieldHolder.getDefaultHolder() != null) {
-
-                rebind.addCode(CodeBlock.builder().
-                        beginControlFlow("if(!mDoc.containsKey($N))", fieldHolder.getConstantName()).
-                        addStatement("mDocDefaults.put($N, $N)", fieldHolder.getConstantName(), convertDefaultValue(fieldHolder)).
-                        endControlFlow().
-                        build());
-            }
-        }
-
-        rebind.addCode(CodeBlock.builder().
-                beginControlFlow("if(mDocDefaults.size()>0)").
-                addStatement("mDoc.putAll(mDocDefaults)").
-                endControlFlow().
-                build());
-
         return rebind.build();
 
-    }
-
-    private String convertDefaultValue(CblFieldHolder fieldHolder) {
-
-        if (fieldHolder.getMetaField().getType().getCanonicalName().equals(String.class.getCanonicalName())) {
-            return "\"" + fieldHolder.getDefaultHolder().getDefaultValue() + "\"";
-        }
-        return fieldHolder.getDefaultHolder().getDefaultValue();
     }
 }

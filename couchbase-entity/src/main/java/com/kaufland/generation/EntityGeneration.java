@@ -3,6 +3,7 @@ package com.kaufland.generation;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.UnsavedRevision;
+import com.kaufland.model.entity.CblBaseEntityHolder;
 import com.kaufland.model.entity.CblEntityHolder;
 import com.kaufland.model.field.CblAttachmentFieldHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
@@ -31,6 +32,7 @@ public class EntityGeneration {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
+                addField(CblDefaultGeneration.field()).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
                 addField(TypeUtil.createMapStringObject(), "mDocChanges", Modifier.PRIVATE).
                 addMethods(create(holder)).
@@ -43,7 +45,7 @@ public class EntityGeneration {
         for (CblBaseFieldHolder fieldHolder : holder.getAllFields()) {
 
             typeBuilder.addFields(fieldHolder.createFieldConstant());
-            typeBuilder.addMethod(fieldHolder.getter(holder.getDbName()));
+            typeBuilder.addMethod(fieldHolder.getter(holder.getDbName(), true));
 
             MethodSpec setter = fieldHolder.setter(holder.getDbName(), holder.getEntityTypeName(), true);
             if (setter != null) {
@@ -51,7 +53,8 @@ public class EntityGeneration {
             }
         }
 
-        typeBuilder.addMethod(new RebindMethodGeneration().generate(holder.getFields(), true));
+        typeBuilder.addStaticBlock(CblDefaultGeneration.staticInitialiser(holder));
+        typeBuilder.addMethod(new RebindMethodGeneration().generate(true));
         typeBuilder.addMethod(delete(holder));
         typeBuilder.addMethod(save(holder));
 
@@ -59,6 +62,7 @@ public class EntityGeneration {
                 build();
 
     }
+
 
     private FieldSpec idConstant() {
         return FieldSpec.builder(String.class, "_ID", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL).
@@ -93,6 +97,7 @@ public class EntityGeneration {
 
         saveBuilder.addStatement("$1T temp = new $1T()", TypeUtil.createHashMapStringObject());
         saveBuilder.addCode(CodeBlock.builder().
+                addStatement("temp.putAll(mDocDefaults)").
                 beginControlFlow("if(doc.getProperties() != null)").
                 addStatement("temp.putAll(doc.getProperties())").
                 endControlFlow().
