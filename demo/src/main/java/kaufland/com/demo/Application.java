@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig;
 import kaufland.com.coachbasebinderapi.PersistenceException;
-import kaufland.com.couchbaseentityconnector.Couchbase21Connector;
+import kaufland.com.couchbaseentityconnector.Couchbase2Connector;
 import kaufland.com.demo.entity.ProductEntity;
 import kaufland.com.demo.entity.UserCommentEntity;
 
@@ -31,7 +31,7 @@ public class Application extends android.app.Application {
 
         deleteDbIfExists();
 
-        PersistenceConfig.configure(new Couchbase21Connector() {
+        PersistenceConfig.configure(new Couchbase2Connector() {
             @Override
             protected Database getDatabase(String name) {
                 if (DB.equals(name)) {

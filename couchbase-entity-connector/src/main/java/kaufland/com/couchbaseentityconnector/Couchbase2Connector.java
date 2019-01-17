@@ -12,7 +12,7 @@ import java.util.Map;
 import kaufland.com.coachbasebinderapi.PersistenceConfig;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 
-public abstract class Couchbase21Connector implements PersistenceConfig.Connector {
+public abstract class Couchbase2Connector implements PersistenceConfig.Connector {
 
     protected abstract Database getDatabase(String name);
 
