@@ -12,16 +12,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Emitter;
-import com.couchbase.lite.Mapper;
-import com.couchbase.lite.Query;
-import com.couchbase.lite.View;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig;
+import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.demo.entity.ProductEntity;
 import kaufland.com.demo.entity.UserCommentEntity;
 
@@ -54,7 +49,7 @@ public class CommentActivity extends AppCompatActivity {
                         data.remove(position);
                         try {
                             getParentEntity().setComments(data).save();
-                        } catch (CouchbaseLiteException e) {
+                        } catch (PersistenceException e) {
                             Log.e(TAG, "failed to save Entity", e);
                         }
                         recreate();
@@ -78,7 +73,7 @@ public class CommentActivity extends AppCompatActivity {
                     getParentEntity().setComments(mComments).save();
                     ((EditText) findViewById(R.id.edit_text)).setText("");
                     recreate();
-                } catch (CouchbaseLiteException e) {
+                } catch (PersistenceException e) {
                     Log.e(TAG, "failed to save", e);
                 }
             }

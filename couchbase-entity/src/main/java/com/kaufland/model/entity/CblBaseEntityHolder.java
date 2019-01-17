@@ -1,11 +1,9 @@
 package com.kaufland.model.entity;
 
-import com.kaufland.model.field.CblAttachmentFieldHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
 import com.kaufland.model.field.CblConstantHolder;
 import com.kaufland.model.field.CblFieldHolder;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeName;
 import com.sun.tools.javac.code.Symbol;
 
@@ -20,13 +18,8 @@ public abstract class CblBaseEntityHolder {
 
     private List<CblConstantHolder> mFieldConstants = new ArrayList<>();
 
-    private List<CblAttachmentFieldHolder> mFieldAttachments = new ArrayList<>();
-
     private Element sourceElement;
 
-    public List<CblAttachmentFieldHolder> getFieldAttachments() {
-        return mFieldAttachments;
-    }
 
     public List<CblFieldHolder> getFields() {
         return mFields;
@@ -35,7 +28,6 @@ public abstract class CblBaseEntityHolder {
     public List<CblBaseFieldHolder> getAllFields() {
         List<CblBaseFieldHolder> allField = new ArrayList<>();
         allField.addAll(getFields());
-        allField.addAll(getFieldAttachments());
         allField.addAll(getFieldConstants());
         return allField;
     }

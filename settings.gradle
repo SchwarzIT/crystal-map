@@ -1,1 +1,1 @@
-include ':couchbase-entity-api', ':couchbase-entity', ':demo'
+include ':couchbase-entity-api', ':couchbase-entity', ':demo', ':couchbase-entity-connector'

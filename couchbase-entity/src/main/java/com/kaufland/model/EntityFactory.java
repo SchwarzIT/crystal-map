@@ -4,16 +4,10 @@ import com.kaufland.ElementMetaModel;
 import com.kaufland.model.entity.CblBaseEntityHolder;
 import com.kaufland.model.entity.CblChildEntityHolder;
 import com.kaufland.model.entity.CblEntityHolder;
-import com.kaufland.model.field.CblAttachmentFieldHolder;
 import com.kaufland.model.field.CblConstantHolder;
 import com.kaufland.model.field.CblDefaultHolder;
 import com.kaufland.model.field.CblFieldHolder;
-import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -54,13 +48,9 @@ public class EntityFactory {
 
                 if (cblField != null) {
 
-                    if (StringUtils.isNotBlank(cblField.attachmentType())) {
-                        content.getFieldAttachments().add(new CblAttachmentFieldHolder(cblField, element, metaField));
-                    } else {
-                        CblDefaultHolder defaultHolder = cblDefault != null ? new CblDefaultHolder(cblDefault.value()) : null;
-                        CblFieldHolder cblFieldHolder = new CblFieldHolder(cblField, element, metaField, defaultHolder, metaModel);
-                        content.getFields().add(cblFieldHolder);
-                    }
+                    CblDefaultHolder defaultHolder = cblDefault != null ? new CblDefaultHolder(cblDefault.value()) : null;
+                    CblFieldHolder cblFieldHolder = new CblFieldHolder(cblField, element, metaField, defaultHolder, metaModel);
+                    content.getFields().add(cblFieldHolder);
                 }
 
                 if (cblConstant != null) {

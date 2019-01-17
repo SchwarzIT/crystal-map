@@ -1,5 +1,7 @@
 package kaufland.com.demo.entity;
 
+import com.couchbase.lite.Blob;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ public class Product {
     @CblField("comments")
     private List<UserComment> comments;
 
-    @CblField(value = "image", attachmentType = "image/jpg")
-    private InputStream inputStream;
+    @CblField(value = "image")
+    private Blob image;
 
 }

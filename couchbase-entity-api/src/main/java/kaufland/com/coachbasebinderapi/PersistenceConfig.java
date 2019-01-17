@@ -1,37 +1,38 @@
 package kaufland.com.coachbasebinderapi;
 
-import com.couchbase.lite.Database;
-import com.couchbase.lite.Document;
+
+import java.util.Map;
 
 public class PersistenceConfig {
 
     private static PersistenceConfig mInstance;
 
-    private final DatabaseGet mDatabaseGet;
+    private final Connector mConnector;
 
-    private PersistenceConfig(DatabaseGet databaseGet) {
-        mDatabaseGet = databaseGet;
+    private PersistenceConfig(Connector connector) {
+        mConnector = connector;
     }
 
-    public interface DatabaseGet {
-        Database getDatabase(String name);
+    public interface Connector {
+
+        Map<String, Object> getDocument(String id, String dbName);
+
+        void deleteDocument(String id, String dbName) throws PersistenceException;
+
+        void upsertDocument(Map<String, Object> document, String id, String dbName) throws PersistenceException;
     }
 
-    public static void configure(DatabaseGet databaseGet) {
+    public static void configure(Connector connector) {
 
-        mInstance = new PersistenceConfig(databaseGet);
+        mInstance = new PersistenceConfig(connector);
     }
 
-    public Document createOrGet(String docId, String name) {
-
-
-        Document doc = mDatabaseGet.getDatabase(name).getDocument(docId);
-
-        if (doc == null) {
-            doc = mDatabaseGet.getDatabase(name).createDocument();
+    public Connector getConnector() {
+        if (mConnector == null) {
+            throw new RuntimeException("no database connector configured.. call PersistenceConfig.configure(Connector");
         }
 
-        return doc;
+        return mConnector;
     }
 
     public static PersistenceConfig getInstance() {

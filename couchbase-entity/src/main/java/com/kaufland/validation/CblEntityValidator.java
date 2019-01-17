@@ -64,15 +64,6 @@ public class CblEntityValidator {
                         }
                     }
 
-                    if (!fieldAnnotation.attachmentType().equals("")) {
-                        if (clazzes.size() > 1 || !InputStream.class.isAssignableFrom(Class.forName(clazzes.get(0))) && !URL.class.isAssignableFrom(Class.forName(clazzes.get(0)))) {
-                            logger.error(CblField.class.getSimpleName() + " attachments must be Inputstream or URL", member);
-                        }
-
-                        if (entityElement.getAnnotation(CblChild.class) != null) {
-                            logger.error(CblField.class.getSimpleName() + " attachments can't be used for " + CblChild.class.getSimpleName(), member);
-                        }
-                    }
                 } else if (constantAnnotation != null) {
 
                     if (fieldAnnotation != null) {
