@@ -1,10 +1,10 @@
 package com.kaufland.model.entity;
 
-public class CblEntityHolder extends CblBaseEntityHolder{
+public class EntityHolder extends BaseEntityHolder {
 
     private String dbName;
 
-    public CblEntityHolder(String dbName) {
+    public EntityHolder(String dbName) {
         this.dbName = dbName;
     }
 

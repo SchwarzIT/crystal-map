@@ -1,7 +1,7 @@
 package com.kaufland.generation;
 
-import com.kaufland.model.entity.CblBaseEntityHolder;
-import com.kaufland.model.entity.CblChildEntityHolder;
+import com.kaufland.model.entity.BaseEntityHolder;
+import com.kaufland.model.entity.WrapperEntityHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.ClassName;
@@ -18,9 +18,9 @@ import java.util.List;
 
 import javax.lang.model.element.Modifier;
 
-public class ChildEntityGeneration {
+public class WrapperGeneration {
     
-    public JavaFile generateModel(CblChildEntityHolder holder) {
+    public JavaFile generateModel(WrapperEntityHolder holder) {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
@@ -51,7 +51,7 @@ public class ChildEntityGeneration {
 
     }
 
-    private List<MethodSpec> toMap(CblBaseEntityHolder holder) {
+    private List<MethodSpec> toMap(BaseEntityHolder holder) {
         CodeBlock nullCheck = CodeBlock.builder().
                 beginControlFlow("if(obj == null)").
                 addStatement("return null").
@@ -80,7 +80,7 @@ public class ChildEntityGeneration {
                         build());
     }
 
-    private List<MethodSpec> fromMap(CblBaseEntityHolder holder) {
+    private List<MethodSpec> fromMap(BaseEntityHolder holder) {
         CodeBlock nullCheck = CodeBlock.builder().
                 beginControlFlow("if(obj == null)").
                 addStatement("return null").
@@ -115,7 +115,7 @@ public class ChildEntityGeneration {
                 build();
     }
 
-    private List<MethodSpec> create(CblChildEntityHolder holder) {
+    private List<MethodSpec> create(WrapperEntityHolder holder) {
 
         return Arrays.asList(
                 MethodSpec.methodBuilder("create").

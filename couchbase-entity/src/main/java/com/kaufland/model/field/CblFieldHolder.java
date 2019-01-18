@@ -21,7 +21,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import kaufland.com.coachbasebinderapi.CblField;
+import kaufland.com.coachbasebinderapi.Field;
 
 public class CblFieldHolder extends CblBaseFieldHolder {
 
@@ -33,22 +33,22 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     private CblDefaultHolder defaultHolder;
 
-    public CblFieldHolder(CblField field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, ElementMetaModel metaModel) {
+    public CblFieldHolder(Field field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, ElementMetaModel metaModel) {
         super(field.value(), fieldElement, metaField);
         this.defaultHolder = defaultHolder;
 
 
         String typeName = metaField.getType().getCanonicalName();
-        if (metaModel.isChildEntity(typeName)) {
-            subEntitySimpleName = metaField.getType().getSimpleName() + "Entity";
+        if (metaModel.isMapWrapper(typeName)) {
+            subEntitySimpleName = metaField.getType().getSimpleName() + "Wrapper";
             subEntityPackage = metaField.getType().getPackageName();
         } else if (metaField.getType() instanceof DefaultJavaParameterizedType) {
             for (JavaType typeParameter : ((DefaultJavaParameterizedType) metaField.getType()).getActualTypeArguments()) {
 
                 String canonicalName = typeParameter.getCanonicalName();
-                if (metaModel.isChildEntity(canonicalName)) {
+                if (metaModel.isMapWrapper(canonicalName)) {
                     JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
-                    subEntitySimpleName = metaClazz.getSimpleName() + "Entity";
+                    subEntitySimpleName = metaClazz.getSimpleName() + "Wrapper";
                     subEntityPackage = metaClazz.getPackageName();
                     subEntityIsTypeParam = true;
                     break;

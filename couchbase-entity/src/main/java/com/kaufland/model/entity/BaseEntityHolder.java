@@ -12,7 +12,7 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 
-public abstract class CblBaseEntityHolder {
+public abstract class BaseEntityHolder {
 
     private List<CblFieldHolder> mFields = new ArrayList<>();
 

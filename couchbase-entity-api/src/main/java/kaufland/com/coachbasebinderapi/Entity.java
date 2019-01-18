@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})
-public @interface CblEntity {
+public @interface Entity {
 
     /**
      * The implementation class of the injected bean.

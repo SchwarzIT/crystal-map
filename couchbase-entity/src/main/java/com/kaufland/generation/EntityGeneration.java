@@ -1,6 +1,6 @@
 package com.kaufland.generation;
 
-import com.kaufland.model.entity.CblEntityHolder;
+import com.kaufland.model.entity.EntityHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
 import com.kaufland.model.field.CblConstantHolder;
 import com.kaufland.util.TypeUtil;
@@ -28,7 +28,7 @@ public class EntityGeneration {
     private static final String UPSERT_DOCUMENT_METHOD = "getInstance().getConnector().upsertDocument";
 
 
-    public JavaFile generateModel(CblEntityHolder holder) {
+    public JavaFile generateModel(EntityHolder holder) {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
@@ -37,7 +37,9 @@ public class EntityGeneration {
                 addField(TypeUtil.createMapStringObject(), "mDocChanges", Modifier.PRIVATE).
                 addMethods(create(holder)).
                 addMethod(contructor(holder)).
+                addMethod(setAll(holder)).
                 addMethod(getId()).
+                addMethod(toMap(holder)).
                 addField(idConstant()).
                 superclass(TypeName.get(holder.getSourceElement().asType()));
 
@@ -79,24 +81,29 @@ public class EntityGeneration {
                 build();
     }
 
-    private MethodSpec delete(CblEntityHolder holder) {
-        return MethodSpec.methodBuilder("delete").addModifiers(Modifier.PUBLIC).
-                addException(PersistenceException.class).
-                addStatement("$N." + DELETE_DOCUMENT_METHOD + "(getId(), $S)", PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
-                build();
+
+
+    private MethodSpec setAll(EntityHolder holder) {
+
+        MethodSpec.Builder setAllBuilder = MethodSpec.methodBuilder("setAll").addModifiers(Modifier.PUBLIC).
+                addParameter(TypeUtil.createMapStringObject(), "map").
+                addStatement("mDocChanges.putAll(map)", TypeUtil.createMapStringObject(), PersistenceConfig.class, holder.getDbName());
+
+        return setAllBuilder.build();
     }
 
-    private MethodSpec save(CblEntityHolder holder) {
-        MethodSpec.Builder saveBuilder = MethodSpec.methodBuilder("save").addModifiers(Modifier.PUBLIC).
-                addException(PersistenceException.class).
+    private MethodSpec toMap(EntityHolder holder) {
+
+        MethodSpec.Builder toMapBuilder = MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC).
+                returns(TypeUtil.createMapStringObject()).
                 addStatement("$T doc = $T." + GET_DOCUMENT_METHOD + "(getId(), $S)", TypeUtil.createMapStringObject(), PersistenceConfig.class, holder.getDbName());
 
         for (CblConstantHolder constantField : holder.getFieldConstants()) {
-            saveBuilder.addStatement("mDocChanges.put($S, $S)", constantField.getDbField(), constantField.getConstantValue());
+            toMapBuilder.addStatement("mDocChanges.put($S, $S)", constantField.getDbField(), constantField.getConstantValue());
         }
 
-        saveBuilder.addStatement("$1T temp = new $1T()", TypeUtil.createHashMapStringObject());
-        saveBuilder.addCode(CodeBlock.builder().
+        toMapBuilder.addStatement("$1T temp = new $1T()", TypeUtil.createHashMapStringObject());
+        toMapBuilder.addCode(CodeBlock.builder().
                 addStatement("temp.putAll(mDocDefaults)").
                 beginControlFlow("if(doc != null)").
                 addStatement("temp.putAll(doc)").
@@ -104,24 +111,38 @@ public class EntityGeneration {
                 beginControlFlow("if(mDocChanges != null)").
                 addStatement("temp.putAll(mDocChanges)").
                 endControlFlow().
+                addStatement("return temp").
                 build());
 
-        saveBuilder.addStatement("$N." + UPSERT_DOCUMENT_METHOD + "(temp, getId(), $S)", PersistenceConfig.class.getCanonicalName(), holder.getDbName());
+        return toMapBuilder.build();
+    }
 
+    private MethodSpec delete(EntityHolder holder) {
+        return MethodSpec.methodBuilder("delete").addModifiers(Modifier.PUBLIC).
+                addException(PersistenceException.class).
+                addStatement("$N." + DELETE_DOCUMENT_METHOD + "(getId(), $S)", PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
+                build();
+    }
 
+    private MethodSpec save(EntityHolder holder) {
+        MethodSpec.Builder saveBuilder = MethodSpec.methodBuilder("save").addModifiers(Modifier.PUBLIC).
+                addException(PersistenceException.class).
+                addStatement("$T doc = toMap()", TypeUtil.createMapStringObject());
+
+        saveBuilder.addStatement("$N." + UPSERT_DOCUMENT_METHOD + "(doc, getId(), $S)", PersistenceConfig.class.getCanonicalName(), holder.getDbName());
         saveBuilder.addStatement("rebind(doc)");
 
         return saveBuilder.build();
     }
 
-    private MethodSpec contructor(CblEntityHolder holder) {
+    private MethodSpec contructor(EntityHolder holder) {
         return MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).
                 addParameter(TypeUtil.createMapStringObject(), "doc").
                 addStatement("rebind(doc)").
                 build();
     }
 
-    private List<MethodSpec> create(CblEntityHolder holder) {
+    private List<MethodSpec> create(EntityHolder holder) {
 
         return Arrays.asList(
                 MethodSpec.methodBuilder("create").
@@ -135,6 +156,13 @@ public class EntityGeneration {
                         addModifiers(Modifier.PUBLIC, Modifier.STATIC).
                         addStatement("return new $N ($N." + GET_DOCUMENT_METHOD + "(null, $S))",
                                 holder.getEntitySimpleName(), PersistenceConfig.class.getCanonicalName(), holder.getDbName()).
+                        returns(holder.getEntityTypeName()).
+                        build(),
+                MethodSpec.methodBuilder("create").
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                        addParameter(TypeUtil.createMapStringObject(), "map").
+                        addStatement("return new $N (map)",
+                                holder.getEntitySimpleName()).
                         returns(holder.getEntityTypeName()).
                         build()
         );

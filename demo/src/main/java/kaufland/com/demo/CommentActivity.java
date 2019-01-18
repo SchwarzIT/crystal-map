@@ -11,14 +11,12 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.couchbase.lite.CouchbaseLiteException;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.demo.entity.ProductEntity;
-import kaufland.com.demo.entity.UserCommentEntity;
+import kaufland.com.demo.entity.UserCommentWrapper;
 
 public class CommentActivity extends AppCompatActivity {
 
@@ -36,7 +34,7 @@ public class CommentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
-        final List<UserCommentEntity> data = getParentEntity().getComments();
+        final List<UserCommentWrapper> data = getParentEntity().getComments();
 
         mAdapter = new ArrayAdapter<String>(this, R.layout.comment_item_view, R.id.txt_comment, map(data)) {
             @NonNull
@@ -65,8 +63,8 @@ public class CommentActivity extends AppCompatActivity {
         findViewById(R.id.btn_post).setOnClickListener(new android.view.View.OnClickListener() {
             @Override
             public void onClick(android.view.View v) {
-                List<UserCommentEntity> mComments = getParentEntity().getComments();
-                mComments.add(UserCommentEntity.create().
+                List<UserCommentWrapper> mComments = getParentEntity().getComments();
+                mComments.add(UserCommentWrapper.create().
                         setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
                         setUserName("you"));
                 try {
@@ -80,10 +78,10 @@ public class CommentActivity extends AppCompatActivity {
         });
     }
 
-    private List<String> map(List<UserCommentEntity> userCommentEntities) {
+    private List<String> map(List<UserCommentWrapper> userCommentEntities) {
         List<String> result = new ArrayList<>();
 
-        for (UserCommentEntity entity : userCommentEntities) {
+        for (UserCommentWrapper entity : userCommentEntities) {
             result.add(entity.getComment() + "\n[" + entity.getUserName() + "]");
         }
 

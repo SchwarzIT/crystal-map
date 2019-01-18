@@ -13,8 +13,8 @@ import java.util.Set;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 
-import kaufland.com.coachbasebinderapi.CblChild;
-import kaufland.com.coachbasebinderapi.CblEntity;
+import kaufland.com.coachbasebinderapi.MapWrapper;
+import kaufland.com.coachbasebinderapi.Entity;
 
 public class ElementMetaModel {
 
@@ -28,8 +28,8 @@ public class ElementMetaModel {
 
     public ElementMetaModel(RoundEnvironment roundEnv, Logger logger){
         mLogger = logger;
-        cblEntityAnnotated = parse(roundEnv.getElementsAnnotatedWith(CblEntity.class));
-        cblChildEntityAnnotated = parse(roundEnv.getElementsAnnotatedWith(CblChild.class));
+        cblEntityAnnotated = parse(roundEnv.getElementsAnnotatedWith(Entity.class));
+        cblChildEntityAnnotated = parse(roundEnv.getElementsAnnotatedWith(MapWrapper.class));
     }
 
     private Map<String, Element> parse(Set<? extends Element> annotatedElements) {
@@ -53,7 +53,7 @@ public class ElementMetaModel {
         return cblChildEntityAnnotated.values();
     }
 
-    public boolean isChildEntity(String clazzName){
+    public boolean isMapWrapper(String clazzName){
         return cblChildEntityAnnotated.keySet().contains(clazzName);
     }
 
