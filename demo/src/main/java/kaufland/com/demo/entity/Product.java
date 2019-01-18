@@ -2,30 +2,28 @@ package kaufland.com.demo.entity;
 
 import com.couchbase.lite.Blob;
 
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
-import kaufland.com.coachbasebinderapi.CblConstant;
-import kaufland.com.coachbasebinderapi.CblDefault;
-import kaufland.com.coachbasebinderapi.CblEntity;
-import kaufland.com.coachbasebinderapi.CblField;
+import kaufland.com.coachbasebinderapi.Constant;
+import kaufland.com.coachbasebinderapi.Default;
+import kaufland.com.coachbasebinderapi.Entity;
+import kaufland.com.coachbasebinderapi.Field;
 import kaufland.com.demo.Application;
 
-@CblEntity(database = Application.DB)
+@Entity(database = Application.DB)
 public class Product {
 
-    @CblConstant(value = "type", constant = "product")
+    @Constant(value = "type", constant = "product")
     private String type;
 
-    @CblField("name")
-    @CblDefault("unknown")
+    @Field("name")
+    @Default("unknown")
     private String name;
 
-    @CblField("comments")
+    @Field("comments")
     private List<UserComment> comments;
 
-    @CblField(value = "image")
+    @Field(value = "image")
     private Blob image;
 
 }

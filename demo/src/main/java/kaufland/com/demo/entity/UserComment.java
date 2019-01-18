@@ -1,16 +1,16 @@
 package kaufland.com.demo.entity;
 
-import kaufland.com.coachbasebinderapi.CblChild;
-import kaufland.com.coachbasebinderapi.CblDefault;
-import kaufland.com.coachbasebinderapi.CblField;
+import kaufland.com.coachbasebinderapi.MapWrapper;
+import kaufland.com.coachbasebinderapi.Default;
+import kaufland.com.coachbasebinderapi.Field;
 
-@CblChild
+@MapWrapper
 public class UserComment {
 
-    @CblField(value = "comment")
+    @Field(value = "comment")
     private String comment;
 
-    @CblField("user")
-    @CblDefault("anonymous")
+    @Field("user")
+    @Default("anonymous")
     private String userName;
 }

@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})
-public @interface CblChild {
+public @interface MapWrapper {
 
     Class<?> value() default Void.class;
 }

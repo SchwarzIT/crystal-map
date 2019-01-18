@@ -15,7 +15,7 @@ import kaufland.com.coachbasebinderapi.PersistenceConfig;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.couchbaseentityconnector.Couchbase2Connector;
 import kaufland.com.demo.entity.ProductEntity;
-import kaufland.com.demo.entity.UserCommentEntity;
+import kaufland.com.demo.entity.UserCommentWrapper;
 
 public class Application extends android.app.Application {
 
@@ -70,27 +70,27 @@ public class Application extends android.app.Application {
     private void createMockArticle() {
         try {
             ProductEntity.create().setName("Beer").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("very awesome"), UserCommentEntity.create().setComment("tasty")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("very awesome"), UserCommentWrapper.create().setComment("tasty")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Beer (no alcohol)").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("very bad"), UserCommentEntity.create().setComment("not tasty")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("very bad"), UserCommentWrapper.create().setComment("not tasty")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Wodka").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("feeling like touch the sky")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("feeling like touch the sky")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Gin").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("hipster drink but great"), UserCommentEntity.create().setComment("tasty!!!")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("hipster drink but great"), UserCommentWrapper.create().setComment("tasty!!!")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Apple").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("mhmhmh tasty!"), UserCommentEntity.create().setComment("dont like it")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("mhmhmh tasty!"), UserCommentWrapper.create().setComment("dont like it")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Tomatoes").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentEntity.create().setComment("don't like there color"), UserCommentEntity.create().setComment("worst experience ever!!")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("don't like there color"), UserCommentWrapper.create().setComment("worst experience ever!!")))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
         } catch (PersistenceException e) {

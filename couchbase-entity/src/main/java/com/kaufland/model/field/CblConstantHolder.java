@@ -14,7 +14,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import kaufland.com.coachbasebinderapi.CblConstant;
+import kaufland.com.coachbasebinderapi.Constant;
 
 /**
  * Created by sbra0902 on 21.06.17.
@@ -24,7 +24,7 @@ public class CblConstantHolder extends CblBaseFieldHolder {
 
     private String mConstantValue;
 
-    public CblConstantHolder(CblConstant field, Element fieldElement, JavaField metaField) {
+    public CblConstantHolder(Constant field, Element fieldElement, JavaField metaField) {
         super(field.value(), fieldElement, metaField);
         mConstantValue = field.constant();
     }
