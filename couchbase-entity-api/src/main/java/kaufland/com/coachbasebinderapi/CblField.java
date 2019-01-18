@@ -12,6 +12,4 @@ public @interface CblField {
 
     String value() default "";
 
-    String attachmentType() default "";
-
 }

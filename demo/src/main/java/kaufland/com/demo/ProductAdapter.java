@@ -5,25 +5,17 @@ import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Document;
-import com.couchbase.lite.LiveQuery;
-
 import kaufland.com.demo.entity.ProductEntity;
-import kaufland.com.demo.util.LiveQueryAdapter;
 
-public class ProductAdapter extends LiveQueryAdapter<ProductEntity> {
 
-    public ProductAdapter(Context context, LiveQuery query) {
-        super(context, query);
-    }
+public class ProductAdapter extends ArrayAdapter<ProductEntity> {
 
-    @Override
-    protected ProductEntity docToEntity(Document doc) {
-        return ProductEntity.create(doc.getId());
+    public ProductAdapter(Context context) {
+        super(context, 0);
     }
 
     @Override
@@ -39,11 +31,8 @@ public class ProductAdapter extends LiveQueryAdapter<ProductEntity> {
         TextView text = convertView.findViewById(R.id.text);
         text.setText(list.getName());
         ImageView img = convertView.findViewById(R.id.image);
-        try {
-            img.setImageBitmap(BitmapFactory.decodeStream(list.getInputStream()));
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+
+        img.setImageBitmap(BitmapFactory.decodeStream(list.getImage().getContentStream()));
         return convertView;
     }
 }

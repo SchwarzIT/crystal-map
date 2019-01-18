@@ -50,7 +50,7 @@ public class CoachBaseBinderProcessorTest {
                                 "\n" +
                                 "    @CblField(\"owner\")\n" +
                                 "    private String owner;\n" +
-                                "    @CblField(value = \"image\", attachmentType = \"image/jpg\")\n" +
+                                "    @CblField(value = \"image\")\n" +
                                 "    private InputStream image;" +
                                 "\n" +
                                 "\n" +
