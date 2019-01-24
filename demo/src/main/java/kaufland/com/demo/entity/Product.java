@@ -26,4 +26,7 @@ public class Product {
     @Field(value = "image")
     private Blob image;
 
+    @Field("identifiers")
+    private List<String> identifiers;
+
 }

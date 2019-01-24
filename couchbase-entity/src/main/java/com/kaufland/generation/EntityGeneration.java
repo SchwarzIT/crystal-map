@@ -38,6 +38,7 @@ public class EntityGeneration {
                 addMethods(create(holder)).
                 addMethod(contructor(holder)).
                 addMethod(setAll(holder)).
+                addMethods(new TypeConversionMethodsGeneration().generate()).
                 addMethod(getId()).
                 addMethod(toMap(holder)).
                 addField(idConstant()).

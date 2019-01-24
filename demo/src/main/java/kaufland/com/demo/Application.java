@@ -74,7 +74,7 @@ public class Application extends android.app.Application {
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Beer (no alcohol)").
-                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("very bad"), UserCommentWrapper.create().setComment("not tasty")))).
+                    setComments(new ArrayList<>(Arrays.asList(UserCommentWrapper.create().setComment("very bad"), UserCommentWrapper.create().setComment("not tasty").setAge(99)))).
                     setImage(new Blob("image/jpeg", getResources().openRawResource(R.raw.ic_kaufland_placeholder))).
                     save();
             ProductEntity.create().setName("Wodka").

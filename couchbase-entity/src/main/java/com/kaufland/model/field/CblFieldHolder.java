@@ -1,6 +1,7 @@
 package com.kaufland.model.field;
 
 import com.kaufland.ElementMetaModel;
+import com.kaufland.generation.TypeConversionMethodsGeneration;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -31,6 +32,12 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     private boolean subEntityIsTypeParam;
 
+    private boolean isIterable;
+
+    private String typeParamPackage;
+
+    private String typeParamSimpleName;
+
     private CblDefaultHolder defaultHolder;
 
     public CblFieldHolder(Field field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, ElementMetaModel metaModel) {
@@ -46,6 +53,12 @@ public class CblFieldHolder extends CblBaseFieldHolder {
             for (JavaType typeParameter : ((DefaultJavaParameterizedType) metaField.getType()).getActualTypeArguments()) {
 
                 String canonicalName = typeParameter.getCanonicalName();
+                isIterable = metaField.getType().isArray() || metaField.getType().isA(Iterable.class.getCanonicalName());
+                if(isIterable){
+                    JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
+                    typeParamSimpleName = metaClazz.getSimpleName();
+                    typeParamPackage = metaClazz.getPackageName();
+                }
                 if (metaModel.isMapWrapper(canonicalName)) {
                     JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
                     subEntitySimpleName = metaClazz.getSimpleName() + "Wrapper";
@@ -67,6 +80,14 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     public boolean isSubEntityIsTypeParam() {
         return subEntityIsTypeParam;
+    }
+
+    public boolean isIterable() {
+        return isIterable;
+    }
+
+    public TypeName getTypeParamTypeName() {
+        return ClassName.get(typeParamPackage, typeParamSimpleName);
     }
 
     public CblDefaultHolder getDefaultHolder() {
@@ -103,20 +124,22 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
             builder.addStatement("return null");
         } else {
+
+            TypeName forTypeConversion = evaluateClazzForTypeConversion();
             if (useMDocChanges) {
                 builder.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey($N))", getConstantName()).
-                        addStatement("return ($T) mDocChanges.get($N)", returnType, getConstantName()).
+                        addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get($N), $T.class)", getConstantName(), forTypeConversion).
                         endControlFlow().
                         build());
             }
 
             builder.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey($N))", getConstantName()).
-                    addStatement("return ($T) mDoc.get($N)", returnType, getConstantName()).
+                    addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get($N), $T.class)", getConstantName(), forTypeConversion).
                     endControlFlow().
                     build());
 
             if (defaultHolder != null) {
-                builder.addStatement("return ($T) mDocDefaults.get($N)", returnType, getConstantName());
+                builder.addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocDefaults.get($N), $T.class)", getConstantName(), forTypeConversion);
             } else {
                 builder.addStatement("return null");
             }
@@ -141,7 +164,8 @@ public class CblFieldHolder extends CblBaseFieldHolder {
             builder.addStatement("$N.put($N, $T.toMap(($T)value))", docName, getConstantName(), getSubEntityTypeName(), fieldType);
             builder.addStatement("return this");
         } else {
-            builder.addStatement("$N.put($N, value)", docName, getConstantName());
+            TypeName forTypeConversion = evaluateClazzForTypeConversion();
+            builder.addStatement("$N.put($N, "+ TypeConversionMethodsGeneration.WRITE_METHOD_NAME +"(value, $T.class))", docName, getConstantName(), forTypeConversion);
             builder.addStatement("return this");
         }
 
@@ -156,5 +180,13 @@ public class CblFieldHolder extends CblBaseFieldHolder {
                 build();
 
         return Collections.singletonList(fieldAccessorConstant);
+    }
+
+    private TypeName evaluateClazzForTypeConversion(){
+        if(isIterable && getTypeParamTypeName() != null){
+            return getTypeParamTypeName();
+        }
+
+       return TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
     }
 }

@@ -45,6 +45,7 @@ public class WrapperGeneration {
         typeBuilder.addMethod(new RebindMethodGeneration().generate(false));
         typeBuilder.addMethods(fromMap(holder));
         typeBuilder.addMethods(toMap(holder));
+        typeBuilder.addMethods(new TypeConversionMethodsGeneration().generate());
 
         return JavaFile.builder(holder.getPackage(), typeBuilder.build()).
                 build();

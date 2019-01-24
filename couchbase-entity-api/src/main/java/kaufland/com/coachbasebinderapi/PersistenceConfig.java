@@ -1,6 +1,7 @@
 package kaufland.com.coachbasebinderapi;
 
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PersistenceConfig {
@@ -15,15 +16,17 @@ public class PersistenceConfig {
 
     public interface Connector {
 
+        Map<Class<?>, TypeConversion> getTypeConversions();
+
         Map<String, Object> getDocument(String id, String dbName);
 
         void deleteDocument(String id, String dbName) throws PersistenceException;
 
         void upsertDocument(Map<String, Object> document, String id, String dbName) throws PersistenceException;
+
     }
 
     public static void configure(Connector connector) {
-
         mInstance = new PersistenceConfig(connector);
     }
 

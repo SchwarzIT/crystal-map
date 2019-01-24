@@ -49,8 +49,4 @@ public abstract class CblBaseFieldHolder {
        return ConversionUtil.convertCamelToUnderscore(getDbField()).toUpperCase();
     }
 
-    public Element getFieldElement() {
-        return mFieldElement;
-    }
-
 }

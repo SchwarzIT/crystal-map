@@ -82,7 +82,7 @@ public class CommentActivity extends AppCompatActivity {
         List<String> result = new ArrayList<>();
 
         for (UserCommentWrapper entity : userCommentEntities) {
-            result.add(entity.getComment() + "\n[" + entity.getUserName() + "]");
+            result.add(entity.getComment() + "\n[" + entity.getUserName() + "(" + entity.getAge() + ")]");
         }
 
         return result;
