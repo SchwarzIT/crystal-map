@@ -13,4 +13,8 @@ public class UserComment {
     @Field("user")
     @Default("anonymous")
     private String userName;
+
+    @Field("age")
+    @Default("0")
+    private Integer age;
 }

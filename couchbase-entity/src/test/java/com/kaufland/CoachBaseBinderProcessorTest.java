@@ -38,6 +38,10 @@ public class CoachBaseBinderProcessorTest {
                                 "    @Field(\"title\")\n" +
                                 "    private String title;\n" +
                                 "\n" +
+                                "\n" +
+                                "    @Field(\"count\")\n" +
+                                "    private Integer count;\n" +
+                                "\n" +
                                 "    @Constant(value = \"type\", constant = \"List\")\n" +
                                 "    private String type;\n" +
                                 "\n" +

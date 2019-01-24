@@ -1,5 +1,6 @@
 package com.kaufland.model.field;
 
+import com.kaufland.generation.TypeConversionMethodsGeneration;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -34,10 +35,6 @@ public class CblConstantHolder extends CblBaseFieldHolder {
         return mConstantValue;
     }
 
-    public void setConstantValue(String constantValue) {
-        this.mConstantValue = constantValue;
-    }
-
     @Override
     public MethodSpec getter(String dbName, boolean useMDocChanges) {
         TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), null);
@@ -45,7 +42,7 @@ public class CblConstantHolder extends CblBaseFieldHolder {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).
                 addModifiers(Modifier.PUBLIC).
                 returns(returnType).
-                addStatement("return ($T) mDoc.get($N)", returnType, getConstantName());
+                addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get($N), $T.class)", getConstantName(), returnType);
         return builder.build();
     }
 
