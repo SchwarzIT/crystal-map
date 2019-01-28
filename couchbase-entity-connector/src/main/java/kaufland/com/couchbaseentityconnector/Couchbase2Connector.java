@@ -1,6 +1,5 @@
 package kaufland.com.couchbaseentityconnector;
 
-import com.couchbase.lite.Blob;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
@@ -44,6 +43,27 @@ public abstract class Couchbase2Connector implements PersistenceConfig.Connector
                 return value;
             }
         });
+        mTypeConversions.put(Double.class, new TypeConversion() {
+            @Override
+            public Object write(Object value) {
+                return value;
+            }
+
+            @Override
+            public Object read(Object value) {
+                if (value instanceof Number) {
+                    return ((Number) value).doubleValue();
+                }
+                if (value instanceof Iterable) {
+                    List<Object> result = new ArrayList<>();
+                    for (Object itValue : ((Iterable) value)) {
+                        result.add(read(itValue));
+                    }
+                    return result;
+                }
+                return value;
+            }
+        });
     }
 
     @Override
@@ -53,9 +73,11 @@ public abstract class Couchbase2Connector implements PersistenceConfig.Connector
 
     @Override
     public Map<String, Object> getDocument(String docId, String name) {
-
         if (docId == null) {
-            return new HashMap<>();
+            MutableDocument document = new MutableDocument();
+            Map<String, Object> result = document.toMap();
+            result.put("_id", document.getId());
+            return result;
         }
 
         Document document = getDatabase(name).getDocument(docId);
@@ -84,17 +106,16 @@ public abstract class Couchbase2Connector implements PersistenceConfig.Connector
 
     @Override
     public void upsertDocument(Map<String, Object> upsert, String docId, String name) throws PersistenceException {
-
         if (upsert.get("_id") == null) {
             upsert.put("_id", docId);
         }
         MutableDocument unsavedDoc = new MutableDocument(docId, upsert);
         try {
+            upsert.put("_id", unsavedDoc.getId());
             unsavedDoc.setString("_id", unsavedDoc.getId());
             getDatabase(name).save(unsavedDoc);
         } catch (CouchbaseLiteException e) {
             throw new PersistenceException(e);
         }
-
     }
 }
