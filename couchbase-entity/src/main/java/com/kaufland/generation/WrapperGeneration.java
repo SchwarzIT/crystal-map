@@ -76,8 +76,8 @@ public class WrapperGeneration {
                                      addStatement("$T result = new $T()", TypeUtil.createListWithMapStringObject(), TypeUtil.createArrayListWithMapStringObject()).
                                      addCode(CodeBlock.builder().beginControlFlow("for($N entry : obj)", holder.getEntitySimpleName()).
                                              addStatement("$T temp = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject()).
-                                             addStatement("temp.putAll((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
                                              addStatement("temp.putAll(mDocDefaults)").
+                                             addStatement("temp.putAll((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
                                              addStatement("result.add(temp)", holder.getEntitySimpleName()).
                                              endControlFlow().
                                              build()).
