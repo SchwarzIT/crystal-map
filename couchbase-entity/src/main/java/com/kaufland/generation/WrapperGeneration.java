@@ -19,7 +19,7 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 
 public class WrapperGeneration {
-    
+
     public JavaFile generateModel(WrapperEntityHolder holder) {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
@@ -60,25 +60,29 @@ public class WrapperGeneration {
                 build();
 
         return Arrays.asList(MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
-                        addParameter(holder.getEntityTypeName(), "obj").
-                        returns(TypeUtil.createMapStringObject()).
-                        addCode(nullCheck).
-                        addStatement("$T result = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject()).
-                        addStatement("result.putAll(obj.mDoc)").
-                        addStatement("return result").
-                        build(),
+                                     addParameter(holder.getEntityTypeName(), "obj").
+                                     returns(TypeUtil.createMapStringObject()).
+                                     addCode(nullCheck).
+                                     addStatement("$T result = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject())
+                                     .addStatement("result.putAll(mDocDefaults)").
+                                             addStatement("result.putAll(obj.mDoc)").
+                                             addStatement("return result").
+                                             build(),
 
-                MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
-                        addParameter(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), "obj").
-                        returns(TypeUtil.createListWithMapStringObject()).
-                        addCode(nullCheck).
-                        addStatement("$T result = new $T()", TypeUtil.createListWithMapStringObject(), TypeUtil.createArrayListWithMapStringObject()).
-                        addCode(CodeBlock.builder().beginControlFlow("for($N entry : obj)", holder.getEntitySimpleName()).
-                                addStatement("result.add((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
-                                endControlFlow().
-                                build()).
-                        addStatement("return result").
-                        build());
+                             MethodSpec.methodBuilder("toMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                                     addParameter(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), "obj").
+                                     returns(TypeUtil.createListWithMapStringObject()).
+                                     addCode(nullCheck).
+                                     addStatement("$T result = new $T()", TypeUtil.createListWithMapStringObject(), TypeUtil.createArrayListWithMapStringObject()).
+                                     addCode(CodeBlock.builder().beginControlFlow("for($N entry : obj)", holder.getEntitySimpleName()).
+                                             addStatement("$T temp = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject()).
+                                             addStatement("temp.putAll(mDocDefaults)").
+                                             addStatement("temp.putAll((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
+                                             addStatement("result.add(temp)", holder.getEntitySimpleName()).
+                                             endControlFlow().
+                                             build()).
+                                     addStatement("return result").
+                                     build());
     }
 
     private List<MethodSpec> fromMap(BaseEntityHolder holder) {
@@ -89,23 +93,23 @@ public class WrapperGeneration {
                 build();
 
         return Arrays.asList(MethodSpec.methodBuilder("fromMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
-                        addParameter(TypeUtil.createMapStringObject(), "obj").
-                        returns(holder.getEntityTypeName()).
-                        addCode(nullCheck).
-                        addStatement("return new $T(obj)", holder.getEntityTypeName()).
-                        build(),
+                                     addParameter(TypeUtil.createMapStringObject(), "obj").
+                                     returns(holder.getEntityTypeName()).
+                                     addCode(nullCheck).
+                                     addStatement("return new $T(obj)", holder.getEntityTypeName()).
+                                     build(),
 
-                MethodSpec.methodBuilder("fromMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
-                        addParameter(ParameterizedTypeName.get(ClassName.get(List.class), TypeUtil.createMapStringObject()), "obj").
-                        returns(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName())).
-                        addCode(nullCheck).
-                        addStatement("$T result = new $T()", ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), ParameterizedTypeName.get(ClassName.get(ArrayList.class), holder.getEntityTypeName())).
-                        addCode(CodeBlock.builder().beginControlFlow("for($T entry : obj)", TypeUtil.createMapStringObject()).
-                                addStatement("result.add(new $N(entry))", holder.getEntitySimpleName()).
-                                endControlFlow().
-                                build()).
-                        addStatement("return result").
-                        build()
+                             MethodSpec.methodBuilder("fromMap").addModifiers(Modifier.PUBLIC, Modifier.STATIC).
+                                     addParameter(ParameterizedTypeName.get(ClassName.get(List.class), TypeUtil.createMapStringObject()), "obj").
+                                     returns(ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName())).
+                                     addCode(nullCheck).
+                                     addStatement("$T result = new $T()", ParameterizedTypeName.get(ClassName.get(List.class), holder.getEntityTypeName()), ParameterizedTypeName.get(ClassName.get(ArrayList.class), holder.getEntityTypeName())).
+                                     addCode(CodeBlock.builder().beginControlFlow("for($T entry : obj)", TypeUtil.createMapStringObject()).
+                                             addStatement("result.add(new $N(entry))", holder.getEntitySimpleName()).
+                                             endControlFlow().
+                                             build()).
+                                     addStatement("return result").
+                                     build()
         );
     }
 
@@ -123,13 +127,13 @@ public class WrapperGeneration {
                         addModifiers(Modifier.PUBLIC, Modifier.STATIC).
                         addParameter(TypeUtil.createMapStringObject(), "doc").
                         addStatement("return new $N (doc)",
-                                holder.getEntitySimpleName()).
+                                     holder.getEntitySimpleName()).
                         returns(holder.getEntityTypeName()).
                         build(),
                 MethodSpec.methodBuilder("create").
                         addModifiers(Modifier.PUBLIC, Modifier.STATIC).
                         addStatement("return new $N (new $T())",
-                                holder.getEntitySimpleName(), TypeUtil.createHashMapStringObject()).
+                                     holder.getEntitySimpleName(), TypeUtil.createHashMapStringObject()).
                         returns(holder.getEntityTypeName()).
                         build()
         );
