@@ -12,10 +12,9 @@ import org.apache.commons.lang3.text.WordUtils;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import kaufland.com.coachbasebinderapi.Constant;
+import kaufland.com.coachbasebinderapi.Field;
 
 /**
  * Created by sbra0902 on 21.06.17.
@@ -25,9 +24,9 @@ public class CblConstantHolder extends CblBaseFieldHolder {
 
     private String mConstantValue;
 
-    public CblConstantHolder(Constant field, Element fieldElement, JavaField metaField) {
-        super(field.value(), fieldElement, metaField);
-        mConstantValue = field.constant();
+    public CblConstantHolder(Field field) {
+        super(field.name(), field);
+        mConstantValue = field.defaultValue();
     }
 
 
@@ -37,9 +36,9 @@ public class CblConstantHolder extends CblBaseFieldHolder {
 
     @Override
     public MethodSpec getter(String dbName, boolean useMDocChanges) {
-        TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), null);
+        TypeName returnType = TypeUtil.parseMetaType(getTypeMirror(), isIterable(), null);
 
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("get"  + accessorSuffix()).
                 addModifiers(Modifier.PUBLIC).
                 returns(returnType).
                 addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get($N), $T.class)", getConstantName(), returnType);
