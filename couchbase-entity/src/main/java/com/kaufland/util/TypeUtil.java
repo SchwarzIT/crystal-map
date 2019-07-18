@@ -14,53 +14,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.lang.model.type.TypeMirror;
+
+import kaufland.com.coachbasebinderapi.MapSupport;
+
 public class TypeUtil {
 
-    public static ParameterizedTypeName createHashMapStringObject(){
+    public static ParameterizedTypeName createHashMapStringObject() {
         return ParameterizedTypeName.get(HashMap.class, String.class, Object.class);
     }
 
-    public static ParameterizedTypeName createMapStringObject(){
+    public static ParameterizedTypeName createMapStringObject() {
         return ParameterizedTypeName.get(Map.class, String.class, Object.class);
     }
 
-    public static ParameterizedTypeName createListWithMapStringObject(){
+    public static ParameterizedTypeName createListWithMapStringObject() {
         return ParameterizedTypeName.get(ClassName.get(List.class), ParameterizedTypeName.get(Map.class, String.class, Object.class));
     }
-    public static ParameterizedTypeName createArrayListWithMapStringObject(){
+
+    public static ParameterizedTypeName createArrayListWithMapStringObject() {
         return ParameterizedTypeName.get(ClassName.get(ArrayList.class), ParameterizedTypeName.get(Map.class, String.class, Object.class));
     }
 
-    private static TypeName[] convertJavaTypeToTypeName(List<JavaType> type, String subEntity){
-
-        List<TypeName> types = new ArrayList<>();
-
-        for (JavaType javaType : type) {
-
-            types.add(parseMetaType((JavaClass) javaType, subEntity));
-        }
-
-        return types.toArray(new TypeName[types.size()]);
+    public static TypeName createMapSupportObject() {
+        return ClassName.get(MapSupport.class);
     }
 
-    public static TypeName parseMetaType(JavaClass type, String subEntity){
+    public static String getSimpleName(TypeMirror type) {
+        String[] parts = type.toString().split("\\.");
+        return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+    }
 
-        String simpleName = subEntity != null && subEntity.contains(type.getSimpleName()) ? subEntity : type.getSimpleName();
-        ClassName baseType = ClassName.get(type.getPackageName(), simpleName);
+    public static String getPackage(TypeMirror type) {
+        int lastIndexOf = type.toString().lastIndexOf(".");
+        return lastIndexOf >= 0 ? type.toString().substring(0, lastIndexOf) : type.toString();
+    }
 
-        if(type instanceof DefaultJavaParameterizedType){
+    public static TypeName parseMetaType(TypeMirror type, boolean list, String subEntity) {
 
-            List<JavaType> typeArguments = ((DefaultJavaParameterizedType) type).getActualTypeArguments();
+        String simpleName = subEntity != null && subEntity.contains(getSimpleName(type)) ? subEntity : getSimpleName(type);
 
-            if(typeArguments.size() > 0) {
-                return ParameterizedTypeName.get(baseType, convertJavaTypeToTypeName(typeArguments, subEntity));
-            }
+        TypeName baseType = null;
+        try{
+            baseType = ClassName.get(getPackage(type), simpleName);
+        }catch (IllegalArgumentException e){
+            baseType = TypeName.get(type);
         }
 
+        if (list) {
+            return ParameterizedTypeName.get(ClassName.get(List.class), baseType);
+        }
         return baseType;
-    }
-
-    public static TypeName parseMetaType(JavaClass type) {
-        return parseMetaType(type, null);
     }
 }

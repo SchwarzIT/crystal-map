@@ -8,6 +8,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.thoughtworks.qdox.model.JavaField;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeMirror;
 
 public class CblDefaultGeneration {
 
@@ -21,16 +22,16 @@ public class CblDefaultGeneration {
         CodeBlock.Builder builder = CodeBlock.builder();
         for (CblFieldHolder fieldHolder : holder.getFields()) {
 
-            if (fieldHolder.getDefaultHolder() != null) {
-                builder.addStatement("mDocDefaults.put($N, " + getConvertedValue(fieldHolder.getMetaField(), fieldHolder.getDefaultHolder().getDefaultValue())+")", fieldHolder.getConstantName());
+            if (fieldHolder.isDefault()) {
+                builder.addStatement("mDocDefaults.put($N, " + getConvertedValue(fieldHolder.getTypeMirror(), fieldHolder.getDefaultValue())+")", fieldHolder.getConstantName());
             }
         }
         return builder.build();
     }
 
-    private static String getConvertedValue(JavaField mMetaField, String value) {
+    private static String getConvertedValue(TypeMirror clazz, String value) {
 
-        if (mMetaField.getType().getCanonicalName().equals(String.class.getCanonicalName())) {
+        if (clazz.toString().equals(String.class.getCanonicalName())) {
             return "\"" + value + "\"";
         }
         return value;

@@ -66,7 +66,7 @@ public class CommentActivity extends AppCompatActivity {
                 List<UserCommentWrapper> mComments = getParentEntity().getComments();
                 mComments.add(UserCommentWrapper.create().
                         setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
-                        setUserName("you"));
+                        setUser("you"));
                 try {
                     getParentEntity().setComments(mComments).save();
                     ((EditText) findViewById(R.id.edit_text)).setText("");
@@ -82,7 +82,7 @@ public class CommentActivity extends AppCompatActivity {
         List<String> result = new ArrayList<>();
 
         for (UserCommentWrapper entity : userCommentEntities) {
-            result.add(entity.getComment() + "\n[" + entity.getUserName() + "(" + entity.getAge() + ")]");
+            result.add(entity.getComment() + "\n[" + entity.getUser() + "(" + entity.getAge() + ")]");
         }
 
         return result;

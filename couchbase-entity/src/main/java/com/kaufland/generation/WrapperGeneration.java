@@ -23,8 +23,10 @@ public class WrapperGeneration {
     public JavaFile generateModel(WrapperEntityHolder holder) {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
+                addSuperinterface(TypeUtil.createMapSupportObject()).
                 addModifiers(Modifier.PUBLIC).
                 addField(CblDefaultGeneration.field()).
+                addMethod(MapSupportGeneration.toMap(holder)).
                 addMethods(create(holder)).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
                 addMethod(contructor()).

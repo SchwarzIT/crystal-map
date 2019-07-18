@@ -4,6 +4,7 @@ import com.kaufland.model.entity.EntityHolder;
 import com.kaufland.model.field.CblBaseFieldHolder;
 import com.kaufland.model.field.CblConstantHolder;
 import com.kaufland.util.TypeUtil;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -16,6 +17,7 @@ import java.util.List;
 
 import javax.lang.model.element.Modifier;
 
+import kaufland.com.coachbasebinderapi.MapSupport;
 import kaufland.com.coachbasebinderapi.PersistenceConfig;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 
@@ -32,6 +34,7 @@ public class EntityGeneration {
 
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
+                addSuperinterface(TypeUtil.createMapSupportObject()).
                 addField(CblDefaultGeneration.field()).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
                 addField(TypeUtil.createMapStringObject(), "mDocChanges", Modifier.PRIVATE).

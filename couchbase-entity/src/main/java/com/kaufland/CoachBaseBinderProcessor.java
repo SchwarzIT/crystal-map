@@ -78,10 +78,10 @@ public class CoachBaseBinderProcessor extends AbstractProcessor {
                 }
 
             } catch (ClassNotFoundException e) {
-                mLogger.abortWithError("Clazz not found", elem);
+                mLogger.abortWithError("Clazz not found", elem, e);
             } catch (Exception e) {
                 e.printStackTrace();
-                mLogger.abortWithError("generation failed", elem);
+                mLogger.abortWithError("generation failed", elem, e);
             }
         }
     }

@@ -22,6 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
+import kaufland.com.coachbasebinderapi.DefaultValue;
 import kaufland.com.coachbasebinderapi.Field;
 
 public class CblFieldHolder extends CblBaseFieldHolder {
@@ -34,39 +35,19 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     private boolean isIterable;
 
-    private String typeParamPackage;
+    public CblFieldHolder(Field field, ElementMetaModel metaModel) {
+        super(field.name(), field);
 
-    private String typeParamSimpleName;
-
-    private CblDefaultHolder defaultHolder;
-
-    public CblFieldHolder(Field field, Element fieldElement, JavaField metaField, CblDefaultHolder defaultHolder, ElementMetaModel metaModel) {
-        super(field.value(), fieldElement, metaField);
-        this.defaultHolder = defaultHolder;
-
-
-        String typeName = metaField.getType().getCanonicalName();
+        String typeName = getTypeMirror().toString();
         if (metaModel.isMapWrapper(typeName)) {
-            subEntitySimpleName = metaField.getType().getSimpleName() + "Wrapper";
-            subEntityPackage = metaField.getType().getPackageName();
-        } else if (metaField.getType() instanceof DefaultJavaParameterizedType) {
-            for (JavaType typeParameter : ((DefaultJavaParameterizedType) metaField.getType()).getActualTypeArguments()) {
 
-                String canonicalName = typeParameter.getCanonicalName();
-                isIterable = metaField.getType().isArray() || metaField.getType().isA(Iterable.class.getCanonicalName());
-                if(isIterable){
-                    JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
-                    typeParamSimpleName = metaClazz.getSimpleName();
-                    typeParamPackage = metaClazz.getPackageName();
-                }
-                if (metaModel.isMapWrapper(canonicalName)) {
-                    JavaClass metaClazz = metaModel.getMetaFor(canonicalName);
-                    subEntitySimpleName = metaClazz.getSimpleName() + "Wrapper";
-                    subEntityPackage = metaClazz.getPackageName();
-                    subEntityIsTypeParam = true;
-                    break;
-                }
-            }
+            subEntitySimpleName = TypeUtil.getSimpleName(getTypeMirror()) + "Wrapper";
+            subEntityPackage = TypeUtil.getPackage(getTypeMirror());
+            subEntityIsTypeParam = field.list();
+
+        }
+        if (field.list()) {
+            isIterable = true;
         }
     }
 
@@ -82,17 +63,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         return subEntityIsTypeParam;
     }
 
-    public boolean isIterable() {
-        return isIterable;
-    }
 
-    public TypeName getTypeParamTypeName() {
-        return ClassName.get(typeParamPackage, typeParamSimpleName);
-    }
-
-    public CblDefaultHolder getDefaultHolder() {
-        return defaultHolder;
-    }
 
     public boolean isTypeOfSubEntity() {
         return !StringUtils.isBlank(subEntitySimpleName);
@@ -100,15 +71,15 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     @Override
     public MethodSpec getter(String dbName, boolean useMDocChanges) {
-        TypeName returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
+        TypeName returnType = TypeUtil.parseMetaType(getTypeMirror(), isIterable, getSubEntitySimpleName());
 
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + WordUtils.capitalize(getMetaField().getName())).
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("get" + accessorSuffix()).
                 addModifiers(Modifier.PUBLIC).
                 returns(returnType);
 
 
         if (isTypeOfSubEntity()) {
-            returnType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
+            returnType = TypeUtil.parseMetaType(getTypeMirror(), isIterable, getSubEntitySimpleName());
             TypeName castType = isSubEntityIsTypeParam() ? TypeUtil.createListWithMapStringObject() : TypeUtil.createMapStringObject();
 
             if (useMDocChanges) {
@@ -138,8 +109,10 @@ public class CblFieldHolder extends CblBaseFieldHolder {
                     endControlFlow().
                     build());
 
-            if (defaultHolder != null) {
+            if (isDefault()) {
                 builder.addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocDefaults.get($N), $T.class)", getConstantName(), forTypeConversion);
+            } else if(forTypeConversion.isPrimitive()){
+                builder.addStatement("return $L.get($T.class)", DefaultValue.class.getCanonicalName(), forTypeConversion);
             } else {
                 builder.addStatement("return null");
             }
@@ -152,8 +125,8 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     @Override
     public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
-        TypeName fieldType = TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + WordUtils.capitalize(getMetaField().getName())).
+        TypeName fieldType = TypeUtil.parseMetaType(getTypeMirror(),isIterable, getSubEntitySimpleName());
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + accessorSuffix()).
                 addModifiers(Modifier.PUBLIC).
                 addParameter(fieldType, "value").
                 returns(entityTypeName);
@@ -165,7 +138,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
             builder.addStatement("return this");
         } else {
             TypeName forTypeConversion = evaluateClazzForTypeConversion();
-            builder.addStatement("$N.put($N, "+ TypeConversionMethodsGeneration.WRITE_METHOD_NAME +"(value, $T.class))", docName, getConstantName(), forTypeConversion);
+            builder.addStatement("$N.put($N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, $T.class))", docName, getConstantName(), forTypeConversion);
             builder.addStatement("return this");
         }
 
@@ -182,11 +155,11 @@ public class CblFieldHolder extends CblBaseFieldHolder {
         return Collections.singletonList(fieldAccessorConstant);
     }
 
-    private TypeName evaluateClazzForTypeConversion(){
-        if(isIterable && getTypeParamTypeName() != null){
-            return getTypeParamTypeName();
+    private TypeName evaluateClazzForTypeConversion() {
+        if (isIterable) {
+            return TypeName.get(List.class);
         }
 
-       return TypeUtil.parseMetaType(getMetaField().getType(), getSubEntitySimpleName());
+        return TypeUtil.parseMetaType(getTypeMirror(),isIterable, getSubEntitySimpleName());
     }
 }
