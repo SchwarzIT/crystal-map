@@ -16,6 +16,8 @@ import java.util.Map;
 
 import javax.lang.model.type.TypeMirror;
 
+import kaufland.com.coachbasebinderapi.MapSupport;
+
 public class TypeUtil {
 
     public static ParameterizedTypeName createHashMapStringObject() {
@@ -32,6 +34,10 @@ public class TypeUtil {
 
     public static ParameterizedTypeName createArrayListWithMapStringObject() {
         return ParameterizedTypeName.get(ClassName.get(ArrayList.class), ParameterizedTypeName.get(Map.class, String.class, Object.class));
+    }
+
+    public static TypeName createMapSupportObject() {
+        return ClassName.get(MapSupport.class);
     }
 
     public static String getSimpleName(TypeMirror type) {
