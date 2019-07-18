@@ -40,7 +40,7 @@ public class LoggerTest {
     public void testErrorAbort() {
 
         try {
-            new Logger(mMock).abortWithError("message", null);
+            new Logger(mMock).abortWithError("message", null, null);
             Assert.fail("Should throw Exception");
         } catch (RuntimeException e) {
 

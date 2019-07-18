@@ -40,13 +40,20 @@ public class TypeUtil {
     }
 
     public static String getPackage(TypeMirror type) {
-        return type.toString().substring(0, type.toString().lastIndexOf("."));
+        int lastIndexOf = type.toString().lastIndexOf(".");
+        return lastIndexOf >= 0 ? type.toString().substring(0, lastIndexOf) : type.toString();
     }
 
     public static TypeName parseMetaType(TypeMirror type, boolean list, String subEntity) {
 
         String simpleName = subEntity != null && subEntity.contains(getSimpleName(type)) ? subEntity : getSimpleName(type);
-        ClassName baseType = ClassName.get(getPackage(type), simpleName);
+
+        TypeName baseType = null;
+        try{
+            baseType = ClassName.get(getPackage(type), simpleName);
+        }catch (IllegalArgumentException e){
+            baseType = TypeName.get(type);
+        }
 
         if (list) {
             return ParameterizedTypeName.get(ClassName.get(List.class), baseType);

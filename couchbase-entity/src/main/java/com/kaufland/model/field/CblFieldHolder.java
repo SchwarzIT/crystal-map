@@ -22,6 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
+import kaufland.com.coachbasebinderapi.DefaultValue;
 import kaufland.com.coachbasebinderapi.Field;
 
 public class CblFieldHolder extends CblBaseFieldHolder {
@@ -110,6 +111,8 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
             if (isDefault()) {
                 builder.addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocDefaults.get($N), $T.class)", getConstantName(), forTypeConversion);
+            } else if(forTypeConversion.isPrimitive()){
+                builder.addStatement("return $L.get($T.class)", DefaultValue.class.getCanonicalName(), forTypeConversion);
             } else {
                 builder.addStatement("return null");
             }

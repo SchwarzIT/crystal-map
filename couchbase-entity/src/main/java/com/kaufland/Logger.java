@@ -33,9 +33,9 @@ public class Logger {
         messager.printMessage(Diagnostic.Kind.ERROR, msg, e);
     }
 
-    public void abortWithError(String msg, Element e) {
+    public void abortWithError(String msg, Element e, Throwable ex) {
         error(msg, e);
-        throw new RuntimeException();
+        throw new RuntimeException(ex);
     }
 
     public boolean hasErrors() {
