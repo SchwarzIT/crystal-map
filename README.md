@@ -1,7 +1,6 @@
 [![](https://jitpack.io/v/Kaufland/andcouchbaseentity.svg)](https://jitpack.io/#Kaufland/andcouchbaseentity)
 [![Build Status](https://travis-ci.org/Kaufland/andcouchbaseentity.svg?branch=master)](https://travis-ci.org/Kaufland/andcouchbaseentity)
 [![codecov](https://codecov.io/gh/Kaufland/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/Kaufland/andcouchbaseentity)
-[![KIS](https://img.shields.io/badge/KIS-awesome-red.svg)](http://www.spannende-it.de)
 
 
 
@@ -18,7 +17,7 @@ This Library can be used if your database represents its data in maps
 
 * No performance loss - all entities are being generated during compile time.
 
-* No more string-based map modifications - the framework also generates constants for usage in views.
+* No more string-based map modifications - the framework also generates constants for usage in views or queries.
 
 * Entities updates can be performed with a fluent API
 
