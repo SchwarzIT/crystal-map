@@ -11,7 +11,7 @@ This Library can be used if your database represents its data in maps
 
 ## Features
 
-* Easy to use - just annotate class and fields
+* Easy to use - just annotate class
 
 * Also supports child entities or lists of child entities
 
