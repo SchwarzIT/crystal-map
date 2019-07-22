@@ -5,23 +5,21 @@ import com.kaufland.model.field.CblBaseFieldHolder;
 import com.kaufland.model.field.CblFieldHolder;
 import com.kaufland.util.TypeUtil;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import com.thoughtworks.qdox.model.JavaField;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 
-public class CblDefaultGeneration {
+public class CblConstantGeneration {
 
-    public static MethodSpec addDefaults(BaseEntityHolder holder){
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("addDefaults").
+    public static MethodSpec addConstants(BaseEntityHolder holder){
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("addConstants").
                 addModifiers(Modifier.PRIVATE).
                 addParameter(TypeUtil.createMapStringObject(), "map");
 
         for (CblBaseFieldHolder fieldHolder : holder.getFieldConstants()) {
 
-            if (fieldHolder.isDefault()) {
+            if (fieldHolder.isConstant()) {
                 builder.addStatement("map.put($N, " + getConvertedValue(fieldHolder.getTypeMirror(), fieldHolder.getDefaultValue())+")", fieldHolder.getConstantName());
             }
         }
@@ -29,7 +27,7 @@ public class CblDefaultGeneration {
     }
 
     public static CodeBlock addAddCall(String nameOfMap){
-        return CodeBlock.builder().addStatement("addDefaults($N)", nameOfMap).build();
+       return CodeBlock.builder().addStatement("addConstants($N)", nameOfMap).build();
     }
 
     private static String getConvertedValue(TypeMirror clazz, String value) {

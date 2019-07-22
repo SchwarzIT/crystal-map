@@ -35,7 +35,8 @@ public class EntityGeneration {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addModifiers(Modifier.PUBLIC).
                 addSuperinterface(TypeUtil.createMapSupportObject()).
-                addField(CblDefaultGeneration.field()).
+                addMethod(CblDefaultGeneration.addDefaults(holder)).
+                addMethod(CblConstantGeneration.addConstants(holder)).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
                 addField(TypeUtil.createMapStringObject(), "mDocChanges", Modifier.PRIVATE).
                 addMethods(create(holder)).
@@ -59,7 +60,6 @@ public class EntityGeneration {
             }
         }
 
-        typeBuilder.addStaticBlock(CblDefaultGeneration.staticInitialiser(holder));
         typeBuilder.addMethod(new RebindMethodGeneration().generate(true));
         typeBuilder.addMethod(delete(holder));
         typeBuilder.addMethod(save(holder));
@@ -108,7 +108,6 @@ public class EntityGeneration {
 
         toMapBuilder.addStatement("$1T temp = new $1T()", TypeUtil.createHashMapStringObject());
         toMapBuilder.addCode(CodeBlock.builder().
-                addStatement("temp.putAll(mDocDefaults)").
                 beginControlFlow("if(doc != null)").
                 addStatement("temp.putAll(doc)").
                 endControlFlow().

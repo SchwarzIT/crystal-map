@@ -64,7 +64,6 @@ public class CblFieldHolder extends CblBaseFieldHolder {
     }
 
 
-
     public boolean isTypeOfSubEntity() {
         return !StringUtils.isBlank(subEntitySimpleName);
     }
@@ -109,9 +108,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
                     endControlFlow().
                     build());
 
-            if (isDefault()) {
-                builder.addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocDefaults.get($N), $T.class)", getConstantName(), forTypeConversion);
-            } else if(forTypeConversion.isPrimitive()){
+            if (forTypeConversion.isPrimitive()) {
                 builder.addStatement("return $L.get($T.class)", DefaultValue.class.getCanonicalName(), forTypeConversion);
             } else {
                 builder.addStatement("return null");
@@ -125,7 +122,7 @@ public class CblFieldHolder extends CblBaseFieldHolder {
 
     @Override
     public MethodSpec setter(String dbName, TypeName entityTypeName, boolean useMDocChanges) {
-        TypeName fieldType = TypeUtil.parseMetaType(getTypeMirror(),isIterable, getSubEntitySimpleName());
+        TypeName fieldType = TypeUtil.parseMetaType(getTypeMirror(), isIterable, getSubEntitySimpleName());
         MethodSpec.Builder builder = MethodSpec.methodBuilder("set" + accessorSuffix()).
                 addModifiers(Modifier.PUBLIC).
                 addParameter(fieldType, "value").
@@ -160,6 +157,6 @@ public class CblFieldHolder extends CblBaseFieldHolder {
             return TypeName.get(List.class);
         }
 
-        return TypeUtil.parseMetaType(getTypeMirror(),isIterable, getSubEntitySimpleName());
+        return TypeUtil.parseMetaType(getTypeMirror(), isIterable, getSubEntitySimpleName());
     }
 }

@@ -25,7 +25,8 @@ public class WrapperGeneration {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(holder.getEntitySimpleName()).
                 addSuperinterface(TypeUtil.createMapSupportObject()).
                 addModifiers(Modifier.PUBLIC).
-                addField(CblDefaultGeneration.field()).
+                addMethod(CblDefaultGeneration.addDefaults(holder)).
+                addMethod(CblConstantGeneration.addConstants(holder)).
                 addMethod(MapSupportGeneration.toMap(holder)).
                 addMethods(create(holder)).
                 addField(TypeUtil.createMapStringObject(), "mDoc", Modifier.PRIVATE).
@@ -43,7 +44,6 @@ public class WrapperGeneration {
             }
         }
 
-        typeBuilder.addStaticBlock(CblDefaultGeneration.staticInitialiser(holder));
         typeBuilder.addMethod(new RebindMethodGeneration().generate(false));
         typeBuilder.addMethods(fromMap(holder));
         typeBuilder.addMethods(toMap(holder));
@@ -66,7 +66,7 @@ public class WrapperGeneration {
                                      returns(TypeUtil.createMapStringObject()).
                                      addCode(nullCheck).
                                      addStatement("$T result = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject())
-                                     .addStatement("result.putAll(mDocDefaults)").
+                                    .
                                              addStatement("result.putAll(obj.mDoc)").
                                              addStatement("return result").
                                              build(),
@@ -78,7 +78,6 @@ public class WrapperGeneration {
                                      addStatement("$T result = new $T()", TypeUtil.createListWithMapStringObject(), TypeUtil.createArrayListWithMapStringObject()).
                                      addCode(CodeBlock.builder().beginControlFlow("for($N entry : obj)", holder.getEntitySimpleName()).
                                              addStatement("$T temp = new $T()", TypeUtil.createHashMapStringObject(), TypeUtil.createHashMapStringObject()).
-                                             addStatement("temp.putAll(mDocDefaults)").
                                              addStatement("temp.putAll((($N)entry).toMap(entry))", holder.getEntitySimpleName()).
                                              addStatement("result.add(temp)", holder.getEntitySimpleName()).
                                              endControlFlow().

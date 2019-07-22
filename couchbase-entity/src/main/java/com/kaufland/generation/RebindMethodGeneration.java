@@ -13,7 +13,13 @@ public class RebindMethodGeneration {
 
         MethodSpec.Builder rebind = MethodSpec.methodBuilder("rebind").
                 addParameter(TypeUtil.createMapStringObject(), "doc").
-                addStatement("mDoc = doc != null ? new $1T(doc) : new $1T()", TypeUtil.createHashMapStringObject());
+                addStatement("mDoc = new $T()", TypeUtil.createHashMapStringObject()).
+                addCode(CblDefaultGeneration.addAddCall("mDoc")).
+                addCode(CodeBlock.builder()
+                        .beginControlFlow("if(doc != null)")
+                        .addStatement("mDoc.putAll(doc)")
+                        .endControlFlow().build()).
+                addCode(CblConstantGeneration.addAddCall("mDoc"));
 
         if (clearMDocChanges) {
             rebind.addStatement("mDocChanges = new $T()", TypeUtil.createHashMapStringObject());
