@@ -1,8 +1,5 @@
 package kaufland.com.coachbasebinderapi
 
-import com.sun.org.apache.xpath.internal.operations.Bool
-import java.lang.annotation.RetentionPolicy
-
 
 import kotlin.reflect.KClass
 

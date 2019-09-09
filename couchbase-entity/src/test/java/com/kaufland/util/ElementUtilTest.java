@@ -12,7 +12,7 @@ public class ElementUtilTest {
 
         String variable = "ArrayList<String>";
 
-        List<String> results = ElementUtil.splitGenericIfNeeded(variable);
+        List<String> results = ElementUtil.INSTANCE.splitGenericIfNeeded(variable);
 
         Assert.assertEquals(results.size(), 2);
         Assert.assertEquals(results.get(0), "ArrayList");
@@ -24,7 +24,7 @@ public class ElementUtilTest {
 
         String variable = "Map<String, Object>";
 
-        List<String> results = ElementUtil.splitGenericIfNeeded(variable);
+        List<String> results = ElementUtil.INSTANCE.splitGenericIfNeeded(variable);
 
         Assert.assertEquals(results.size(), 3);
         Assert.assertEquals(results.get(0), "Map");
@@ -37,7 +37,7 @@ public class ElementUtilTest {
 
         String variable = "List";
 
-        List<String> results = ElementUtil.splitGenericIfNeeded(variable);
+        List<String> results = ElementUtil.INSTANCE.splitGenericIfNeeded(variable);
 
         Assert.assertEquals(results.size(), 1);
         Assert.assertEquals(results.get(0), "List");
