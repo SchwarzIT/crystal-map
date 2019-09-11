@@ -17,6 +17,7 @@ import java.util.List;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.demo.entity.ProductEntity;
 import kaufland.com.demo.entity.UserCommentWrapper;
+import kaufland.com.demo.entity.UserCommentWrapper.Companion.*;
 
 public class CommentActivity extends AppCompatActivity {
 

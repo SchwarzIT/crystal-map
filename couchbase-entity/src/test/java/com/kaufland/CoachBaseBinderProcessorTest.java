@@ -45,7 +45,12 @@ public class CoachBaseBinderProcessorTest {
                                 "        list = true,\n" +
                                 "        type = String.class,\n" +
                                 "        name = \"comments\"\n" +
-                                "), @Field(\n" +
+                                ")" +
+                                ", @Field(\n"+
+                                "         type = Boolean.class,\n" +
+                                "                       name = \"bool\"\n" +
+                                "                                 )" +
+                                ", @Field(\n" +
                                 "        list = true,\n" +
                                 "        type = String.class,\n" +
                                 "        name = \"identifiers\"\n" +

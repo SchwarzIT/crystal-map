@@ -5,31 +5,25 @@ import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.asTypeName
 import javax.lang.model.type.TypeMirror
 
 object CblConstantGeneration {
 
     fun addConstants(holder: BaseEntityHolder): FunSpec {
-        val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", TypeUtil.mapStringObject())
+        val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", TypeUtil.mutableMapStringObject())
 
         for (fieldHolder in holder.fieldConstants) {
 
             if (fieldHolder.isConstant) {
-                builder.addStatement("map.put(\$N, " + getConvertedValue(fieldHolder.typeMirror!!, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
+                builder.addStatement("map.put(%N, DOC_%N)", fieldHolder.constantName, fieldHolder.constantName)
             }
         }
         return builder.build()
     }
 
     fun addAddCall(nameOfMap: String): CodeBlock {
-        return CodeBlock.builder().addStatement("addConstants(\$N)", nameOfMap).build()
-    }
-
-    private fun getConvertedValue(clazz: TypeMirror, value: String): String {
-
-        return if (clazz.toString() == String::class.java.canonicalName) {
-            "\"" + value + "\""
-        } else value
+        return CodeBlock.builder().addStatement("addConstants(%N)", nameOfMap).build()
     }
 
 }

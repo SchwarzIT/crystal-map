@@ -10,7 +10,7 @@ import javax.lang.model.element.Modifier
 object MapSupportGeneration {
 
     fun toMap(holder: BaseEntityHolder): FunSpec {
-        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC).returns(TypeUtil.mapStringObject()).addStatement("return toMap(this)")
+        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringObject()).addStatement("return toMap(this) ?: %T()", TypeUtil.hashMapStringObject())
 
         return toMapBuilder.build()
     }

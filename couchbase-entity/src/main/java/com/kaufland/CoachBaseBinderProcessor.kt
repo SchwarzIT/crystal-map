@@ -45,7 +45,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         validateAndProcess(roundEnv.getElementsAnnotatedWith(Entity::class.java), object : EntityProcessor {
             override fun process(element: Element): FileSpec {
-                val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings.contains(element.toString()))
+                val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings)
                 return EntityGeneration().generateModel(holder)
             }
         })
@@ -53,7 +53,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         validateAndProcess(mapWrappers, object : EntityProcessor {
             override fun process(element: Element): FileSpec {
-                val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings.contains(element.toString()))
+                val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings)
                 return WrapperGeneration().generateModel(holder)
             }
         })

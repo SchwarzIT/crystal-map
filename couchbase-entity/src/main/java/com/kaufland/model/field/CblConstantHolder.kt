@@ -29,7 +29,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     override fun getter(dbName: String?, useMDocChanges: Boolean): FunSpec {
         val returnType = TypeUtil.parseMetaType(typeMirror!!, isIterable, null)
 
-        val builder = FunSpec.builder("get" + accessorSuffix()).addModifiers(KModifier.PUBLIC).returns(returnType).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(\$N), \$T.class)", constantName, returnType)
+        val builder = FunSpec.builder("get" + accessorSuffix()).addModifiers(KModifier.PUBLIC).returns(returnType).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, returnType)
         return builder.build()
     }
 
@@ -39,9 +39,9 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     override fun createFieldConstant(): List<PropertySpec> {
 
-        val fieldAccessorConstant = PropertySpec.builder(constantName, String::class.java, KModifier.FINAL, KModifier.PUBLIC).initializer("\$S", dbField).build()
+        val fieldAccessorConstant = PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", dbField).addAnnotation(JvmField::class).build()
 
         return Arrays.asList(fieldAccessorConstant,
-                PropertySpec.builder("DOC_$constantName", String::class.java, KModifier.FINAL, KModifier.PUBLIC).initializer("\$S", constantValue).build())
+                PropertySpec.builder("DOC_$constantName", String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", constantValue).addAnnotation(JvmField::class).build())
     }
 }

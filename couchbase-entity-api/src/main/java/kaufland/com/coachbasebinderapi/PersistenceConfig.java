@@ -4,6 +4,8 @@ package kaufland.com.coachbasebinderapi;
 import java.util.HashMap;
 import java.util.Map;
 
+import kotlin.reflect.KClass;
+
 public class PersistenceConfig {
 
     private static PersistenceConfig mInstance;
@@ -16,7 +18,7 @@ public class PersistenceConfig {
 
     public interface Connector {
 
-        Map<Class<?>, TypeConversion> getTypeConversions();
+        Map<KClass<?>, TypeConversion> getTypeConversions();
 
         Map<String, Object> getDocument(String id, String dbName);
 

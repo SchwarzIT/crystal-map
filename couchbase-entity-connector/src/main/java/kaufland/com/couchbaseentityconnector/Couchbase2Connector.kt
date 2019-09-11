@@ -11,15 +11,16 @@ import java.util.HashMap
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kotlin.reflect.KClass
 
 abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
-    private val mTypeConversions = HashMap<Class<*>, TypeConversion>()
+    private val mTypeConversions = HashMap<KClass<*>, TypeConversion>()
 
     protected abstract fun getDatabase(name: String): Database
 
     init {
-        mTypeConversions[Int::class.java] = object : TypeConversion {
+        mTypeConversions[Int::class] = object : TypeConversion {
 
             override fun write(value: Any): Any {
                 return value
@@ -41,7 +42,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
                 return value
             }
         }
-        mTypeConversions[Double::class.java] = object : TypeConversion {
+        mTypeConversions[Double::class] = object : TypeConversion {
             override fun write(value: Any): Any {
                 return value
             }
@@ -64,7 +65,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         }
     }
 
-    override fun getTypeConversions(): Map<Class<*>, TypeConversion> {
+    override fun getTypeConversions(): Map<KClass<*>, TypeConversion> {
         return mTypeConversions
     }
 

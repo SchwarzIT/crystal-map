@@ -1,15 +1,12 @@
 package com.kaufland.util
 
 import com.kaufland.javaToKotlinType
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.ParameterizedTypeName
-import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.*
 
 import java.util.ArrayList
 
 import javax.lang.model.type.TypeMirror
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.asTypeName
 
 object TypeUtil {
 
@@ -21,16 +18,28 @@ object TypeUtil {
         return ClassName("kotlin", "Any")
     }
 
+    fun anyNullable(): TypeName {
+        return any().copy(nullable = true)
+    }
+
+    fun star(): TypeName {
+        return WildcardTypeName.producerOf(anyNullable())
+    }
+
     fun hashMapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), any())
+        return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), anyNullable())
     }
 
     fun mapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "Map").parameterizedBy(string(), any())
+        return ClassName("kotlin.collections", "Map").parameterizedBy(string(), anyNullable())
     }
 
-    fun listWithMapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "List").parameterizedBy(mapStringObject())
+    fun mutableMapStringObject(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "MutableMap").parameterizedBy(string(), anyNullable())
+    }
+
+    fun listWithMutableMapStringObject(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "List").parameterizedBy(mutableMapStringObject())
     }
 
     fun list(typeName: TypeName): ParameterizedTypeName {
@@ -41,8 +50,8 @@ object TypeUtil {
         return ClassName("kotlin.collections", "ArrayList").parameterizedBy(typeName)
     }
 
-    fun arrayListWithMapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "ArrayList").parameterizedBy(mapStringObject())
+    fun arrayListWithHashMapStringObject(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "ArrayList").parameterizedBy(hashMapStringObject())
     }
 
     fun mapSupport(): TypeName {
@@ -64,16 +73,23 @@ object TypeUtil {
         val simpleName = if (subEntity != null && subEntity.contains(getSimpleName(type))) subEntity else getSimpleName(type)
 
         var baseType: TypeName? = null
-        try {
-            baseType = ClassName(getPackage(type), simpleName)
-        } catch (e: IllegalArgumentException) {
+
+        if (type.toString().split(".").size == 1) {
             baseType = type.asTypeName()
+        } else {
+            try {
+                baseType = ClassName(getPackage(type), simpleName)
+            } catch (e: IllegalArgumentException) {
+                baseType = type.asTypeName()
+            }
         }
-
-
 
         return if (list) {
             list(baseType!!.javaToKotlinType())
         } else baseType!!.javaToKotlinType()
+    }
+
+    fun classStar(): ParameterizedTypeName {
+        return ClassName("kotlin.reflect", "KClass").parameterizedBy(star())
     }
 }
