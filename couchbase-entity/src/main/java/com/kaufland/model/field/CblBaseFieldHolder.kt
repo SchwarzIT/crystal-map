@@ -34,12 +34,12 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
 
     fun accessorSuffix(): String {
-        return WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "")
+        return (dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "").toLowerCase()
     }
 
-    abstract fun getter(dbName: String?, useMDocChanges: Boolean): FunSpec
+    abstract fun property(dbName: String?, useMDocChanges: Boolean): PropertySpec
 
-    abstract fun setter(dbName: String?, entityTypeName: TypeName, useMDocChanges: Boolean): FunSpec?
+    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean) : FunSpec?
 
     abstract fun createFieldConstant(): List<PropertySpec>
 }

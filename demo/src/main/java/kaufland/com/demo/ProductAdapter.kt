@@ -24,10 +24,10 @@ class ProductAdapter(context: Context) : ArrayAdapter<ProductEntity>(context, 0)
         convertView!!.tag = position
         val list = getItem(position)
         val text = convertView.findViewById<TextView>(R.id.text)
-        text.text = list!!.getName()
+        text.text = list!!.name
         val img = convertView.findViewById<ImageView>(R.id.image)
 
-        img.setImageBitmap(BitmapFactory.decodeStream(list.getImage()!!.contentStream))
+        img.setImageBitmap(BitmapFactory.decodeStream(list.image!!.contentStream))
         return convertView
     }
 }

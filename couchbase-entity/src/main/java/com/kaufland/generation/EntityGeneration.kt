@@ -20,6 +20,8 @@ class EntityGeneration {
         companionSpec.addProperty(idConstant())
         companionSpec.addFunctions(create(holder))
 
+        val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
+
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addModifiers(KModifier.PUBLIC).addSuperinterface(TypeUtil.mapSupport())
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
@@ -27,22 +29,24 @@ class EntityGeneration {
                 .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringObject(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
                 .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration().generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(toMap(holder))
+                .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         for (fieldHolder in holder.allFields) {
 
-            companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addFunction(fieldHolder.getter(holder.dbName, true))
-
-            val setter = fieldHolder.setter(holder.dbName, holder.entityTypeName, true)
-            if (setter != null) {
-                typeBuilder.addFunction(setter)
+            fieldHolder.builderSetter(holder.dbName, holder.`package`, holder.entitySimpleName, true)?.let {
+                builderBuilder.addFunction(it)
             }
+
+            companionSpec.addProperties(fieldHolder.createFieldConstant())
+            typeBuilder.addProperty(fieldHolder.property(holder.dbName, true))
         }
 
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(true))
         typeBuilder.addFunction(delete(holder))
         typeBuilder.addFunction(save(holder))
+
+        typeBuilder.addType(builderBuilder.build())
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
 

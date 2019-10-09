@@ -38,63 +38,63 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         }
     }
 
-    override fun getter(dbName: String?, useMDocChanges: Boolean): FunSpec {
+    override fun property(dbName: String?, useMDocChanges: Boolean): PropertySpec {
         var returnType = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName).copy(nullable = true)
 
-        val builder = FunSpec.builder("get" + accessorSuffix()).addModifiers(KModifier.PUBLIC).returns(returnType)
+        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true), KModifier.PUBLIC).mutable(true)
 
+
+        val getter = FunSpec.getterBuilder()
+        val setter = FunSpec.setterBuilder().addParameter("value", String::class)
+
+        val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
 
         if (isTypeOfSubEntity) {
             val castType = if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringObject() else TypeUtil.mutableMapStringObject()
 
             if (useMDocChanges) {
-                builder.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
+                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
                         .addStatement("return %T.fromMap(mDocChanges.get(%N) as %T)", subEntityTypeName, constantName, castType)
                         .endControlFlow().build())
             }
-            builder.addCode(CodeBlock.builder()
+            getter.addCode(CodeBlock.builder()
                     .beginControlFlow("if(mDoc.containsKey(%N))", constantName)
                     .addStatement("return %T.fromMap(mDoc.get(%N) as %T)", subEntityTypeName, constantName, castType)
                     .endControlFlow().build())
 
-            builder.addStatement("return null")
+            getter.addStatement("return null")
+
+            setter.addStatement("%N.put(%N, %T.toMap(value))", docName, constantName, subEntityTypeName)
         } else {
 
             val forTypeConversion = evaluateClazzForTypeConversion()
             if (useMDocChanges) {
-                builder.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
+                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
                         .addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %T::class)", constantName, forTypeConversion)
                         .endControlFlow().build())
             }
 
-            builder.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
+            getter.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
 //FIXME
 //            if (forTypeConversion.is) {
 //                builder.addStatement("return \$L.get(%T.class)", DefaultValue::class.java.canonicalName, forTypeConversion)
 //            } else {
-            builder.addStatement("return null")
+            getter.addStatement("return null")
 //            }
 
+            setter.addStatement("%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %T::class))", docName, constantName, forTypeConversion)
+
         }
 
-        return builder.build()
+        return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
     }
 
-
-    override fun setter(dbName: String?, entityTypeName: TypeName, useMDocChanges: Boolean): FunSpec {
+    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {
         val fieldType = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName)
-        val builder = FunSpec.builder("set" + accessorSuffix()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(entityTypeName)
+        val builder = FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(ClassName(packageName, "${entitySimpleName}.Builder"))
 
-        val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
-
-        if (isTypeOfSubEntity) {
-            builder.addStatement("%N.put(%N, %T.toMap(value))", docName, constantName, subEntityTypeName)
-            builder.addStatement("return this")
-        } else {
-            val forTypeConversion = evaluateClazzForTypeConversion()
-            builder.addStatement("%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %T::class))", docName, constantName, forTypeConversion)
-            builder.addStatement("return this")
-        }
+        builder.addStatement("obj.${accessorSuffix()} = value")
+        builder.addStatement("return this")
 
         return builder.build()
     }

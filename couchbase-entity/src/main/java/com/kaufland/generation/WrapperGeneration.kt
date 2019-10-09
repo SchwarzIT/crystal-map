@@ -12,21 +12,22 @@ class WrapperGeneration {
 
         var companionSpec = TypeSpec.companionObjectBuilder()
 
+        var builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
+
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addSuperinterface(TypeUtil.mapSupport()).addModifiers(KModifier.PUBLIC)
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addFunction(MapSupportGeneration.toMap(holder))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringObject()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
                 .addFunction(contructor()).superclass(holder.sourceElement!!.asType().asTypeName())
+                .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         for (fieldHolder in holder.allFields) {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addFunction(fieldHolder.getter(null, false))
-
-            val setter = fieldHolder.setter(null, holder.entityTypeName, false)
-            if (setter != null) {
-                typeBuilder.addFunction(setter)
+            typeBuilder.addProperty(fieldHolder.property(null, false))
+            fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false)?.let {
+                builderBuilder.addFunction(it)
             }
         }
 
@@ -36,6 +37,7 @@ class WrapperGeneration {
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(false))
         typeBuilder.addFunctions(TypeConversionMethodsGeneration().generate())
+        typeBuilder.addType(builderBuilder.build())
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
 
@@ -45,13 +47,13 @@ class WrapperGeneration {
         val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
 
         return Arrays.asList(FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", holder.entityTypeName).returns(TypeUtil.mutableMapStringObject().copy(nullable = true))
+                .addParameter("obj", holder.entityTypeName.copy(nullable = true)).returns(TypeUtil.mutableMapStringObject().copy(nullable = true))
                 .addAnnotation(JvmStatic::class)
                 .addCode(nullCheck).addStatement("var result = %T()", TypeUtil.hashMapStringObject())
                 .addStatement("result.putAll(obj.mDoc)").addStatement("return result").build(),
 
                 FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                        .addParameter("obj", TypeUtil.list(holder.entityTypeName)).addAnnotation(JvmStatic::class)
+                        .addParameter("obj", TypeUtil.list(holder.entityTypeName).copy(nullable = true)).addAnnotation(JvmStatic::class)
                         .returns(TypeUtil.listWithMutableMapStringObject().copy(nullable = true)).addCode(nullCheck)
                         .addStatement("var result = %T()", TypeUtil.arrayListWithHashMapStringObject())
                         .addCode(CodeBlock.builder()
