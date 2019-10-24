@@ -1,6 +1,6 @@
 [![](https://jitpack.io/v/Kaufland/andcouchbaseentity.svg)](https://jitpack.io/#Kaufland/andcouchbaseentity)
 [![Build Status](https://travis-ci.org/SchwarzIT/andcouchbaseentity.svg?branch=master)](https://travis-ci.org/SchwarzIT/andcouchbaseentity)
-[![codecov](https://codecov.io/gh/Kaufland/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/Kaufland/andcouchbaseentity)
+[![codecov](https://codecov.io/gh/SchwarzIT/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/Kaufland/andcouchbaseentity)
 
 
 
