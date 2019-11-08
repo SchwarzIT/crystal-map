@@ -17,6 +17,7 @@ import java.util.List;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.demo.entity.ProductEntity;
 import kaufland.com.demo.entity.UserCommentWrapper;
+import kaufland.com.demo.entity.UserCommentWrapper.Companion.*;
 
 public class CommentActivity extends AppCompatActivity {
 
@@ -46,7 +47,7 @@ public class CommentActivity extends AppCompatActivity {
                     public void onClick(android.view.View v) {
                         data.remove(position);
                         try {
-                            getParentEntity().setComments(data).save();
+                            getParentEntity().builder().setComments(data).exit().save();
                         } catch (PersistenceException e) {
                             Log.e(TAG, "failed to save Entity", e);
                         }
@@ -64,11 +65,11 @@ public class CommentActivity extends AppCompatActivity {
             @Override
             public void onClick(android.view.View v) {
                 List<UserCommentWrapper> mComments = getParentEntity().getComments();
-                mComments.add(UserCommentWrapper.create().
+                mComments.add(UserCommentWrapper.create().builder().
                         setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
-                        setUser("you"));
+                        setUser("you").exit());
                 try {
-                    getParentEntity().setComments(mComments).save();
+                    getParentEntity().builder().setComments(mComments).exit().save();
                     ((EditText) findViewById(R.id.edit_text)).setText("");
                     recreate();
                 } catch (PersistenceException e) {

@@ -1,9 +1,5 @@
 package kaufland.com.coachbasebinderapi;
 
-import java.lang.reflect.Array;
-import java.util.Map;
-import java.util.stream.Stream;
-
 public class DefaultValue {
 
     private static final Double DOUBLE_DEFAULT = Double.valueOf(0d);

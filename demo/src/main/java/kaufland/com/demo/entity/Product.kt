@@ -5,7 +5,7 @@ import kaufland.com.coachbasebinderapi.*
 
 import kaufland.com.demo.Application
 
-@Entity(database = Application.DB)
+@Entity(database = "mydb_db")
 @Fields(
         Field(name = "type", type = String::class, defaultValue = "product", readonly = true),
         Field(name = "name", type = String::class),

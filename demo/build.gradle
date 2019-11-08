@@ -23,6 +23,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 
     // workaround for "duplicate files during packaging of APK" issue:
     packagingOptions {
@@ -30,6 +34,10 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {

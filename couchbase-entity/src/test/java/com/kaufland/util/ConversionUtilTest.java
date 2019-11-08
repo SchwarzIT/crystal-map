@@ -12,12 +12,12 @@ public class ConversionUtilTest {
 
     @Test
     public void testCamel(){
-        Assert.assertEquals("Ta_aa_ba", ConversionUtil.convertCamelToUnderscore("TaAaBa"));
+        Assert.assertEquals("Ta_aa_ba", ConversionUtil.INSTANCE.convertCamelToUnderscore("TaAaBa"));
     }
 
     @Test
     public void testMultibleWordsCamel(){
-        Assert.assertEquals("Ta_aa_ba Foo_bar", ConversionUtil.convertCamelToUnderscore("TaAaBa FooBar"));
+        Assert.assertEquals("Ta_aa_ba Foo_bar", ConversionUtil.INSTANCE.convertCamelToUnderscore("TaAaBa FooBar"));
     }
 
 }
