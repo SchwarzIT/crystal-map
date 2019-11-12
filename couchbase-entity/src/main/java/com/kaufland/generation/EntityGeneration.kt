@@ -38,7 +38,7 @@ class EntityGeneration {
             }
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(holder.dbName, true))
+            typeBuilder.addProperty(fieldHolder.property(holder.dbName, holder.abstractParts, true))
         }
 
         typeBuilder.addType(companionSpec.build())

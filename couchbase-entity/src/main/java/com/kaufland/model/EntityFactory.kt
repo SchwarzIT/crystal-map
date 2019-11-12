@@ -10,6 +10,8 @@ import javax.lang.model.element.Element
 
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Fields
+import javax.lang.model.element.ElementKind
+import javax.lang.model.element.Modifier
 
 object EntityFactory {
 
@@ -24,6 +26,7 @@ object EntityFactory {
 
     private fun create(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>): BaseEntityHolder {
 
+        content.abstractParts = findPossibleOverrides(cblEntityElement)
         content.sourceElement = cblEntityElement
 
         val fields = cblEntityElement.getAnnotation(Fields::class.java)
@@ -45,5 +48,22 @@ object EntityFactory {
 
         return content
 
+    }
+
+    private fun findPossibleOverrides(cblEntityElement: Element): HashSet<String> {
+        var abstractSet = HashSet<String>()
+        for (enclosedElement in cblEntityElement.enclosedElements) {
+            if (enclosedElement.modifiers.contains(Modifier.ABSTRACT) && (enclosedElement.kind == ElementKind.FIELD || enclosedElement.kind == ElementKind.METHOD)) {
+                var name = enclosedElement.simpleName.toString()
+                if (name.startsWith("set")) {
+                    abstractSet.add(name.replace("set", "").toLowerCase())
+                } else if (name.startsWith("get")) {
+                    abstractSet.add(name.replace("get", "").toLowerCase())
+                } else {
+                    abstractSet.add(name)
+                }
+            }
+        }
+        return abstractSet
     }
 }
