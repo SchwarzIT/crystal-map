@@ -25,7 +25,7 @@ class WrapperGeneration {
         for (fieldHolder in holder.allFields) {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(null, false))
+            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false))
             fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false)?.let {
                 builderBuilder.addFunction(it)
             }

@@ -15,6 +15,8 @@ abstract class BaseEntityHolder {
 
     val fields: MutableList<CblFieldHolder> = ArrayList()
 
+    var abstractParts: Set<String> = HashSet()
+
     val fieldConstants: MutableList<CblConstantHolder> = ArrayList()
 
     var sourceElement: Element? = null

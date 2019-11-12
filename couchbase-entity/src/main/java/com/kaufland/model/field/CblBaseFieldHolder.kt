@@ -37,9 +37,9 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         return (dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "").toLowerCase()
     }
 
-    abstract fun property(dbName: String?, useMDocChanges: Boolean): PropertySpec
+    abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec
 
-    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean) : FunSpec?
+    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec?
 
     abstract fun createFieldConstant(): List<PropertySpec>
 }

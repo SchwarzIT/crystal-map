@@ -38,10 +38,17 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         }
     }
 
-    override fun property(dbName: String?, useMDocChanges: Boolean): PropertySpec {
+    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
         var returnType = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName).copy(nullable = true)
 
-        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true), KModifier.PUBLIC).mutable(true)
+        var kmodifiers = ArrayList<KModifier>()
+        kmodifiers.add(KModifier.PUBLIC)
+
+        if(possibleOverrides.contains(accessorSuffix())){
+            kmodifiers.add(KModifier.OVERRIDE)
+        }
+
+        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  *kmodifiers.toTypedArray()).mutable(true)
 
 
         val getter = FunSpec.getterBuilder()
