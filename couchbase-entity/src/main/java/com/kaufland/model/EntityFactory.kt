@@ -10,6 +10,7 @@ import javax.lang.model.element.Element
 
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Fields
+import org.apache.commons.lang3.text.WordUtils
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 
@@ -56,9 +57,9 @@ object EntityFactory {
             if (enclosedElement.modifiers.contains(Modifier.ABSTRACT) && (enclosedElement.kind == ElementKind.FIELD || enclosedElement.kind == ElementKind.METHOD)) {
                 var name = enclosedElement.simpleName.toString()
                 if (name.startsWith("set")) {
-                    abstractSet.add(name.replace("set", "").toLowerCase())
+                    abstractSet.add(WordUtils.uncapitalize(name.replace("set", "")))
                 } else if (name.startsWith("get")) {
-                    abstractSet.add(name.replace("get", "").toLowerCase())
+                    abstractSet.add(WordUtils.uncapitalize(name.replace("get", "")))
                 } else {
                     abstractSet.add(name)
                 }

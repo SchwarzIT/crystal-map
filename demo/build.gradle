@@ -13,7 +13,6 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -36,6 +35,7 @@ android {
     }
 }
 
+
 kapt {
     correctErrorTypes = true
 }
@@ -52,4 +52,5 @@ dependencies {
     implementation project(path: ':couchbase-entity-connector')
     kapt project(path: ':couchbase-entity')
     implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }

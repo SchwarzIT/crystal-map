@@ -34,6 +34,31 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testKotlinAbstractGenerationWithLongFields() {
+
+        val subEntity = SourceFile.kotlin("Sub.kt",
+                ENTITY_HEADER +
+                        "@Entity\n" +
+                        "@Fields(\n" +
+                        "Field(name = \"test_test_test\", type = String::class),\n" +
+                        "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
+                        ")\n" +
+                        "abstract class Sub {\n" +
+                        "\n" +
+                        " companion object {\n" +
+                        "        const val TYPE: String = \"DWG\"" +
+                        "}\n" +
+                        " abstract var testTestTest : String?\n" +
+                        "}")
+
+
+        val compilation = compileKotlin(subEntity)
+
+
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
     fun testKotlinPrivateGeneration() {
 
         val subEntity = SourceFile.kotlin("Sub.kt",
