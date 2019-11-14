@@ -34,7 +34,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
 
     fun accessorSuffix(): String {
-        return (dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "").toLowerCase()
+        return WordUtils.uncapitalize(WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""))
     }
 
     abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec
