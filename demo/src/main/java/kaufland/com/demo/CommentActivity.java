@@ -17,7 +17,6 @@ import java.util.List;
 import kaufland.com.coachbasebinderapi.PersistenceException;
 import kaufland.com.demo.entity.ProductEntity;
 import kaufland.com.demo.entity.UserCommentWrapper;
-import kaufland.com.demo.entity.UserCommentWrapper.Companion.*;
 
 public class CommentActivity extends AppCompatActivity {
 
@@ -42,17 +41,16 @@ public class CommentActivity extends AppCompatActivity {
             @Override
             public android.view.View getView(final int position, @Nullable android.view.View convertView, @NonNull ViewGroup parent) {
                 android.view.View view = super.getView(position, convertView, parent);
-                view.findViewById(R.id.btn_delete).setOnClickListener(new android.view.View.OnClickListener() {
-                    @Override
-                    public void onClick(android.view.View v) {
-                        data.remove(position);
-                        try {
-                            getParentEntity().builder().setComments(data).exit().save();
-                        } catch (PersistenceException e) {
-                            Log.e(TAG, "failed to save Entity", e);
-                        }
-                        recreate();
+                view.findViewById(R.id.btn_delete).setOnClickListener(v -> {
+                    data.remove(position);
+                    try {
+                        ProductEntity entity = getParentEntity();
+                        entity.setComments(data);
+                        entity.save();
+                    } catch (PersistenceException e) {
+                        Log.e(TAG, "failed to save Entity", e);
                     }
+                    recreate();
                 });
                 return view;
             }
@@ -61,20 +59,19 @@ public class CommentActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.list);
         listView.setAdapter(mAdapter);
 
-        findViewById(R.id.btn_post).setOnClickListener(new android.view.View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                List<UserCommentWrapper> mComments = getParentEntity().getComments();
-                mComments.add(UserCommentWrapper.create().builder().
-                        setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
-                        setUser("you").exit());
-                try {
-                    getParentEntity().builder().setComments(mComments).exit().save();
-                    ((EditText) findViewById(R.id.edit_text)).setText("");
-                    recreate();
-                } catch (PersistenceException e) {
-                    Log.e(TAG, "failed to save", e);
-                }
+        findViewById(R.id.btn_post).setOnClickListener(v -> {
+            List<UserCommentWrapper> mComments = getParentEntity().getComments();
+            mComments.add(UserCommentWrapper.create().builder().
+                    setComment(((EditText) findViewById(R.id.edit_text)).getText().toString()).
+                    setUser("you").exit());
+            try {
+                ProductEntity entity = getParentEntity();
+                entity.setComments(mComments);
+                entity.save();
+                ((EditText) findViewById(R.id.edit_text)).setText("");
+                recreate();
+            } catch (PersistenceException e) {
+                Log.e(TAG, "failed to save", e);
             }
         });
     }

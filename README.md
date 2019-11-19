@@ -23,7 +23,9 @@ This Library can be used if your database represents its data in maps
 
 ## Implementation
 
-### [**Guide for Couchbase 1.x.x**](https://github.com/Kaufland/andcouchbaseentity/wiki/Implementation-Guide-1.x.x)
+### [**Guide for Couchbase 1.x.x**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-1.x.x)
 
-### [**Guide for Couchbase 2.x.x and other Databases**](https://github.com/Kaufland/andcouchbaseentity/wiki/Implementation-Guide-2.x.x)
+### [**Guide for Couchbase 2.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-2.x.x)
+
+### [**Guide for Couchbase 3.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-3.x.x)
   

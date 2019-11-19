@@ -10,7 +10,6 @@ import kaufland.com.coachbasebinderapi.PersistenceException
 import kaufland.com.couchbaseentityconnector.Couchbase2Connector
 import kaufland.com.demo.entity.ProductEntity
 import kaufland.com.demo.entity.UserCommentWrapper
-import java.util.*
 
 class Application : android.app.Application() {
 
@@ -18,15 +17,15 @@ class Application : android.app.Application() {
 
     val database: Database?
         get() {
-            try {
+            return try {
                 if (mDatabase == null) {
                     val config = DatabaseConfiguration(applicationContext)
                     mDatabase = Database(DB, config)
                 }
-                return mDatabase
+                mDatabase
             } catch (e: CouchbaseLiteException) {
                 Log.e(TAG, "failed to get Database", e)
-                return null
+                null
             }
 
         }
@@ -54,7 +53,6 @@ class Application : android.app.Application() {
         } catch (e: CouchbaseLiteException) {
             Log.e(TAG, "failed to clear Database", e)
         }
-
     }
 
     private fun createMockArticle() {
@@ -75,7 +73,8 @@ class Application : android.app.Application() {
 
 
         private val TAG = Application::class.java.name
-        @JvmField val DB = "mydb_db"
+        @JvmField
+        val DB = "mydb_db"
     }
 
 
