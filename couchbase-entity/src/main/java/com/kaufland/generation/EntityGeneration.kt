@@ -20,6 +20,21 @@ class EntityGeneration {
         companionSpec.addProperty(idConstant())
         companionSpec.addFunctions(create(holder))
 
+        for (query in holder.queries) {
+            query.queryFun(holder.dbName, holder)?.let {
+                companionSpec.addFunction(it)
+            }
+        }
+
+        for (generateAccessor in holder.generateAccessors) {
+            generateAccessor.accessorFunSpec()?.let {
+                companionSpec.addFunction(it)
+            }
+            generateAccessor.accessorPropertySpec()?.let {
+                companionSpec.addProperty(it)
+            }
+        }
+
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addModifiers(KModifier.PUBLIC).addSuperinterface(TypeUtil.mapSupport())
@@ -69,7 +84,7 @@ class EntityGeneration {
 
         val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringObject()).addStatement("val doc = %T.$GET_DOCUMENT_METHOD(getId(), %S)", PersistenceConfig::class, holder.dbName)
 
-        for (constantField in holder.fieldConstants) {
+        for (constantField in holder.fieldConstants.values) {
             toMapBuilder.addStatement("mDocChanges.put(%S, %S)", constantField.dbField, constantField.constantValue)
         }
 

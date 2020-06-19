@@ -1,11 +1,14 @@
 package com.kaufland.model.entity
 
+import com.kaufland.model.accessor.CblGenerateAccessorHolder
 import com.kaufland.model.field.CblBaseFieldHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
+import com.kaufland.model.query.CblQueryHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.sun.tools.javac.code.Symbol
+import kaufland.com.coachbasebinderapi.query.Query
 
 import java.util.ArrayList
 
@@ -13,19 +16,23 @@ import javax.lang.model.element.Element
 
 abstract class BaseEntityHolder {
 
-    val fields: MutableList<CblFieldHolder> = ArrayList()
+    val fields: MutableMap<String, CblFieldHolder> = HashMap()
 
     var abstractParts: Set<String> = HashSet()
 
-    val fieldConstants: MutableList<CblConstantHolder> = ArrayList()
+    val fieldConstants: MutableMap<String, CblConstantHolder> = HashMap()
 
     var sourceElement: Element? = null
+
+    val queries : MutableList<CblQueryHolder> = ArrayList()
+
+    val generateAccessors : MutableList<CblGenerateAccessorHolder> = ArrayList()
 
     val allFields: List<CblBaseFieldHolder>
         get() {
             val allField = ArrayList<CblBaseFieldHolder>()
-            allField.addAll(fields)
-            allField.addAll(fieldConstants)
+            allField.addAll(fields.values)
+            allField.addAll(fieldConstants.values)
             return allField
         }
 

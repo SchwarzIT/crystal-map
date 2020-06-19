@@ -1,16 +1,11 @@
 package schwarz.fwws.shared.model
 
 
-import com.couchbase.lite.Blob
-import kaufland.com.coachbasebinderapi.Entity
-import kaufland.com.coachbasebinderapi.Field
-import kaufland.com.coachbasebinderapi.Fields
-import kaufland.com.coachbasebinderapi.MapWrapper
-import kaufland.com.demo.Application
-import kaufland.com.demo.entity.UserComment
-import java.util.*
+import kaufland.com.coachbasebinderapi.*
+import kaufland.com.coachbasebinderapi.query.Queries
+import kaufland.com.coachbasebinderapi.query.Query
 
-@MapWrapper
+@Entity
 @Fields(
         Field(name = "storeId", type = String::class),
         Field(name = "item_type", type = String::class),
@@ -19,14 +14,27 @@ import java.util.*
         Field(name = "article_no", type = String::class),
         Field(name = "expiration", type = Long::class)
 )
+@Queries(
+        Query(fields = ["type"]),
+        Query(fields = ["type", "item_type"])
+)
 open class Task {
 
     companion object {
+
         const val TYPE: String = "Task"
+
+        @GenerateAccessor
         const val PREFIX: String = "task"
+
 
         fun documentId(storeId: String, article_no: String, process: String, uuid: String): String {
             return "$PREFIX:$storeId:$article_no:$process:$uuid"
+        }
+
+        @GenerateAccessor
+        fun ultraComplexQuery(storeId: String){
+
         }
     }
 //

@@ -2,6 +2,7 @@ package kaufland.com.coachbasebinderapi;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import kotlin.reflect.KClass;
@@ -21,6 +22,8 @@ public class PersistenceConfig {
         Map<KClass<?>, TypeConversion> getTypeConversions();
 
         Map<String, Object> getDocument(String id, String dbName);
+
+        List<Map<String, Object>> queryDoc(String dbName, Map<String, Object> queryParams);
 
         void deleteDocument(String id, String dbName) throws PersistenceException;
 

@@ -25,6 +25,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
+    val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName)
+
     init {
         if (allWrappers.contains(typeMirror.toString())) {
 

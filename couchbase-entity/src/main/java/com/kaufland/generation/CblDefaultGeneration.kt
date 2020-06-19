@@ -14,7 +14,7 @@ object CblDefaultGeneration {
     fun addDefaults(holder: BaseEntityHolder): FunSpec {
         val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter( "map", TypeUtil.mutableMapStringObject())
 
-        for (fieldHolder in holder.fields) {
+        for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
                 builder.addStatement("map.put(%N, " + getConvertedValue(fieldHolder.typeMirror!!, fieldHolder.defaultValue) + ")", fieldHolder.constantName)

@@ -1,16 +1,10 @@
 package kaufland.com.couchbaseentityconnector
 
-import com.couchbase.lite.CouchbaseLiteException
-import com.couchbase.lite.Database
-import com.couchbase.lite.Document
-import com.couchbase.lite.MutableDocument
-
-import java.util.ArrayList
-import java.util.HashMap
-
+import com.couchbase.lite.*
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
 import kaufland.com.coachbasebinderapi.TypeConversion
+import java.util.*
 import kotlin.reflect.KClass
 
 abstract class Couchbase2Connector : PersistenceConfig.Connector {
@@ -100,6 +94,56 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
             throw PersistenceException(e)
         }
 
+    }
+
+    @Throws(PersistenceException::class)
+    override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
+        try {
+
+            val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
+                    .from(DataSource.database(getDatabase(dbName)))
+
+            parseExpressions(queryParams)?.let {
+                builder.where(it)
+            }
+
+           return queryResultToMap(builder.execute())
+        } catch (e: CouchbaseLiteException) {
+            throw PersistenceException(e)
+        }
+    }
+
+    private fun queryResultToMap(execute : ResultSet) : List<Map<String, Any>>{
+        val parsed: MutableList<Map<String, Any>> =
+                ArrayList()
+        if (execute != null) {
+            for (result in execute) {
+                val item: MutableMap<String, Any> =
+                        HashMap()
+                item["_id"] = result.getString(0)
+                item.putAll(result.getDictionary(1).toMap())
+                parsed.add(item)
+            }
+        }
+        return parsed
+    }
+
+    private fun parseExpressions(queryParams: Map<String, Any>): Expression? {
+
+        var result: Expression? = null
+
+        for (queryParam in queryParams) {
+
+            val equalTo = Expression.property(queryParam.key).equalTo(
+                    Expression.value(queryParam.value))
+            result = if (result == null) {
+                equalTo
+            } else {
+                result.and(equalTo)
+            }
+        }
+
+        return result
     }
 
     @Throws(PersistenceException::class)
