@@ -1,5 +1,6 @@
 package com.kaufland
 
+import com.kaufland.testdata.TestDataHelper
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import org.junit.Assert
@@ -7,6 +8,14 @@ import org.junit.Test
 
 class CouchbaseBaseBinderProcessorKotlinTest {
 
+
+    @Test
+    fun testSucessWithQueries() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"))
+
+
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
 
     @Test
     fun testKotlinAbstractGeneration() {
