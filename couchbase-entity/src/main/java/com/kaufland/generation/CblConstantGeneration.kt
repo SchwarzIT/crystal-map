@@ -13,7 +13,7 @@ object CblConstantGeneration {
     fun addConstants(holder: BaseEntityHolder): FunSpec {
         val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", TypeUtil.mutableMapStringObject())
 
-        for (fieldHolder in holder.fieldConstants) {
+        for (fieldHolder in holder.fieldConstants.values) {
 
             if (fieldHolder.isConstant) {
                 builder.addStatement("map.put(%N, DOC_%N)", fieldHolder.constantName, fieldHolder.constantName)

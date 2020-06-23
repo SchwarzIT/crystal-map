@@ -5,12 +5,9 @@ import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.TypeName
 
 
 import java.util.Arrays
-
-import javax.lang.model.element.Modifier
 
 import kaufland.com.coachbasebinderapi.Field
 
@@ -21,6 +18,8 @@ import kaufland.com.coachbasebinderapi.Field
 class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     val constantValue: String = field.defaultValue
+
+    val constantValueAccessorName = "DOC_$constantName"
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror!!, isIterable, null)
@@ -34,7 +33,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
         val fieldAccessorConstant = PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", dbField).addAnnotation(JvmField::class).build()
 
         return Arrays.asList(fieldAccessorConstant,
-                PropertySpec.builder("DOC_$constantName", String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", constantValue).addAnnotation(JvmField::class).build())
+                PropertySpec.builder(constantValueAccessorName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", constantValue).addAnnotation(JvmField::class).build())
     }
 
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {

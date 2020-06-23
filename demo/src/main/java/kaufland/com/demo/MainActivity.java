@@ -24,18 +24,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAdapter = new ProductAdapter(this);
 
-        Query query = getQuery();
-        query.addChangeListener(change -> {
-            mAdapter.setNotifyOnChange(false);
-            mAdapter.clear();
-            if (change != null) {
-                for (Result item : change.getResults()) {
-                    mAdapter.add(new ProductEntity(item.getDictionary(Application.DB).toMap()));
-                }
-            }
-            mAdapter.setNotifyOnChange(true);
-            mAdapter.notifyDataSetChanged();
-        });
+        mAdapter.addAll(ProductEntity.findByType());
+        mAdapter.notifyDataSetChanged();
 
         ListView listView = findViewById(R.id.list);
         listView.setAdapter(mAdapter);
@@ -45,11 +35,4 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private Query getQuery() {
-
-        Application application = (Application) getApplication();
-        Database database = application.getDatabase();
-
-        return QueryBuilder.select(SelectResult.all()).from(DataSource.database(database)).where(Expression.property("type").equalTo(Expression.string(ProductEntity.DOC_TYPE)));
-    }
 }

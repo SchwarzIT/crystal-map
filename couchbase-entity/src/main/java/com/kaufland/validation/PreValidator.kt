@@ -5,6 +5,7 @@ import com.kaufland.util.FieldExtractionUtil
 import com.sun.tools.javac.code.Symbol
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Fields
+import kaufland.com.coachbasebinderapi.query.Queries
 import java.util.*
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
@@ -49,6 +50,22 @@ class PreValidator {
             }
 
         }
+
+        val queries = entityElement.getAnnotation(Queries::class.java)
+
+        if (queries != null) {
+            for (queryAnnotation in queries.value) {
+
+                if (queryAnnotation != null) {
+                    for (field in queryAnnotation.fields) {
+                        if (names.contains(field).not()) {
+                            logger.error("query param [$field] is not a part of this entity", entityElement)
+                        }
+                    }
+                }
+            }
+        }
+
 
         for (member in entityElement.enclosedElements) {
 
