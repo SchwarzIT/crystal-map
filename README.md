@@ -21,9 +21,57 @@ This Library can be used if your database represents its data in maps
 
 * Entities updates can be performed with a fluent API
 
-## Implementation
+* NEW generate easy find queries based on Entity fields
 
-### [**Guide for Couchbase 1.x.x**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-1.x.x)
+* NEW generate accessors to static functions/properties in annotated base class
+
+## Quick View
+
+Add Annotations
+
+```kotlin
+@Entity(database = "mydb_db")
+@Fields(
+        Field(name = "type", type = String::class, defaultValue = "product", readonly = true),
+        Field(name = "name", type = String::class),
+        Field(name = "comments", type = UserComment::class, list = true),
+        Field(name = "image", type = Blob::class),
+        Field(name = "identifiers", type = String::class, list = true)
+)
+@Queries(
+        Query(fields = ["type"])
+)
+open class Product{
+
+    companion object{
+
+        @GenerateAccessor
+        fun someComplexQuery(param1 : String){
+            //do some heavy logic here
+        }
+    }
+}
+```
+Use it
+
+```kotlin
+        ProductEntity
+                .create()
+                .builder()
+                .setName("Beer")
+                .setComments(listOf(UserCommentWrapper
+                        .create()
+                        .builder()
+                        .setComment("very awesome")
+                        .exit()))
+                .setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder)))
+                .exit()
+                .save()
+
+        val allEntitiesOfType = ProductEntity.findByType()
+```
+
+## Implementation
 
 ### [**Guide for Couchbase 2.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-2.x.x)
 
