@@ -69,6 +69,7 @@ Use it
                 .save()
 
         val allEntitiesOfType = ProductEntity.findByType()
+        val resultOfAComplexQuery = ProductEntity.someComplexQuery("foo")
 ```
 
 ## Implementation
