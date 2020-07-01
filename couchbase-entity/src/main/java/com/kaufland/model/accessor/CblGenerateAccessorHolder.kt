@@ -20,7 +20,7 @@ class CblGenerateAccessorHolder(private val className: String, val element: Elem
             var methodBuilder = FunSpec.builder(element.simpleName.toString()).addAnnotation(JvmStatic::class)
 
             (element as ExecutableElement)?.apply {
-                methodBuilder.returns(returnType.asTypeName())
+                methodBuilder.returns(returnType.asTypeName().javaToKotlinType())
                 parameters.forEach {
                     methodBuilder.addParameter(it.simpleName.toString(), it.asType().asTypeName().javaToKotlinType())
                 }
