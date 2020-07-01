@@ -19,6 +19,7 @@ class EntityGeneration {
         var companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addProperty(idConstant())
         companionSpec.addFunctions(create(holder))
+        companionSpec.addFunction(findById(holder))
 
         for (query in holder.queries) {
             query.queryFun(holder.dbName, holder)?.let {
@@ -65,6 +66,13 @@ class EntityGeneration {
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
 
+    }
+
+    private fun findById(holder: EntityHolder): FunSpec {
+       return FunSpec.builder("findById").addModifiers(KModifier.PUBLIC).addParameter("id", String::class).addAnnotation(JvmStatic::class)
+               .addStatement("val result = %T.$GET_DOCUMENT_METHOD(id, %S)", PersistenceConfig::class, holder.dbName)
+               .addStatement("return if(result != null) %N(result) else null", holder.entitySimpleName)
+               .returns(holder.entityTypeName.copy(true)).build()
     }
 
 
