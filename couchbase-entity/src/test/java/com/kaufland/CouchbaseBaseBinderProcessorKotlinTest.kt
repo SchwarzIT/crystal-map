@@ -18,6 +18,14 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSucessWithGenerateAccessor() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"))
+
+
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
     fun testKotlinAbstractGeneration() {
 
         val subEntity = SourceFile.kotlin("Sub.kt",
