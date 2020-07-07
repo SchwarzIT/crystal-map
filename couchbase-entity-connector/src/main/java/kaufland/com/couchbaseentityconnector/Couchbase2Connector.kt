@@ -59,9 +59,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         }
     }
 
-    override fun getTypeConversions(): Map<KClass<*>, TypeConversion> {
-        return mTypeConversions
-    }
+    override val typeConversions : Map<KClass<*>, TypeConversion> = mTypeConversions
 
     override fun getDocument(docId: String?, name: String): Map<String, Any> {
         if (docId == null) {
@@ -97,7 +95,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
+    override fun queryDoc(dbName: String, queryParams: Map<String, Any?>): List<Map<String, Any>> {
         try {
 
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
@@ -128,7 +126,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         return parsed
     }
 
-    private fun parseExpressions(queryParams: Map<String, Any>): Expression? {
+    private fun parseExpressions(queryParams: Map<String, Any?>): Expression? {
 
         var result: Expression? = null
 
@@ -147,7 +145,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String, name: String) {
+    override fun upsertDocument(upsert: MutableMap<String, Any?>, docId: String, name: String) {
         if (upsert["_id"] == null) {
             upsert["_id"] = docId
         }

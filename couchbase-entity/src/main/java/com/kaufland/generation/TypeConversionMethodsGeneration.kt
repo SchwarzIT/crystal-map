@@ -9,7 +9,7 @@ import java.util.Arrays
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 
-class TypeConversionMethodsGeneration {
+class TypeConversionMethodsGeneration(val useSuspend: Boolean) {
 
     fun generate(): Collection<FunSpec> {
 
@@ -18,7 +18,7 @@ class TypeConversionMethodsGeneration {
                         addParameter("value", TypeUtil.any().copy(nullable = true)).
                         addParameter( "clazz", TypeUtil.classStar()).addTypeVariable(TypeVariableName.invoke("T")).
                         returns(TypeVariableName.invoke("T?")).addCode(CodeBlock.builder().
-                        addStatement("val conversion = %T.$GET_TYPE_CONVERSION_METHOD().get(clazz)", PersistenceConfig::class).
+                        addStatement("val conversion = %T.${getTypeConversionMethod(useSuspend)}.get(clazz)", PersistenceConfig::class).
                         beginControlFlow("if(conversion == null)").
                         addStatement("return value as T").
                         endControlFlow().
@@ -28,7 +28,7 @@ class TypeConversionMethodsGeneration {
                         addParameter( "clazz", TypeUtil.classStar()).addTypeVariable(TypeVariableName.invoke("T")).
                         returns(TypeVariableName.invoke("T?")).
                         addCode(CodeBlock.builder().
-                                addStatement("val conversion = %T.$GET_TYPE_CONVERSION_METHOD().get(clazz)", PersistenceConfig::class).
+                                addStatement("val conversion = %T.${getTypeConversionMethod(useSuspend)}.get(clazz)", PersistenceConfig::class).
                                 beginControlFlow("if(conversion == null)").addStatement("return value as T").
                                 endControlFlow().addStatement("return conversion.write(value) as T").build()).build()
 
@@ -42,6 +42,9 @@ class TypeConversionMethodsGeneration {
 
         val WRITE_METHOD_NAME = "write"
 
-        private val GET_TYPE_CONVERSION_METHOD = "getInstance().getConnector().getTypeConversions"
+        private fun getTypeConversionMethod(useSuspend: Boolean) : String{
+            return "${if (useSuspend) "suspendingConnector" else "connector"}.typeConversions"
+        }
+
     }
 }

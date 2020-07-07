@@ -8,7 +8,7 @@ import java.util.*
 
 class WrapperGeneration {
 
-    fun generateModel(holder: WrapperEntityHolder): FileSpec {
+    fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
 
         var companionSpec = TypeSpec.companionObjectBuilder()
 
@@ -36,7 +36,7 @@ class WrapperGeneration {
         companionSpec.addFunctions(create(holder))
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(false))
-        typeBuilder.addFunctions(TypeConversionMethodsGeneration().generate())
+        typeBuilder.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
         typeBuilder.addType(builderBuilder.build())
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
