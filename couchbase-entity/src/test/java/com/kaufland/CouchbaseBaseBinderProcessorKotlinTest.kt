@@ -26,6 +26,14 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSucessWithQueriesAndSuspendFunctions() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"), useSuspend = true)
+
+
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
     fun testKotlinAbstractGeneration() {
 
         val subEntity = SourceFile.kotlin("Sub.kt",
@@ -125,13 +133,15 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertTrue(compilation.messages.contains("Entity should not have a contructor"))
     }
 
-    private fun compileKotlin(vararg sourceFiles: SourceFile): KotlinCompilation.Result {
+    private fun compileKotlin(vararg sourceFiles: SourceFile, useSuspend: Boolean = false): KotlinCompilation.Result {
         return KotlinCompilation().apply {
             sources = sourceFiles.toList()
 
             // pass your own instance of an annotation processor
             annotationProcessors = listOf(CoachBaseBinderProcessor())
+            correctErrorTypes = true
 
+            kaptArgs["useSuspend"] = useSuspend.toString()
             inheritClassPath = true
             messageOutputStream = System.out // see diagnostics in real time
         }.compile()

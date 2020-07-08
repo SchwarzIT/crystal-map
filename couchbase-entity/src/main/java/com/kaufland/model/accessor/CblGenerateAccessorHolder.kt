@@ -2,29 +2,49 @@ package com.kaufland.model.accessor
 
 import com.kaufland.javaToKotlinType
 import com.squareup.kotlinpoet.*
+import com.sun.tools.javac.code.Symbol
+import com.sun.tools.javac.code.Type
 import org.jetbrains.annotations.Nullable
+import java.lang.Exception
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
+import kotlin.coroutines.Continuation
 
 class CblGenerateAccessorHolder(private val className: String, val element: Element) {
 
     fun accessorFunSpec(): FunSpec? {
 
-        if(element.kind == ElementKind.METHOD){
+        if (element.kind == ElementKind.METHOD) {
             var methodBuilder = FunSpec.builder(element.simpleName.toString()).addAnnotation(JvmStatic::class)
 
             (element as ExecutableElement)?.apply {
                 methodBuilder.returns(evaluateTypeName(returnType, element.getAnnotation(Nullable::class.java) != null))
+                val callParams = arrayListOf<String>()
                 parameters.forEach {
-                    methodBuilder.addParameter(it.simpleName.toString(), evaluateTypeName(it.asType(), it.getAnnotation(Nullable::class.java) != null))
+
+                    if (isSuspendFunction(it)) {
+                        methodBuilder.addModifiers(KModifier.SUSPEND)
+                        methodBuilder.returns(evaluateReturnTypeByContinuationParam(it))
+                    } else {
+                        callParams.add(it.simpleName.toString())
+                        methodBuilder.addParameter(it.simpleName.toString(), evaluateTypeName(it.asType(), it.getAnnotation(Nullable::class.java) != null))
+                    }
                 }
-                methodBuilder.addStatement("return %N.%N(${parameters.joinToString { it.simpleName.toString() }})", className, element.simpleName.toString())
+                methodBuilder.addStatement("return %N.%N(${callParams.joinToString()})", className, element.simpleName.toString())
             }
             return methodBuilder.build()
         }
         return null
+    }
+
+    private fun evaluateReturnTypeByContinuationParam(it: VariableElement?) =
+            evaluateTypeName(((it as Symbol)?.type.typeArguments.firstOrNull() as Type.WildcardType)?.type, element.getAnnotation(Nullable::class.java) != null)
+
+    private fun isSuspendFunction(varElement: VariableElement): Boolean {
+        return varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
     }
 
     private fun evaluateTypeName(typeMirror: TypeMirror, nullable: Boolean): TypeName {
@@ -32,8 +52,8 @@ class CblGenerateAccessorHolder(private val className: String, val element: Elem
     }
 
     fun accessorPropertySpec(): PropertySpec? {
-        if(element.kind == ElementKind.FIELD){
-           return PropertySpec.builder(element.simpleName.toString(), evaluateTypeName(element.asType(), element.getAnnotation(Nullable::class.java) != null)).addAnnotation(JvmField::class).initializer("%N.%N", className, element.simpleName.toString()).build()
+        if (element.kind == ElementKind.FIELD) {
+            return PropertySpec.builder(element.simpleName.toString(), evaluateTypeName(element.asType(), element.getAnnotation(Nullable::class.java) != null)).addAnnotation(JvmField::class).initializer("%N.%N", className, element.simpleName.toString()).build()
         }
         return null
     }

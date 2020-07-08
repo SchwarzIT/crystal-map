@@ -32,9 +32,12 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private var validator: PreValidator? = null
 
+    private var useSuspend : Boolean = false
+
 
     @Synchronized
     override fun init(processingEnvironment: ProcessingEnvironment) {
+        useSuspend = processingEnvironment.options?.getOrDefault("useSuspend", "false")?.toBoolean() ?: false
         mLogger = Logger(processingEnvironment)
         mCodeGenerator = CodeGenerator(processingEnvironment.filer)
         validator = PreValidator()
@@ -50,7 +53,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
             override fun process(element: Element): FileSpec {
 
                 val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings)
-                return EntityGeneration().generateModel(holder)
+                return EntityGeneration().generateModel(holder, useSuspend)
             }
         })
 
@@ -58,7 +61,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         validateAndProcess(mapWrappers, object : EntityProcessor {
             override fun process(element: Element): FileSpec {
                 val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings)
-                return WrapperGeneration().generateModel(holder)
+                return WrapperGeneration().generateModel(holder, useSuspend)
             }
         })
 

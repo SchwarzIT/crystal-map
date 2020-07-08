@@ -14,15 +14,15 @@ class EntityGeneration {
         get() = FunSpec.builder("getId").addModifiers(KModifier.PUBLIC).returns(String::class).addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string()).build()
 
 
-    fun generateModel(holder: EntityHolder): FileSpec {
+    fun generateModel(holder: EntityHolder, useSuspend : Boolean): FileSpec {
 
         var companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addProperty(idConstant())
-        companionSpec.addFunctions(create(holder))
-        companionSpec.addFunction(findById(holder))
+        companionSpec.addFunctions(create(holder, useSuspend))
+        companionSpec.addFunction(findById(holder, useSuspend))
 
         for (query in holder.queries) {
-            query.queryFun(holder.dbName, holder)?.let {
+            query.queryFun(holder.dbName, holder, useSuspend)?.let {
                 companionSpec.addFunction(it)
             }
         }
@@ -43,8 +43,8 @@ class EntityGeneration {
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringObject(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
                 .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringObject(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
-                .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration().generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
-                .addFunction(toMap(holder))
+                .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration(useSuspend).generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
+                .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         for (fieldHolder in holder.allFields) {
@@ -59,8 +59,8 @@ class EntityGeneration {
 
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(true))
-        typeBuilder.addFunction(delete(holder))
-        typeBuilder.addFunction(save(holder))
+        typeBuilder.addFunction(delete(holder, useSuspend))
+        typeBuilder.addFunction(save(holder, useSuspend))
 
         typeBuilder.addType(builderBuilder.build())
 
@@ -68,9 +68,9 @@ class EntityGeneration {
 
     }
 
-    private fun findById(holder: EntityHolder): FunSpec {
-       return FunSpec.builder("findById").addModifiers(KModifier.PUBLIC).addParameter("id", String::class).addAnnotation(JvmStatic::class)
-               .addStatement("val result = %T.$GET_DOCUMENT_METHOD(id, %S)", PersistenceConfig::class, holder.dbName)
+    private fun findById(holder: EntityHolder, useSuspend: Boolean): FunSpec {
+       return FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class)
+               .addStatement("val result = %T.${getDocumentMethod(useSuspend)}(id, %S)", PersistenceConfig::class, holder.dbName)
                .addStatement("return if(result != null) %N(result) else null", holder.entitySimpleName)
                .returns(holder.entityTypeName.copy(true)).build()
     }
@@ -88,9 +88,15 @@ class EntityGeneration {
         return setAllBuilder.build()
     }
 
-    private fun toMap(holder: EntityHolder): FunSpec {
+    private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
 
-        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringObject()).addStatement("val doc = %T.$GET_DOCUMENT_METHOD(getId(), %S)", PersistenceConfig::class, holder.dbName)
+        var refreshDoc = "%T.${getDocumentMethod(useSuspend)}(getId(), %S)"
+
+        if(useSuspend){
+            refreshDoc = "kotlinx.coroutines.runBlocking{$refreshDoc}"
+        }
+
+        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringObject()).addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
 
         for (constantField in holder.fieldConstants.values) {
             toMapBuilder.addStatement("mDocChanges.put(%S, %S)", constantField.dbField, constantField.constantValue)
@@ -102,29 +108,33 @@ class EntityGeneration {
         return toMapBuilder.build()
     }
 
-    private fun delete(holder: EntityHolder): FunSpec {
-        return FunSpec.builder("delete").addModifiers(KModifier.PUBLIC).throws(PersistenceException::class).addStatement("%T.$DELETE_DOCUMENT_METHOD(getId(), %S)", PersistenceConfig::class, holder.dbName).build()
+    private fun delete(holder: EntityHolder, useSuspend: Boolean): FunSpec {
+        return FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend)).throws(PersistenceException::class).addStatement("%T.${deleteDocumentMethod(useSuspend)}(getId(), %S)", PersistenceConfig::class, holder.dbName).build()
     }
 
-    private fun save(holder: EntityHolder): FunSpec {
-        val saveBuilder = FunSpec.builder("save").addModifiers(KModifier.PUBLIC).throws(PersistenceException::class).addStatement("val doc = toMap()")
+    private fun save(holder: EntityHolder, useSuspend: Boolean): FunSpec {
+        val saveBuilder = FunSpec.builder("save").addModifiers(evaluateModifiers(useSuspend)).throws(PersistenceException::class).addStatement("val doc = toMap()")
 
-        saveBuilder.addStatement("%T.$UPSERT_DOCUMENT_METHOD(doc, getId(), %S)", PersistenceConfig::class, holder.dbName)
+        saveBuilder.addStatement("%T.${upsertDocumentMethod(useSuspend)}(doc, getId(), %S)", PersistenceConfig::class, holder.dbName)
         saveBuilder.addStatement("rebind(doc)")
 
         return saveBuilder.build()
     }
 
     private fun contructor(holder: EntityHolder): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringObject()).addStatement("rebind(doc)").build()
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringObject()).addStatement("rebind(doc)").build()
     }
 
-    private fun create(holder: EntityHolder): List<FunSpec> {
+    private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> {
+       return if(useSuspend) listOf(KModifier.PUBLIC, KModifier.SUSPEND) else listOf(KModifier.PUBLIC)
+    }
+
+    private fun create(holder: EntityHolder, useSuspend: Boolean): List<FunSpec> {
 
         return Arrays.asList(
-                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.$GET_DOCUMENT_METHOD(id, %S))",
+                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
-                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement("return %N(%T.$GET_DOCUMENT_METHOD(null, %S))",
+                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(null, %S))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
                 FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mutableMapStringObject()).addAnnotation(JvmStatic::class).addStatement("return %N(map)",
                         holder.entitySimpleName).returns(holder.entityTypeName).build()
@@ -133,11 +143,17 @@ class EntityGeneration {
 
     companion object {
 
-        private val GET_DOCUMENT_METHOD = "getInstance().getConnector().getDocument"
+        private fun getDocumentMethod(useSuspend: Boolean) : String{
+            return "${if(useSuspend) "suspendingConnector" else "connector"}.getDocument"
+        }
 
-        private val DELETE_DOCUMENT_METHOD = "getInstance().getConnector().deleteDocument"
+        private fun deleteDocumentMethod(useSuspend: Boolean) : String{
+            return "${if (useSuspend) "suspendingConnector" else "connector"}.deleteDocument"
+        }
 
-        private val UPSERT_DOCUMENT_METHOD = "getInstance().getConnector().upsertDocument"
+        private fun upsertDocumentMethod(useSuspend: Boolean) : String{
+            return "${if (useSuspend) "suspendingConnector" else "connector"}.upsertDocument"
+        }
     }
 
 }
