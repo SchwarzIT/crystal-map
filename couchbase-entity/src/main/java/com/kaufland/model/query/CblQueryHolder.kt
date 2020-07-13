@@ -19,7 +19,7 @@ class CblQueryHolder(private val mQuery: Query) {
 
     fun queryFun(dbName: String, entityHolder: BaseEntityHolder, useSuspend: Boolean): FunSpec? {
 
-        val builder = FunSpec.builder(queryFunName).addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement("val queryParams = %T()", TypeUtil.hashMapStringObject()).returns(TypeUtil.list(entityHolder.entityTypeName))
+        val builder = FunSpec.builder(queryFunName).addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement("val queryParams = mutableMapOf<%T, %T>()", TypeUtil.string(), TypeUtil.any()).returns(TypeUtil.list(entityHolder.entityTypeName))
 
         if(useSuspend){
             builder.addModifiers(KModifier.SUSPEND)

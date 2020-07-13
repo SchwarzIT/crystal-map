@@ -3,8 +3,6 @@ package com.kaufland.util
 import com.kaufland.javaToKotlinType
 import com.squareup.kotlinpoet.*
 
-import java.util.ArrayList
-
 import javax.lang.model.type.TypeMirror
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
@@ -26,20 +24,28 @@ object TypeUtil {
         return WildcardTypeName.producerOf(anyNullable())
     }
 
-    fun hashMapStringObject(): ParameterizedTypeName {
+    fun hashMapStringAnyNullable(): ParameterizedTypeName {
         return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), anyNullable())
     }
 
-    fun mapStringObject(): ParameterizedTypeName {
+    fun mapStringAnyNullable(): ParameterizedTypeName {
         return ClassName("kotlin.collections", "Map").parameterizedBy(string(), anyNullable())
     }
 
-    fun mutableMapStringObject(): ParameterizedTypeName {
+    fun mutableMapStringAnyNullable(): ParameterizedTypeName {
         return ClassName("kotlin.collections", "MutableMap").parameterizedBy(string(), anyNullable())
     }
 
-    fun listWithMutableMapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "List").parameterizedBy(mutableMapStringObject())
+    fun mutableMapStringAny(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "MutableMap").parameterizedBy(string(), any())
+    }
+
+    fun listWithMutableMapStringAnyNullable(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "List").parameterizedBy(mutableMapStringAnyNullable())
+    }
+
+    fun listWithMutableMapStringAny(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "List").parameterizedBy(mutableMapStringAny())
     }
 
     fun list(typeName: TypeName): ParameterizedTypeName {
@@ -50,8 +56,12 @@ object TypeUtil {
         return ClassName("kotlin.collections", "ArrayList").parameterizedBy(typeName)
     }
 
-    fun arrayListWithHashMapStringObject(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "ArrayList").parameterizedBy(hashMapStringObject())
+    fun arrayListWithHashMapStringAnyNullable(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "ArrayList").parameterizedBy(hashMapStringAnyNullable())
+    }
+
+    fun arrayListWithMutableMapStringAny(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "ArrayList").parameterizedBy(mutableMapStringAny())
     }
 
     fun mapSupport(): TypeName {

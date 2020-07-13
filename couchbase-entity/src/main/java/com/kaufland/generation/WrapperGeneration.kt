@@ -18,7 +18,7 @@ class WrapperGeneration {
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addFunction(MapSupportGeneration.toMap(holder))
-                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringObject()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
+                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
                 .addFunction(contructor()).superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
@@ -44,21 +44,25 @@ class WrapperGeneration {
     }
 
     private fun toMap(holder: BaseEntityHolder): List<FunSpec> {
-        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
+        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return mutableMapOf()").endControlFlow().build()
+        val nullCheckList = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return listOf()").endControlFlow().build()
 
         return Arrays.asList(FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", holder.entityTypeName.copy(nullable = true)).returns(TypeUtil.mutableMapStringObject().copy(nullable = true))
+                .addParameter("obj", holder.entityTypeName.copy(nullable = true)).returns(TypeUtil.mutableMapStringAny())
                 .addAnnotation(JvmStatic::class)
-                .addCode(nullCheck).addStatement("var result = %T()", TypeUtil.hashMapStringObject())
-                .addStatement("result.putAll(obj.mDoc)").addStatement("return result").build(),
+                .addCode(nullCheck).addStatement("var result = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
+                .beginControlFlow("obj.mDoc.forEach")
+                .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
+                .endControlFlow()
+                .addStatement("return result").build(),
 
                 FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
                         .addParameter("obj", TypeUtil.list(holder.entityTypeName).copy(nullable = true)).addAnnotation(JvmStatic::class)
-                        .returns(TypeUtil.listWithMutableMapStringObject().copy(nullable = true)).addCode(nullCheck)
-                        .addStatement("var result = %T()", TypeUtil.arrayListWithHashMapStringObject())
+                        .returns(TypeUtil.listWithMutableMapStringAny()).addCode(nullCheckList)
+                        .addStatement("var result = %T()", TypeUtil.arrayListWithMutableMapStringAny())
                         .addCode(CodeBlock.builder()
                                 .beginControlFlow("for(entry in obj)")
-                                .addStatement("var temp = %T()", TypeUtil.hashMapStringObject())
+                                .addStatement("var temp = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
                                 .addStatement("temp.putAll(%N.toMap(entry)!!)", holder.entitySimpleName)
                                 .addStatement("result.add(temp)", holder.entitySimpleName).endControlFlow().build())
                         .addStatement("return result").build())
@@ -68,12 +72,12 @@ class WrapperGeneration {
         val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
 
         return Arrays.asList(FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.mutableMapStringObject().copy(nullable = true)).addAnnotation(JvmStatic::class)
+                .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
                 .returns(holder.entityTypeName.copy(nullable = true)).addCode(nullCheck)
                 .addStatement("return %T(obj)", holder.entityTypeName).build(),
 
                 FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
-                        .addParameter("obj", TypeUtil.listWithMutableMapStringObject().copy(nullable = true))
+                        .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
                         .returns(TypeUtil.list(holder.entityTypeName).copy(nullable = true)).addCode(nullCheck)
                         .addStatement("var result = %T()", TypeUtil.arrayList(holder.entityTypeName))
                         .addCode(CodeBlock.builder().beginControlFlow("for(entry in obj)")
@@ -83,16 +87,16 @@ class WrapperGeneration {
     }
 
     private fun contructor(): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringObject()).addStatement("rebind(doc)").build()
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("rebind(doc)").build()
     }
 
     private fun create(holder: WrapperEntityHolder): List<FunSpec> {
 
         return Arrays.asList(
-                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringObject()).addAnnotation(JvmStatic::class).addStatement("return %N(doc)",
+                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement("return %N(doc)",
                         holder.entitySimpleName).returns(holder.entityTypeName).build(),
                 FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement("return %N(%T())",
-                        holder.entitySimpleName, TypeUtil.hashMapStringObject()).returns(holder.entityTypeName).build()
+                        holder.entitySimpleName, TypeUtil.hashMapStringAnyNullable()).returns(holder.entityTypeName).build()
         )
     }
 

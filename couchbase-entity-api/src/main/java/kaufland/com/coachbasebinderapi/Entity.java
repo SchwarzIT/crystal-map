@@ -15,7 +15,14 @@ public @interface Entity {
      *
      * @return the implementation class
      */
+    enum Type {
+        READ_AND_WRITE,
+        READONLY
+    }
+
     Class<?> value() default Void.class;
+
+    Type type() default Type.READ_AND_WRITE;
 
     String database() default "";
 }

@@ -21,7 +21,8 @@ import javax.lang.model.element.Modifier
 object EntityFactory {
 
     fun createEntityHolder(cblEntityElement: Element, allWrappers: List<String>): EntityHolder {
-        return create(cblEntityElement, EntityHolder(cblEntityElement.getAnnotation(Entity::class.java).database), allWrappers) as EntityHolder
+        val annotation = cblEntityElement.getAnnotation(Entity::class.java)
+        return create(cblEntityElement, EntityHolder(annotation.database, annotation.type), allWrappers) as EntityHolder
     }
 
     fun createChildEntityHolder(cblEntityElement: Element, allWrappers: List<String>): WrapperEntityHolder {
