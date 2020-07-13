@@ -59,7 +59,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
 
         if (isTypeOfSubEntity) {
-            val castType = if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringObject() else TypeUtil.mutableMapStringObject()
+            val castType = if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringAnyNullable() else TypeUtil.mutableMapStringAnyNullable()
 
             if (useMDocChanges) {
                 getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)

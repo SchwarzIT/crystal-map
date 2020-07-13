@@ -12,7 +12,7 @@ import javax.lang.model.type.TypeMirror
 object CblDefaultGeneration {
 
     fun addDefaults(holder: BaseEntityHolder): FunSpec {
-        val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter( "map", TypeUtil.mutableMapStringObject())
+        val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter( "map", TypeUtil.mutableMapStringAnyNullable())
 
         for (fieldHolder in holder.fields.values) {
 

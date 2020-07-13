@@ -8,29 +8,29 @@ object PersistenceConfig {
 
     interface Connector {
         val typeConversions: Map<KClass<*>, TypeConversion>
-        fun getDocument(id: String?, dbName: String): Map<String, Any?>
-        fun queryDoc(dbName: String, queryParams: Map<String, Any?>): List<Map<String, Any?>>
+        fun getDocument(id: String, dbName: String): Map<String, Any>
+        fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         fun deleteDocument(id: String, dbName: String)
 
         @Throws(PersistenceException::class)
-        fun upsertDocument(document: MutableMap<String, Any?>, id: String, dbName: String)
+        fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String)
     }
 
     interface SuspendingConnector{
 
         val typeConversions: Map<KClass<*>, TypeConversion>
 
-        suspend fun getDocument(id: String?, dbName: String): Map<String, Any?>
+        suspend fun getDocument(id: String, dbName: String): Map<String, Any>
 
-        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any?>): List<Map<String, Any?>>
+        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         suspend fun deleteDocument(id: String, dbName: String)
 
         @Throws(PersistenceException::class)
-        suspend fun upsertDocument(document: MutableMap<String, Any?>, id: String, dbName: String)
+        suspend fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String)
     }
 
     val connector: Connector

@@ -4,6 +4,7 @@ import com.kaufland.model.entity.EntityHolder
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.jvm.throws
+import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
 import java.util.*
@@ -11,7 +12,7 @@ import java.util.*
 class EntityGeneration {
 
     private val id: FunSpec
-        get() = FunSpec.builder("getId").addModifiers(KModifier.PUBLIC).returns(String::class).addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string()).build()
+        get() = FunSpec.builder("getId").addModifiers(KModifier.PUBLIC).returns(TypeUtil.string().copy(nullable = true)).addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string().copy(nullable = true)).build()
 
 
     fun generateModel(holder: EntityHolder, useSuspend : Boolean): FileSpec {
@@ -41,8 +42,8 @@ class EntityGeneration {
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addModifiers(KModifier.PUBLIC).addSuperinterface(TypeUtil.mapSupport())
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
-                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringObject(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
-                .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringObject(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringObject()).build())
+                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
+                .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
                 .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration(useSuspend).generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
@@ -59,8 +60,11 @@ class EntityGeneration {
 
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(true))
-        typeBuilder.addFunction(delete(holder, useSuspend))
-        typeBuilder.addFunction(save(holder, useSuspend))
+
+        if(holder.entityType != Entity.Type.READONLY){
+            typeBuilder.addFunction(delete(holder, useSuspend))
+            typeBuilder.addFunction(save(holder, useSuspend))
+        }
 
         typeBuilder.addType(builderBuilder.build())
 
@@ -83,33 +87,43 @@ class EntityGeneration {
 
     private fun setAll(holder: EntityHolder): FunSpec {
 
-        val setAllBuilder = FunSpec.builder("setAll").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mapStringObject()).addStatement("mDocChanges.putAll(map)", TypeUtil.mapStringObject(), PersistenceConfig::class, holder.dbName)
+        val setAllBuilder = FunSpec.builder("setAll").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mapStringAnyNullable()).addStatement("mDocChanges.putAll(map)", TypeUtil.mapStringAnyNullable(), PersistenceConfig::class, holder.dbName)
 
         return setAllBuilder.build()
     }
 
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
 
-        var refreshDoc = "%T.${getDocumentMethod(useSuspend)}(getId(), %S)"
+        var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mapOf()"
 
         if(useSuspend){
             refreshDoc = "kotlinx.coroutines.runBlocking{$refreshDoc}"
         }
 
-        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringObject()).addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
+        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringAny()).addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
 
         for (constantField in holder.fieldConstants.values) {
             toMapBuilder.addStatement("mDocChanges.put(%S, %S)", constantField.dbField, constantField.constantValue)
         }
 
-        toMapBuilder.addStatement("var temp = %T()", TypeUtil.hashMapStringObject())
-        toMapBuilder.addCode(CodeBlock.builder().beginControlFlow("if(doc != null)").addStatement("temp.putAll(doc)").endControlFlow().beginControlFlow("if(mDocChanges != null)").addStatement("temp.putAll(mDocChanges)").endControlFlow().addStatement("return temp").build())
+        toMapBuilder.addStatement("var temp = mutableMapOf<%T, %T>()", TypeUtil.string(), TypeUtil.any())
+        toMapBuilder.addCode(CodeBlock.builder()
+                .beginControlFlow("if(doc != null)")
+                .addStatement("temp.putAll(doc)")
+                .endControlFlow()
+                .beginControlFlow("if(mDocChanges != null)")
+                .beginControlFlow("mDocChanges.forEach")
+                .beginControlFlow("if(it.value == null)").addStatement("temp.remove(it.key)").endControlFlow()
+                .beginControlFlow("else").addStatement("temp[it.key] = it.value!!").endControlFlow()
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("return temp").build())
 
         return toMapBuilder.build()
     }
 
     private fun delete(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-        return FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend)).throws(PersistenceException::class).addStatement("%T.${deleteDocumentMethod(useSuspend)}(getId(), %S)", PersistenceConfig::class, holder.dbName).build()
+        return FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend)).throws(PersistenceException::class).addStatement("getId()?.let{%T.${deleteDocumentMethod(useSuspend)}(it, %S)}", PersistenceConfig::class, holder.dbName).build()
     }
 
     private fun save(holder: EntityHolder, useSuspend: Boolean): FunSpec {
@@ -122,7 +136,7 @@ class EntityGeneration {
     }
 
     private fun contructor(holder: EntityHolder): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringObject()).addStatement("rebind(doc)").build()
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringAnyNullable()).addStatement("rebind(doc)").build()
     }
 
     private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> {
@@ -134,9 +148,9 @@ class EntityGeneration {
         return Arrays.asList(
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
-                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(null, %S))",
-                        holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
-                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mutableMapStringObject()).addAnnotation(JvmStatic::class).addStatement("return %N(map)",
+                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T())",
+                        holder.entitySimpleName, TypeUtil.hashMapStringAnyNullable()).returns(holder.entityTypeName).build(),
+                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement("return %N(map)",
                         holder.entitySimpleName).returns(holder.entityTypeName).build()
         )
     }

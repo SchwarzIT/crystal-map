@@ -61,7 +61,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions : Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(docId: String?, name: String): Map<String, Any> {
+    override fun getDocument(docId: String, dbName: String): Map<String, Any> {
         if (docId == null) {
             val document = MutableDocument()
             val result = document.toMap()
@@ -69,7 +69,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
             return result
         }
 
-        val document = getDatabase(name).getDocument(docId)
+        val document = getDatabase(dbName).getDocument(docId)
         if (document == null) {
             val result = HashMap<String, Any>()
             result["_id"] = docId
@@ -95,7 +95,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any?>): List<Map<String, Any>> {
+    override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
         try {
 
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
@@ -145,8 +145,8 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(upsert: MutableMap<String, Any?>, docId: String, name: String) {
-        if (upsert["_id"] == null) {
+    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String) {
+        if (upsert["_id"] == null && docId != null) {
             upsert["_id"] = docId
         }
         val unsavedDoc = MutableDocument(docId, upsert)

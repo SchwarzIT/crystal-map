@@ -5,13 +5,11 @@ import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.asTypeName
-import javax.lang.model.type.TypeMirror
 
 object CblConstantGeneration {
 
     fun addConstants(holder: BaseEntityHolder): FunSpec {
-        val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", TypeUtil.mutableMapStringObject())
+        val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", TypeUtil.mutableMapStringAnyNullable())
 
         for (fieldHolder in holder.fieldConstants.values) {
 

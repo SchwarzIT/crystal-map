@@ -1,3 +1,5 @@
 package com.kaufland.model.entity
 
-class EntityHolder(val dbName: String) : BaseEntityHolder()
+import kaufland.com.coachbasebinderapi.Entity
+
+class EntityHolder(val dbName: String, val entityType : Entity.Type) : BaseEntityHolder()
