@@ -2,10 +2,7 @@ package com.kaufland.model.accessor
 
 import com.kaufland.javaToKotlinType
 import com.squareup.kotlinpoet.*
-import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
 import org.jetbrains.annotations.Nullable
-import java.lang.Exception
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
@@ -21,27 +18,23 @@ class CblGenerateAccessorHolder(private val className: String, val element: Elem
             var methodBuilder = FunSpec.builder(element.simpleName.toString()).addAnnotation(JvmStatic::class)
 
             (element as ExecutableElement)?.apply {
-                methodBuilder.returns(evaluateTypeName(returnType, element.getAnnotation(Nullable::class.java) != null))
                 val callParams = arrayListOf<String>()
                 parameters.forEach {
 
                     if (isSuspendFunction(it)) {
                         methodBuilder.addModifiers(KModifier.SUSPEND)
-                        methodBuilder.returns(evaluateReturnTypeByContinuationParam(it))
                     } else {
                         callParams.add(it.simpleName.toString())
                         methodBuilder.addParameter(it.simpleName.toString(), evaluateTypeName(it.asType(), it.getAnnotation(Nullable::class.java) != null))
                     }
                 }
-                methodBuilder.addStatement("return %N.%N(${callParams.joinToString()})", className, element.simpleName.toString())
+
+                methodBuilder.addCode(CodeBlock.of("return %N.%N(${callParams.joinToString()})", className, element.simpleName.toString()))
             }
             return methodBuilder.build()
         }
         return null
     }
-
-    private fun evaluateReturnTypeByContinuationParam(it: VariableElement?) =
-            evaluateTypeName(((it as Symbol)?.type.typeArguments.firstOrNull() as Type.WildcardType)?.type, element.getAnnotation(Nullable::class.java) != null)
 
     private fun isSuspendFunction(varElement: VariableElement): Boolean {
         return varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
