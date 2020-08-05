@@ -34,9 +34,14 @@ android {
         exclude 'META-INF/NOTICE'
     }
     sourceSets {
-        main {
+        debug {
             java {
-                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/"
+                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/debug"
+            }
+        }
+        release {
+            java {
+                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/release"
             }
         }
     }

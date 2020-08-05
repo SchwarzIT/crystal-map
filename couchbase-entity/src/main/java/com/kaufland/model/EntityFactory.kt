@@ -7,6 +7,7 @@ import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.model.query.CblQueryHolder
+import kaufland.com.coachbasebinderapi.Comment
 
 import javax.lang.model.element.Element
 
@@ -34,6 +35,7 @@ object EntityFactory {
 
         content.abstractParts = findPossibleOverrides(cblEntityElement)
         content.sourceElement = cblEntityElement
+        content.comment = cblEntityElement.getAnnotation(Comment::class.java)?.comment ?: arrayOf()
 
         parseQueries(cblEntityElement, content)
         parseFields(cblEntityElement, content, allWrappers)
