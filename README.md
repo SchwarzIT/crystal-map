@@ -13,7 +13,7 @@ This Library can be used if your database represents its data in maps
 
 * Easy to use - just annotate class
 
-* Also supports child entities or lists of child entities
+* Also supports nested maps or lists
 
 * No performance loss - all entities are being generated during compile time.
 
@@ -71,6 +71,23 @@ Use it
         val allEntitiesOfType = ProductEntity.findByType()
         val resultOfAComplexQuery = ProductEntity.someComplexQuery("foo")
 ```
+
+### Optional Features
+
+ - Generate Model documentation based declared Entities
+ - Generate suspend functions for Database interaction
+
+```kotlin
+kapt {
+    arguments {
+        arg("useSuspend", "false")
+        arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity") //path to generate documentation
+        arg("entityframework.documentation.fileName", "demo.html") //optional name for the generated html file
+    }
+}
+```
+
+
 
 ## Implementation
 
