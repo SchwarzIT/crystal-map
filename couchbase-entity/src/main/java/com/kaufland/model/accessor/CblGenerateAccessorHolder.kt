@@ -17,7 +17,7 @@ class CblGenerateAccessorHolder(private val className: String, val element: Elem
         if (element.kind == ElementKind.METHOD) {
             var methodBuilder = FunSpec.builder(element.simpleName.toString()).addAnnotation(JvmStatic::class)
 
-            (element as ExecutableElement)?.apply {
+            (element as? ExecutableElement)?.apply {
                 val callParams = arrayListOf<String>()
                 parameters.forEach {
 

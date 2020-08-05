@@ -82,7 +82,7 @@ object TypeUtil {
 
         val simpleName = if (subEntity != null && subEntity.contains(getSimpleName(type))) subEntity else getSimpleName(type)
 
-        var baseType: TypeName? = null
+        var baseType: TypeName?
 
         if (type.toString().split(".").size == 1) {
             baseType = type.asTypeName()

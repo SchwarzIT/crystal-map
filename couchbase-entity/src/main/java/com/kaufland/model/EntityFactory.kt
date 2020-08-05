@@ -49,11 +49,7 @@ object EntityFactory {
 
         for (cblField in fields.value) {
 
-            if (cblField == null) {
-                continue
-            }
-
-            if (cblField!!.readonly) {
+            if (cblField.readonly) {
                 content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
                 val cblFieldHolder = CblFieldHolder(cblField, allWrappers)
@@ -87,11 +83,6 @@ object EntityFactory {
         val queries = cblEntityElement.getAnnotation(Queries::class.java) ?: return
 
         for (cblQuery in queries.value) {
-
-            if (cblQuery == null) {
-                continue
-            }
-
             content.queries.add(CblQueryHolder(cblQuery))
         }
     }

@@ -17,7 +17,7 @@ object CblDefaultGeneration {
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
-                builder.addStatement("map.put(%N, " + getConvertedValue(fieldHolder.typeMirror!!, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
+                builder.addStatement("map.put(%N, " + getConvertedValue(fieldHolder.typeMirror, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
             }
         }
         return builder.build()
