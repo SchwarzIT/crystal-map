@@ -72,6 +72,23 @@ Use it
         val resultOfAComplexQuery = ProductEntity.someComplexQuery("foo")
 ```
 
+### Optional Features
+
+ - Generate Model documentation based declared Entities
+ - Generate suspend functions for Database interaction
+
+```kotlin
+kapt {
+    arguments {
+        arg("useSuspend", "false")
+        arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity") //path to generate documentation
+        arg("entityframework.documentation.fileName", "demo.html") //optional name for the generated html file
+    }
+}
+```
+
+
+
 ## Implementation
 
 ### [**Guide for Couchbase 2.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-2.x.x)
