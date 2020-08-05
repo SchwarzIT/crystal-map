@@ -25,12 +25,12 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
-    val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName)
+    val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
     init {
         if (allWrappers.contains(typeMirror.toString())) {
 
-            subEntitySimpleName = TypeUtil.getSimpleName(typeMirror!!) + "Wrapper"
+            subEntitySimpleName = TypeUtil.getSimpleName(typeMirror) + "Wrapper"
             subEntityPackage = TypeUtil.getPackage(typeMirror)
             isSubEntityIsTypeParam = field.list
 
@@ -41,7 +41,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
-        var returnType = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName).copy(nullable = true)
+        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
         var kmodifiers = ArrayList<KModifier>()
         kmodifiers.add(KModifier.PUBLIC)
@@ -99,7 +99,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {
-        val fieldType = TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName)
+        val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
         val builder = FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(ClassName(packageName, "${entitySimpleName}.Builder"))
 
         builder.addStatement("obj.${accessorSuffix()} = value")
@@ -118,7 +118,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     private fun evaluateClazzForTypeConversion(): TypeName {
         return if (isIterable) {
             TypeUtil.string()
-        } else TypeUtil.parseMetaType(typeMirror!!, isIterable, subEntitySimpleName)
+        } else TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
     }
 }

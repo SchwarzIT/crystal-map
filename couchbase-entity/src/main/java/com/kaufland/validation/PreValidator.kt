@@ -30,24 +30,20 @@ class PreValidator {
 
         for (fieldAnnotation in fields.value) {
 
-            if (fieldAnnotation != null) {
-
-                if (names.contains(fieldAnnotation!!.name)) {
-                    logger.warn("duplicated field name", entityElement)
-                }
-
-                if (!fieldAnnotation!!.defaultValue.isEmpty()) {
-                    if (fieldAnnotation!!.list || !Arrays.asList(String::class.java.canonicalName, Long::class.java.canonicalName, Double::class.java.canonicalName, Int::class.java.canonicalName, Integer::class.java.canonicalName, Boolean::class.java.canonicalName).contains(FieldExtractionUtil.typeMirror(fieldAnnotation!!)!!.toString())) {
-                        logger.error("defaultValue must be must be String.class, Long.class, Double.class or Integer.class but was ${FieldExtractionUtil.typeMirror(fieldAnnotation!!)}", entityElement)
-                    }
-                }
-
-                if (fieldAnnotation!!.readonly && fieldAnnotation!!.defaultValue.isEmpty()) {
-                    logger.warn("defaultValue should not be empty for readonly fields", entityElement)
-                }
-                names.add(fieldAnnotation!!.name)
-
+            if (names.contains(fieldAnnotation.name)) {
+                logger.warn("duplicated field name", entityElement)
             }
+
+            if (!fieldAnnotation.defaultValue.isEmpty()) {
+                if (fieldAnnotation.list || !Arrays.asList(String::class.java.canonicalName, Long::class.java.canonicalName, Double::class.java.canonicalName, Int::class.java.canonicalName, Integer::class.java.canonicalName, Boolean::class.java.canonicalName).contains(FieldExtractionUtil.typeMirror(fieldAnnotation).toString())) {
+                    logger.error("defaultValue must be must be String.class, Long.class, Double.class or Integer.class but was ${FieldExtractionUtil.typeMirror(fieldAnnotation)}", entityElement)
+                }
+            }
+
+            if (fieldAnnotation.readonly && fieldAnnotation.defaultValue.isEmpty()) {
+                logger.warn("defaultValue should not be empty for readonly fields", entityElement)
+            }
+            names.add(fieldAnnotation.name)
 
         }
 
@@ -55,12 +51,9 @@ class PreValidator {
 
         if (queries != null) {
             for (queryAnnotation in queries.value) {
-
-                if (queryAnnotation != null) {
-                    for (field in queryAnnotation.fields) {
-                        if (names.contains(field).not()) {
-                            logger.error("query param [$field] is not a part of this entity", entityElement)
-                        }
+                for (field in queryAnnotation.fields) {
+                    if (names.contains(field).not()) {
+                        logger.error("query param [$field] is not a part of this entity", entityElement)
                     }
                 }
             }

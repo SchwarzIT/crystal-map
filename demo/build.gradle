@@ -33,11 +33,26 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+    sourceSets {
+        debug {
+            java {
+                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/debug"
+            }
+        }
+        release {
+            java {
+                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/release"
+            }
+        }
+    }
 }
 
-
 kapt {
-    correctErrorTypes = true
+    arguments {
+        arg("useSuspend", "false")
+        arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
+        arg("entityframework.documentation.fileName", "demo.html")
+    }
 }
 
 dependencies {

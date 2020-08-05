@@ -146,7 +146,7 @@ class EntityGeneration {
     private fun create(holder: EntityHolder, useSuspend: Boolean): List<FunSpec> {
 
         return Arrays.asList(
-                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S))",
+                FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T())",
                         holder.entitySimpleName, TypeUtil.hashMapStringAnyNullable()).returns(holder.entityTypeName).build(),

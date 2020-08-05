@@ -10,11 +10,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface Entity {
 
-    /**
-     * The implementation class of the injected bean.
-     *
-     * @return the implementation class
-     */
     enum Type {
         READ_AND_WRITE,
         READONLY

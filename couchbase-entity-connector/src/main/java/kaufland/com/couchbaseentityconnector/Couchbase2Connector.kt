@@ -5,6 +5,7 @@ import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
 import kaufland.com.coachbasebinderapi.TypeConversion
 import java.util.*
+import kotlin.jvm.Throws
 import kotlin.reflect.KClass
 
 abstract class Couchbase2Connector : PersistenceConfig.Connector {
@@ -61,20 +62,13 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions : Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(docId: String, dbName: String): Map<String, Any> {
+    override fun getDocument(docId: String, dbName: String): Map<String, Any>? {
         if (docId == null) {
-            val document = MutableDocument()
-            val result = document.toMap()
-            result["_id"] = document.id
-            return result
+           return null
         }
 
-        val document = getDatabase(dbName).getDocument(docId)
-        if (document == null) {
-            val result = HashMap<String, Any>()
-            result["_id"] = docId
-            return result
-        }
+        val document = getDatabase(dbName).getDocument(docId) ?: return null
+
         val result = document.toMap()
         result["_id"] = docId
         return result

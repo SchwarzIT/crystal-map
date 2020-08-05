@@ -8,13 +8,12 @@ import javax.management.Query
 
 object FieldExtractionUtil {
 
-    fun typeMirror(annotation: Field): TypeMirror? {
+    fun typeMirror(annotation: Field): TypeMirror {
         try {
             annotation.type
+            throw Exception("Expected to get a MirroredTypeException")
         } catch (mte: MirroredTypeException) {
             return mte.typeMirror
         }
-
-        return null
     }
 }

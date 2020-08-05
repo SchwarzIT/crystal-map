@@ -26,6 +26,8 @@ abstract class BaseEntityHolder {
 
     val queries : MutableList<CblQueryHolder> = ArrayList()
 
+    var comment : Array<String> = arrayOf()
+
     val generateAccessors : MutableList<CblGenerateAccessorHolder> = ArrayList()
 
     val allFields: List<CblBaseFieldHolder>

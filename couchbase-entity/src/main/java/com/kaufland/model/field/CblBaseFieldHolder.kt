@@ -16,7 +16,7 @@ import javax.lang.model.type.TypeMirror
 
 abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field) {
 
-    val typeMirror: TypeMirror? = FieldExtractionUtil.typeMirror(mField)
+    val typeMirror: TypeMirror = FieldExtractionUtil.typeMirror(mField)
 
     open val isIterable: Boolean
         get() = mField.list
@@ -32,6 +32,9 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     val defaultValue: String
         get() = mField.defaultValue
+
+    val comment: Array<String>
+        get() = mField.comment
 
 
     fun accessorSuffix(): String {
