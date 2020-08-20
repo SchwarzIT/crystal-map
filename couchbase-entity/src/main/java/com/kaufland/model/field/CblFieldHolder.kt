@@ -63,12 +63,12 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
             if (useMDocChanges) {
                 getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
-                        .addStatement("return %T.fromMap(mDocChanges.get(%N) as %T)", subEntityTypeName, constantName, castType)
+                        .addStatement("return·%T.fromMap(mDocChanges.get(%N) as %T)", subEntityTypeName, constantName, castType)
                         .endControlFlow().build())
             }
             getter.addCode(CodeBlock.builder()
                     .beginControlFlow("if(mDoc.containsKey(%N))", constantName)
-                    .addStatement("return %T.fromMap(mDoc.get(%N) as %T)", subEntityTypeName, constantName, castType)
+                    .addStatement("return·%T.fromMap(mDoc.get(%N) as %T)", subEntityTypeName, constantName, castType)
                     .endControlFlow().build())
 
             getter.addStatement("return null")
