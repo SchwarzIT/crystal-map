@@ -19,7 +19,9 @@ class WrapperGeneration {
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addFunction(MapSupportGeneration.toMap(holder))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
-                .addFunction(contructor()).superclass(holder.sourceElement!!.asType().asTypeName())
+                .addFunction(constructorMap())
+                .addFunction(constructorDefault())
+                .superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         for (fieldHolder in holder.allFields) {
@@ -86,8 +88,13 @@ class WrapperGeneration {
         )
     }
 
-    private fun contructor(): FunSpec {
+    private fun constructorMap(): FunSpec {
         return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("rebind(doc)").build()
+    }
+
+    private fun constructorDefault(): FunSpec {
+        // Add default constructor to allow property-based creators in Jackson
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).callThisConstructor("mutableMapOf()") .build()
     }
 
     private fun create(holder: WrapperEntityHolder): List<FunSpec> {
