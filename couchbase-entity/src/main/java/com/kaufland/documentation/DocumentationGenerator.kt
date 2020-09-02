@@ -99,14 +99,10 @@ class DocumentationGenerator(path: String, fileName: String) {
         return arrayOf(td(fields.dbField), td(buildDisplayableType(fields.typeMirror, fields.isIterable)), td(fields.defaultValue), td(if (fields.isConstant) "X" else ""), td(*buildComment(fields.comment)))
     }
 
-
-    private fun buildComment(comment: Array<String>) : Array<DomContent>{
-        val result = mutableListOf<DomContent>()
-
-        for (comment in comment) {
-            result.add(p(comment))
-        }
-        return result.toTypedArray()
+    private fun buildComment(comments: Array<String>): Array<DomContent> {
+        return comments
+                .map { p(UnescapedText(it)) }
+                .toTypedArray()
     }
 
     private fun buildDisplayableType(type : TypeMirror, iterable : Boolean) : String{
