@@ -2,6 +2,7 @@ package com.kaufland.generation
 
 import com.kaufland.javaToKotlinType
 import com.kaufland.model.entity.BaseEntityHolder
+import com.kaufland.util.ConversionUtil
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -17,7 +18,7 @@ object CblDefaultGeneration {
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
-                builder.addStatement("map.put(%N, " + getConvertedValue(fieldHolder.typeMirror, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
+                builder.addStatement("map.put(%N, " + ConversionUtil.convertStringToDesiredFormat(fieldHolder.typeMirror, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
             }
         }
         return builder.build()
@@ -25,13 +26,6 @@ object CblDefaultGeneration {
 
     fun addAddCall(nameOfMap: String): CodeBlock {
         return CodeBlock.builder().addStatement("addDefaults(%N)", nameOfMap).build()
-    }
-
-    private fun getConvertedValue(clazz: TypeMirror, value: String): String {
-
-        return if (clazz.asTypeName().javaToKotlinType() == TypeUtil.string()) {
-            "\"" + value + "\""
-        } else value
     }
 
 }

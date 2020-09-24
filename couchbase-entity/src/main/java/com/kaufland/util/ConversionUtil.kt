@@ -1,7 +1,10 @@
 package com.kaufland.util
 
+import com.kaufland.javaToKotlinType
+import com.squareup.kotlinpoet.asTypeName
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import javax.lang.model.type.TypeMirror
 
 /**
  * Created by sbra0902 on 22.06.17.
@@ -19,5 +22,12 @@ object ConversionUtil {
         m.appendTail(sb)
 
         return sb.toString()
+    }
+
+     fun convertStringToDesiredFormat(clazz: TypeMirror, value: String): String {
+
+        return if (clazz.asTypeName().javaToKotlinType() == TypeUtil.string()) {
+            "\"" + value + "\""
+        } else value
     }
 }

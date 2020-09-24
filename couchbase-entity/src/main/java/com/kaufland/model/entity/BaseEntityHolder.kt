@@ -49,4 +49,10 @@ abstract class BaseEntityHolder {
 
     val entityTypeName: TypeName
         get() = ClassName(`package`, entitySimpleName)
+
+    val interfaceSimpleName: String
+        get() = "I${sourceClazzSimpleName}"
+
+    val interfaceTypeName: TypeName
+    get()= ClassName(`package`, interfaceSimpleName)
 }

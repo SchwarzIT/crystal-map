@@ -39,7 +39,7 @@ class EntityGeneration {
 
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
-        val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addModifiers(KModifier.PUBLIC).addSuperinterface(TypeUtil.mapSupport())
+        val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addModifiers(KModifier.PUBLIC).addSuperinterface(TypeUtil.mapSupport()).addSuperinterface(holder.interfaceTypeName)
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())

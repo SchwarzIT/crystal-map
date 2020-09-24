@@ -7,25 +7,26 @@ import java.lang.String
 
 @Entity(database = "mydb_db")
 @Fields(
-Field(name = "name", type = String::class),
+        Field(name = "name", type = String::class),
         Field(name = "type", type = String::class, defaultValue = "entityWithQueries", readonly = true),
-Field(name = "identifiers", type = String::class, list = true)
+        Field(name = "identifiers", type = String::class, list = true),
+        Field(name = "map", type = Map::class, list = true)
 )
-open class EntityWithGenerateAccessor{
+open class EntityWithGenerateAccessor {
 
-    companion object{
+    companion object {
         @GenerateAccessor
-        fun someComplexQuery(foo : kotlin.String?) : kotlin.String {
+        fun someComplexQuery(foo: kotlin.String?): kotlin.String {
             return "333"
         }
 
         @GenerateAccessor
-        fun moreComplexQueryE(value : List<EntityWithGenerateAccessor>?) : EntityWithGenerateAccessor?{
+        fun moreComplexQueryE(value: List<EntityWithGenerateAccessor>?): EntityWithGenerateAccessor? {
             return null
         }
 
         @GenerateAccessor
-        fun someComplexQuery2(){
+        fun someComplexQuery2() {
 
         }
     }
