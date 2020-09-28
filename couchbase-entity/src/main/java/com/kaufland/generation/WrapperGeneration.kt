@@ -14,7 +14,10 @@ class WrapperGeneration {
 
         var builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
-        val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName).addSuperinterface(TypeUtil.mapSupport()).addModifiers(KModifier.PUBLIC).addSuperinterface(holder.interfaceTypeName)
+        val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
+                .addSuperinterface(TypeUtil.mapSupport())
+                .addModifiers(KModifier.PUBLIC)
+                .addSuperinterface(holder.interfaceTypeName)
                 .addFunction(CblDefaultGeneration.addDefaults(holder))
                 .addFunction(CblConstantGeneration.addConstants(holder))
                 .addFunction(MapSupportGeneration.toMap(holder))

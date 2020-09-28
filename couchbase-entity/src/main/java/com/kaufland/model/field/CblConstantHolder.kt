@@ -31,7 +31,8 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, null)
 
-        val builder = PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC, KModifier.OVERRIDE).getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, returnType).build())
+        val builder = PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC, KModifier.OVERRIDE)
+                .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, returnType).build())
         return builder.build()
     }
 
