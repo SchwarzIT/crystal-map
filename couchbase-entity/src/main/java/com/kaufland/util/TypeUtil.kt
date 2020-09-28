@@ -24,12 +24,16 @@ object TypeUtil {
         return WildcardTypeName.producerOf(anyNullable())
     }
 
+    fun map() : ClassName {
+        return ClassName("kotlin.collections", "Map")
+    }
+
     fun hashMapStringAnyNullable(): ParameterizedTypeName {
         return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), anyNullable())
     }
 
     fun mapStringAnyNullable(): ParameterizedTypeName {
-        return ClassName("kotlin.collections", "Map").parameterizedBy(string(), anyNullable())
+        return map().parameterizedBy(string(), anyNullable())
     }
 
     fun mutableMapStringAnyNullable(): ParameterizedTypeName {
@@ -92,6 +96,10 @@ object TypeUtil {
             } catch (e: IllegalArgumentException) {
                 baseType = type.asTypeName()
             }
+        }
+
+        if(baseType!!.javaToKotlinType() == map()){
+            baseType = mapStringAnyNullable()
         }
 
         return if (list) {

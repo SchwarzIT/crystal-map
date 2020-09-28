@@ -41,6 +41,8 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         return WordUtils.uncapitalize(WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""))
     }
 
+    abstract fun interfaceProperty() : PropertySpec
+
     abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec
 
     abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec?

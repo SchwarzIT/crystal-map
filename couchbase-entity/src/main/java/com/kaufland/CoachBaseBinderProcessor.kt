@@ -7,10 +7,13 @@ import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_USE_SUSPEND_OPT
 import com.kaufland.CoachBaseBinderProcessor.Companion.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.kaufland.documentation.DocumentationGenerator
 import com.kaufland.generation.CodeGenerator
+import com.kaufland.generation.CommonInterfaceGeneration
 import com.kaufland.generation.EntityGeneration
 import com.kaufland.generation.WrapperGeneration
 import com.kaufland.model.EntityFactory
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
+import com.kaufland.model.entity.BaseEntityHolder
+import com.kaufland.model.entity.EntityHolder
 import com.kaufland.validation.PreValidator
 import com.squareup.kotlinpoet.FileSpec
 import kaufland.com.coachbasebinderapi.Entity
@@ -68,11 +71,14 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         var mapWrappers = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
         var mapWrapperStrings = mapWrappers.map { element -> element.toString() }
+        var generatedInterfaces = mutableSetOf<String>()
 
         validateAndProcess(roundEnv.getElementsAnnotatedWith(Entity::class.java), object : EntityProcessor {
             override fun process(element: Element): FileSpec {
 
                 val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings)
+                generateInterface(generatedInterfaces, holder)
+
                 documentationGenerator?.addEntitySegments(holder)
                 return EntityGeneration().generateModel(holder, useSuspend)
             }
@@ -82,6 +88,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         validateAndProcess(mapWrappers, object : EntityProcessor {
             override fun process(element: Element): FileSpec {
                 val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings)
+                generateInterface(generatedInterfaces, holder)
                 documentationGenerator?.addEntitySegments(holder)
                 return WrapperGeneration().generateModel(holder, useSuspend)
             }
@@ -90,6 +97,13 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         documentationGenerator?.generate()
 
         return true // no further processing of this annotation type
+    }
+
+    private fun generateInterface(generatedInterfaces: MutableSet<String>, holder: BaseEntityHolder) {
+        if (generatedInterfaces.contains(holder.sourceClazzSimpleName).not()) {
+            mCodeGenerator!!.generate(CommonInterfaceGeneration().generateModel(holder), processingEnv)
+            generatedInterfaces.add(holder.sourceClazzSimpleName)
+        }
     }
 
     private fun validateAndProcess(elements: Collection<Element>, processor: EntityProcessor) {

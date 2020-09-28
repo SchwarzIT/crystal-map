@@ -73,7 +73,8 @@ class DocumentationGenerator(path: String, fileName: String) {
             return
         }
 
-        docuEntitySegments[entityHolder.sourceClazzSimpleName] = div().with(h1(entityHolder.sourceClazzSimpleName), evaluateAvailableTypes(entityHolder.sourceElement), br(), *buildComment(entityHolder.comment), br(), table(attrs(".table"), thead(*createTableHead()), tbody(
+        val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
+        docuEntitySegments[entityHolder.sourceClazzSimpleName] = div().withId(entityHolder.sourceClazzSimpleName).with(h1(entityHolder.sourceClazzSimpleName), rawHtml(btnWithSectionLink), evaluateAvailableTypes(entityHolder.sourceElement), br(), *buildComment(entityHolder.comment), br(), table(attrs(".table"), thead(*createTableHead()), tbody(
                 each(entityHolder.fields) { field ->
                     tr(
                             *parseField(field.value)
