@@ -83,12 +83,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             }
 
             getter.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
-//FIXME
-//            if (forTypeConversion.is) {
-//                builder.addStatement("return \$L.get(%T.class)", DefaultValue::class.java.canonicalName, forTypeConversion)
-//            } else {
+
             getter.addStatement("return null")
-//            }
 
             setter.addStatement("%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %T::class))", docName, constantName, forTypeConversion)
 
@@ -117,7 +113,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     private fun evaluateClazzForTypeConversion(): TypeName {
         return if (isIterable) {
             TypeUtil.string()
-        } else TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
+        } else TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
 
     }
 }

@@ -83,6 +83,10 @@ object TypeUtil {
     }
 
     fun parseMetaType(type: TypeMirror, list: Boolean, subEntity: String?): TypeName {
+        return parseMetaType(type, list, true, subEntity)
+    }
+
+    fun parseMetaType(type: TypeMirror, list: Boolean, convertMap: Boolean, subEntity: String?): TypeName {
 
         val simpleName = if (subEntity != null && subEntity.contains(getSimpleName(type))) subEntity else getSimpleName(type)
 
@@ -98,7 +102,7 @@ object TypeUtil {
             }
         }
 
-        if(baseType!!.javaToKotlinType() == map()){
+        if(convertMap && baseType!!.javaToKotlinType() == map()){
             baseType = mapStringAnyNullable()
         }
 
