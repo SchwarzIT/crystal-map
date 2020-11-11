@@ -14,12 +14,10 @@ import com.kaufland.model.EntityFactory
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.entity.EntityHolder
+import com.kaufland.util.TypeUtil
 import com.kaufland.validation.PreValidator
 import com.squareup.kotlinpoet.FileSpec
-import kaufland.com.coachbasebinderapi.Entity
-import kaufland.com.coachbasebinderapi.Field
-import kaufland.com.coachbasebinderapi.GenerateAccessor
-import kaufland.com.coachbasebinderapi.MapWrapper
+import kaufland.com.coachbasebinderapi.*
 import kaufland.com.coachbasebinderapi.query.Queries
 import kaufland.com.coachbasebinderapi.query.Query
 import javax.annotation.processing.*
@@ -69,14 +67,17 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     override fun process(set: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
 
+
         var mapWrappers = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
         var mapWrapperStrings = mapWrappers.map { element -> element.toString() }
         var generatedInterfaces = mutableSetOf<String>()
 
+        var baseModels = roundEnv.getElementsAnnotatedWith(BaseModel::class.java).map { it.asType().toString() to EntityFactory.createBaseModelHolder(it, mapWrapperStrings) }.toMap()
+
         validateAndProcess(roundEnv.getElementsAnnotatedWith(Entity::class.java), object : EntityProcessor {
             override fun process(element: Element): FileSpec {
 
-                val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings)
+                val holder = EntityFactory.createEntityHolder(element, mapWrapperStrings, baseModels)
                 generateInterface(generatedInterfaces, holder)
 
                 documentationGenerator?.addEntitySegments(holder)
@@ -87,7 +88,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         validateAndProcess(mapWrappers, object : EntityProcessor {
             override fun process(element: Element): FileSpec {
-                val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings)
+                val holder = EntityFactory.createChildEntityHolder(element, mapWrapperStrings, baseModels)
                 generateInterface(generatedInterfaces, holder)
                 documentationGenerator?.addEntitySegments(holder)
                 return WrapperGeneration().generateModel(holder, useSuspend)
