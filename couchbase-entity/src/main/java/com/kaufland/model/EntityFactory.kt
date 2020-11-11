@@ -2,18 +2,17 @@ package com.kaufland.model
 
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
 import com.kaufland.model.entity.BaseEntityHolder
+import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.model.query.CblQueryHolder
-import kaufland.com.coachbasebinderapi.Comment
+import com.kaufland.util.FieldExtractionUtil
+import kaufland.com.coachbasebinderapi.*
 
 import javax.lang.model.element.Element
 
-import kaufland.com.coachbasebinderapi.Entity
-import kaufland.com.coachbasebinderapi.Fields
-import kaufland.com.coachbasebinderapi.GenerateAccessor
 import kaufland.com.coachbasebinderapi.query.Queries
 import org.apache.commons.lang3.text.WordUtils
 import javax.lang.model.element.ElementKind
@@ -21,33 +20,47 @@ import javax.lang.model.element.Modifier
 
 object EntityFactory {
 
-    fun createEntityHolder(cblEntityElement: Element, allWrappers: List<String>): EntityHolder {
+    fun createEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): EntityHolder {
         val annotation = cblEntityElement.getAnnotation(Entity::class.java)
-        return create(cblEntityElement, EntityHolder(annotation.database, annotation.type), allWrappers) as EntityHolder
+        return create(cblEntityElement, EntityHolder(annotation.database, annotation.type), allWrappers, allBaseModels) as EntityHolder
     }
 
-    fun createChildEntityHolder(cblEntityElement: Element, allWrappers: List<String>): WrapperEntityHolder {
-
-        return create(cblEntityElement, WrapperEntityHolder(), allWrappers) as WrapperEntityHolder
+    fun createBaseModelHolder(cblEntityElement: Element, allWrappers: List<String>): BaseModelHolder {
+        return create(cblEntityElement, BaseModelHolder(), allWrappers, emptyMap()) as BaseModelHolder
     }
 
-    private fun create(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>): BaseEntityHolder {
+    fun createChildEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): WrapperEntityHolder {
+
+        return create(cblEntityElement, WrapperEntityHolder(), allWrappers, allBaseModels) as WrapperEntityHolder
+    }
+
+    private fun create(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): BaseEntityHolder {
 
         content.abstractParts = findPossibleOverrides(cblEntityElement)
         content.sourceElement = cblEntityElement
         content.comment = cblEntityElement.getAnnotation(Comment::class.java)?.comment ?: arrayOf()
 
+        val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)?.let { FieldExtractionUtil.typeMirror(it) }
+
+        basedOnValue?.forEach { type ->
+            allBaseModels[type.toString()]?.let {
+                content.fieldConstants.putAll(it.fieldConstants)
+                content.fields.putAll(it.fields)
+                content.generateAccessors.addAll(it.generateAccessors)
+                content.queries.addAll(it.queries)
+            }
+        }
+
         parseQueries(cblEntityElement, content)
-        parseFields(cblEntityElement, content, allWrappers)
+        parseFields(cblEntityElement, content, allWrappers, allBaseModels)
         parseGenerateAccessors(cblEntityElement, content)
 
         return content
 
     }
 
-    private fun parseFields(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>) {
+    private fun parseFields(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>) {
         val fields = cblEntityElement.getAnnotation(Fields::class.java)
-
 
         for (cblField in fields.value) {
 
