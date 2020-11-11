@@ -6,6 +6,7 @@ import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
 
 import kaufland.com.coachbasebinderapi.Field
+import javax.lang.model.type.MirroredTypesException
 import javax.management.Query
 
 object FieldExtractionUtil {
@@ -19,12 +20,18 @@ object FieldExtractionUtil {
         }
     }
 
-    fun typeMirror(annotation: BasedOn): TypeMirror {
+    fun typeMirror(annotation: BasedOn): List<TypeMirror> {
+
+        val result = mutableListOf<TypeMirror>()
+
         try {
-            annotation.value
-            throw Exception("Expected to get a MirroredTypeException")
-        } catch (mte: MirroredTypeException) {
-            return mte.typeMirror
+            if(annotation.value.isNotEmpty()){
+                throw Exception("Expected to get a MirroredTypesException")
+            }
+        } catch (mte: MirroredTypesException) {
+            result.addAll(mte.typeMirrors)
         }
+
+        return result
     }
 }

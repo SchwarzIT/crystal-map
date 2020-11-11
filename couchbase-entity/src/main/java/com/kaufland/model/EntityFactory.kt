@@ -42,10 +42,8 @@ object EntityFactory {
 
         val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)?.let { FieldExtractionUtil.typeMirror(it) }
 
-        if(basedOnValue != null){
-
-            System.out.println(basedOnValue.toString())
-            allBaseModels[basedOnValue.toString()]?.let {
+        basedOnValue?.forEach { type ->
+            allBaseModels[type.toString()]?.let {
                 content.fieldConstants.putAll(it.fieldConstants)
                 content.fields.putAll(it.fields)
                 content.generateAccessors.addAll(it.generateAccessors)

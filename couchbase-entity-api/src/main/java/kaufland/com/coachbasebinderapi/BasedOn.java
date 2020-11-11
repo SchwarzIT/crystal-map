@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface BasedOn {
 
-    Class<?> value() default Void.class;
+    Class<?>[] value() default {};
 
 }
