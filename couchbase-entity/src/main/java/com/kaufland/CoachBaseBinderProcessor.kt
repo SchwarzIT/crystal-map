@@ -64,7 +64,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
             documentationGenerator = DocumentationGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, "default.html"))
         }
         processingEnvironment.options[FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME]?.let {
-            entityRelationshipGenerator = EntityRelationshipGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME, "default.html"))
+            entityRelationshipGenerator = EntityRelationshipGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME, "default.gv"))
         }
         super.init(processingEnvironment)
     }
@@ -109,6 +109,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         })
 
         documentationGenerator?.generate()
+        entityRelationshipGenerator?.generate()
 
         return true // no further processing of this annotation type
     }
