@@ -6,6 +6,7 @@ import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_P
 import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_USE_SUSPEND_OPTION_NAME
 import com.kaufland.CoachBaseBinderProcessor.Companion.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.kaufland.documentation.DocumentationGenerator
+import com.kaufland.documentation.EntityRelationshipGenerator
 import com.kaufland.generation.CodeGenerator
 import com.kaufland.generation.CommonInterfaceGeneration
 import com.kaufland.generation.EntityGeneration
@@ -38,12 +39,15 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     private var useSuspend: Boolean = false
 
     private var documentationGenerator: DocumentationGenerator? = null
+    private var entityRelationshipGenerator : EntityRelationshipGenerator? = null
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "useSuspend"
         const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME = "entityframework.documentation.generated"
         const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "entityframework.documentation.fileName"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "entityframework.documentation.entityrelationship.generated"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "entityframework.documentation.entityrelationship.fileName"
 
 
     }
@@ -58,6 +62,9 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         processingEnvironment.options[FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME]?.let {
             documentationGenerator = DocumentationGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, "default.html"))
+        }
+        processingEnvironment.options[FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME]?.let {
+            entityRelationshipGenerator = EntityRelationshipGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME, "default.html"))
         }
         super.init(processingEnvironment)
     }
@@ -80,6 +87,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                     generateInterface(generatedInterfaces, holder)
 
                     documentationGenerator?.addEntitySegments(holder)
+                    entityRelationshipGenerator?.addEntityNodes(holder)
                     return EntityGeneration().generateModel(holder, useSuspend)
                 }
                 return null
@@ -93,6 +101,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                 if (postValidate(holder)) {
                     generateInterface(generatedInterfaces, holder)
                     documentationGenerator?.addEntitySegments(holder)
+                    entityRelationshipGenerator?.addEntityNodes(holder)
                     return WrapperGeneration().generateModel(holder, useSuspend)
                 }
                 return null

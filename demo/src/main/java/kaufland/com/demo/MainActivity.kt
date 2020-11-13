@@ -1,7 +1,7 @@
 package kaufland.com.demo
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         listView.adapter = mAdapter
         listView.onItemClickListener = OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
             val mItem = mAdapter!!.getItem(position)
-            startActivity(buildIntent(this@MainActivity, mItem.getId()))
+            startActivity(buildIntent(this@MainActivity, mItem!!.getId()))
         }
     }
 }
