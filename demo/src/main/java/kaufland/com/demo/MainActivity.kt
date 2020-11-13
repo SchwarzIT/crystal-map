@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         listView.adapter = mAdapter
         listView.onItemClickListener = OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
             val mItem = mAdapter!!.getItem(position)
-            startActivity(buildIntent(this@MainActivity, mItem.getId()))
+            startActivity(buildIntent(this@MainActivity, mItem!!.getId()))
         }
     }
 }
