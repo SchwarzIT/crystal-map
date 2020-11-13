@@ -6,6 +6,6 @@ import javax.lang.model.element.Element
 
 interface EntityProcessor {
 
-    fun process(element: Element): FileSpec
+    fun process(element: Element): FileSpec?
 
 }

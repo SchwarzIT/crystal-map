@@ -1,10 +1,12 @@
 package com.kaufland.validation
 
 import com.kaufland.Logger
+import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.util.FieldExtractionUtil
 import com.sun.tools.javac.code.Symbol
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Fields
+import kaufland.com.coachbasebinderapi.MapWrapper
 import kaufland.com.coachbasebinderapi.query.Queries
 import java.util.*
 import javax.lang.model.element.Element
@@ -15,13 +17,16 @@ class PreValidator {
 
 
     @Throws(ClassNotFoundException::class)
-    fun validate(entityElement: Element, logger: Logger) {
+    fun preValidate(entityElement: Element, logger: Logger) {
 
-        if (entityElement.modifiers.contains(Modifier.PRIVATE)) {
-            logger.error(Entity::class.java.simpleName + " can not be private", entityElement)
-        }
-        if (entityElement.modifiers.contains(Modifier.FINAL)) {
-            logger.error(Entity::class.java.simpleName + " can not be final", entityElement)
+        if(entityElement.getAnnotation(Entity::class.java) != null || entityElement.getAnnotation(MapWrapper::class.java) != null){
+
+            if (entityElement.modifiers.contains(Modifier.PRIVATE)) {
+                logger.error(Entity::class.java.simpleName + " can not be private", entityElement)
+            }
+            if (entityElement.modifiers.contains(Modifier.FINAL)) {
+                logger.error(Entity::class.java.simpleName + " can not be final", entityElement)
+            }
         }
 
         val fields = entityElement.getAnnotation(Fields::class.java)
@@ -34,31 +39,12 @@ class PreValidator {
                 logger.warn("duplicated field name", entityElement)
             }
 
-            if (!fieldAnnotation.defaultValue.isEmpty()) {
-                if (fieldAnnotation.list || !Arrays.asList(String::class.java.canonicalName, Long::class.java.canonicalName, Double::class.java.canonicalName, Int::class.java.canonicalName, Integer::class.java.canonicalName, Boolean::class.java.canonicalName).contains(FieldExtractionUtil.typeMirror(fieldAnnotation).toString())) {
-                    logger.error("defaultValue must be must be String.class, Long.class, Double.class or Integer.class but was ${FieldExtractionUtil.typeMirror(fieldAnnotation)}", entityElement)
-                }
-            }
-
             if (fieldAnnotation.readonly && fieldAnnotation.defaultValue.isEmpty()) {
                 logger.warn("defaultValue should not be empty for readonly fields", entityElement)
             }
             names.add(fieldAnnotation.name)
 
         }
-
-        val queries = entityElement.getAnnotation(Queries::class.java)
-
-        if (queries != null) {
-            for (queryAnnotation in queries.value) {
-                for (field in queryAnnotation.fields) {
-                    if (names.contains(field).not()) {
-                        logger.error("query param [$field] is not a part of this entity", entityElement)
-                    }
-                }
-            }
-        }
-
 
         for (member in entityElement.enclosedElements) {
 
@@ -72,6 +58,18 @@ class PreValidator {
             }
         }
 
+
+    }
+
+    fun postValidate(baseEntityHolder: BaseEntityHolder, logger: Logger){
+
+        for (query in baseEntityHolder.queries) {
+            for (field in query.fields) {
+                if(!baseEntityHolder.fields.containsKey(field) && !baseEntityHolder.fieldConstants.containsKey(field)){
+                    logger.error("query param [$field] is not a part of this entity", baseEntityHolder.sourceElement)
+                }
+            }
+        }
 
     }
 }
