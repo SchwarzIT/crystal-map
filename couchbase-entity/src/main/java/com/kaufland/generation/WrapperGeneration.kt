@@ -18,8 +18,9 @@ class WrapperGeneration {
                 .addSuperinterface(TypeUtil.mapSupport())
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(holder.interfaceTypeName)
-                .addFunction(CblDefaultGeneration.addDefaults(holder))
-                .addFunction(CblConstantGeneration.addConstants(holder))
+                .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
+                .addFunction(CblDefaultGeneration.addDefaults(holder, true))
+                .addFunction(CblConstantGeneration.addConstants(holder, true))
                 .addFunction(MapSupportGeneration.toMap(holder))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
                 .addFunction(constructorMap())
@@ -92,7 +93,7 @@ class WrapperGeneration {
     }
 
     private fun constructorMap(): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("rebind(doc)").build()
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("rebind(ensureTypes(doc))").build()
     }
 
     private fun constructorDefault(): FunSpec {
