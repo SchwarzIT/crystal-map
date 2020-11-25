@@ -30,8 +30,8 @@ object EntityFactory {
     }
 
     fun createChildEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): WrapperEntityHolder {
-
-        return create(cblEntityElement, WrapperEntityHolder(), allWrappers, allBaseModels) as WrapperEntityHolder
+        val annotation = cblEntityElement.getAnnotation(MapWrapper::class.java)
+        return create(cblEntityElement, WrapperEntityHolder(annotation.modifierOpen), allWrappers, allBaseModels) as WrapperEntityHolder
     }
 
     private fun create(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): BaseEntityHolder {
@@ -44,6 +44,7 @@ object EntityFactory {
 
         basedOnValue?.forEach { type ->
             allBaseModels[type.toString()]?.let {
+                content.basedOn.add(it)
                 content.fieldConstants.putAll(it.fieldConstants)
                 content.fields.putAll(it.fields)
                 content.generateAccessors.addAll(it.generateAccessors)

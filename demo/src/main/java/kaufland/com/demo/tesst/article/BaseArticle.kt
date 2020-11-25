@@ -6,7 +6,7 @@ import kaufland.com.coachbasebinderapi.MapWrapper
 import schwarz.fwws.shared.model.DWG
 import schwarz.fwws.shared.model.Model
 
-@MapWrapper
+@MapWrapper(modifierOpen = true)
 @Fields(
         Field(name = "country", type = String::class),
         Field(name = "type", type = String::class, defaultValue = BaseArticle.TYPE, readonly = true),

@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 public @interface MapWrapper {
 
     Class<?> value() default Void.class;
+
+    boolean modifierOpen() default false;
 }

@@ -52,6 +52,10 @@ class EntityGeneration {
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        for (baseModelHolder in holder.basedOn) {
+            typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
+        }
+
         if(holder.modifierOpen){
             typeBuilder.addModifiers(KModifier.OPEN)
         }

@@ -28,6 +28,14 @@ class WrapperGeneration {
                 .superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        for (baseModelHolder in holder.basedOn) {
+            typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
+        }
+
+        if(holder.modifierOpen){
+            typeBuilder.addModifiers(KModifier.OPEN)
+        }
+
         for (fieldHolder in holder.allFields) {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
