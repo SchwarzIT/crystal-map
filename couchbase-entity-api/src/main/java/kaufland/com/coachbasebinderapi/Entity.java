@@ -17,6 +17,8 @@ public @interface Entity {
 
     Class<?> value() default Void.class;
 
+    boolean modifierOpen() default false;
+
     Type type() default Type.READ_AND_WRITE;
 
     String database() default "";

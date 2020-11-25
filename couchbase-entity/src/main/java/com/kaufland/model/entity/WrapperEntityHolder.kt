@@ -1,6 +1,6 @@
 package com.kaufland.model.entity
 
-class WrapperEntityHolder : BaseEntityHolder() {
+class WrapperEntityHolder(val modifierOpen: Boolean) : BaseEntityHolder() {
 
     override val entitySimpleName: String
         get() = sourceClazzSimpleName + "Wrapper"

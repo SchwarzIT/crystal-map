@@ -76,7 +76,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         var mapWrapperStrings = mapWrappers.map { element -> element.toString() }
         var generatedInterfaces = mutableSetOf<String>()
 
-        var baseModels = validateAndCreateBaseModelMap(roundEnv.getElementsAnnotatedWith(BaseModel::class.java), mapWrapperStrings)
+        var baseModels = validateAndCreateBaseModelMap(roundEnv.getElementsAnnotatedWith(BaseModel::class.java), mapWrapperStrings, generatedInterfaces)
 
         validateAndProcess(roundEnv.getElementsAnnotatedWith(Entity::class.java), object : EntityProcessor {
             override fun process(element: Element): FileSpec? {
@@ -114,13 +114,14 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         return true // no further processing of this annotation type
     }
 
-    private fun validateAndCreateBaseModelMap(elements: Collection<Element>, wrapperString: List<String>) : Map<String, BaseModelHolder>{
+    private fun validateAndCreateBaseModelMap(elements: Collection<Element>, wrapperString: List<String>, generatedInterfaces: MutableSet<String>) : Map<String, BaseModelHolder>{
         val result = HashMap<String, BaseModelHolder>()
         for (elem in elements) {
             validator.preValidate(elem, mLogger)
             if (!mLogger.hasErrors()) {
                 val baseModel = EntityFactory.createBaseModelHolder(elem, wrapperString)
                 if(postValidate(baseModel)){
+                    generateInterface(generatedInterfaces, baseModel)
                     result["${baseModel.`package`}.${baseModel.sourceClazzSimpleName}"] = baseModel
                 }
             }

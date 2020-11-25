@@ -43,13 +43,22 @@ class EntityGeneration {
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(TypeUtil.mapSupport())
                 .addSuperinterface(holder.interfaceTypeName)
-                .addFunction(CblDefaultGeneration.addDefaults(holder))
-                .addFunction(CblConstantGeneration.addConstants(holder))
-                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
+                .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
+                .addFunction(CblDefaultGeneration.addDefaults(holder, false))
+                .addFunction(CblConstantGeneration.addConstants(holder, false))
+                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAny(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build())
                 .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
                 .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration(useSuspend).generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
+
+        for (baseModelHolder in holder.basedOn) {
+            typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
+        }
+
+        if(holder.modifierOpen){
+            typeBuilder.addModifiers(KModifier.OPEN)
+        }
 
         for (fieldHolder in holder.allFields) {
 
@@ -97,7 +106,7 @@ class EntityGeneration {
 
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
 
-        var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mapOf()"
+        var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
 
         if(useSuspend){
             refreshDoc = "kotlinx.coroutines.runBlocking{$refreshDoc}"
@@ -106,7 +115,7 @@ class EntityGeneration {
         val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(TypeUtil.mutableMapStringAny()).addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
 
         for (constantField in holder.fieldConstants.values) {
-            toMapBuilder.addStatement("mDocChanges.put(%S, %S)", constantField.dbField, constantField.constantValue)
+            toMapBuilder.addStatement("mDocChanges.put(%S, %N)", constantField.dbField, constantField.constantValueAccessorName)
         }
 
         toMapBuilder.addStatement("var temp = mutableMapOf<%T, %T>()", TypeUtil.string(), TypeUtil.any())
@@ -139,7 +148,7 @@ class EntityGeneration {
     }
 
     private fun contructor(holder: EntityHolder): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringAnyNullable()).addStatement("rebind(doc)").build()
+        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringAny()).addStatement("rebind(ensureTypes(doc))").build()
     }
 
     private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> {
@@ -152,8 +161,8 @@ class EntityGeneration {
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T())",
-                        holder.entitySimpleName, TypeUtil.hashMapStringAnyNullable()).returns(holder.entityTypeName).build(),
-                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement("return %N(map)",
+                        holder.entitySimpleName, TypeUtil.hashMapStringAny()).returns(holder.entityTypeName).build(),
+                FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mutableMapStringAny()).addAnnotation(JvmStatic::class).addStatement("return %N(map)",
                         holder.entitySimpleName).returns(holder.entityTypeName).build()
         )
     }

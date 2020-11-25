@@ -30,6 +30,8 @@ abstract class BaseEntityHolder {
 
     val generateAccessors : MutableList<CblGenerateAccessorHolder> = ArrayList()
 
+    val basedOn : MutableList<BaseModelHolder> = ArrayList()
+
     val allFields: List<CblBaseFieldHolder>
         get() {
             val allField = ArrayList<CblBaseFieldHolder>()

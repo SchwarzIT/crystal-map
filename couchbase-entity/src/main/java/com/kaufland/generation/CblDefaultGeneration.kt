@@ -12,13 +12,17 @@ import javax.lang.model.type.TypeMirror
 
 object CblDefaultGeneration {
 
-    fun addDefaults(holder: BaseEntityHolder): FunSpec {
-        val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter( "map", TypeUtil.mutableMapStringAnyNullable())
+    fun addDefaults(holder: BaseEntityHolder, useNullableMap : Boolean): FunSpec {
+
+        val type = if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
+        val typeConversionReturnType = if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
+
+        val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter( "map", type)
 
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
-                builder.addStatement("map.put(%N, " + ConversionUtil.convertStringToDesiredFormat(fieldHolder.typeMirror, fieldHolder.defaultValue) + ")", fieldHolder.constantName)
+                builder.addStatement("map.put(%N, " +  fieldHolder.ensureType(typeConversionReturnType, ConversionUtil.convertStringToDesiredFormat(fieldHolder.typeMirror, fieldHolder.defaultValue)) + "!!)", fieldHolder.constantName)
             }
         }
         return builder.build()

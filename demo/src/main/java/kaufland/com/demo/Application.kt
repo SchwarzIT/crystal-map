@@ -7,9 +7,13 @@ import com.couchbase.lite.Database
 import com.couchbase.lite.DatabaseConfiguration
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
+import kaufland.com.coachbasebinderapi.TypeConversion
 import kaufland.com.couchbaseentityconnector.Couchbase2Connector
+import kaufland.com.demo.customtypes.GenerateClassName
+import kaufland.com.demo.customtypes.GenerateClassNameConversion
 import kaufland.com.demo.entity.ProductEntity
 import kaufland.com.demo.entity.UserCommentWrapper
+import kotlin.reflect.KClass
 
 class Application : android.app.Application() {
 
@@ -41,6 +45,13 @@ class Application : android.app.Application() {
                 }
                 throw RuntimeException("wrong db name defined!!")
             }
+
+            override val typeConversions: Map<KClass<*>, TypeConversion>
+                get() {
+                    val mutableMapOf = mutableMapOf<KClass<*>, TypeConversion>(GenerateClassName::class to GenerateClassNameConversion())
+                    mutableMapOf.putAll(super.typeConversions)
+                    return mutableMapOf
+                }
         })
         createMockArticle()
     }
@@ -73,6 +84,7 @@ class Application : android.app.Application() {
 
 
         private val TAG = Application::class.java.name
+
         @JvmField
         val DB = "mydb_db"
     }

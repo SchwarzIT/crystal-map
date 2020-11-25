@@ -1,8 +1,10 @@
 package com.kaufland.model.field
 
+import com.kaufland.generation.TypeConversionMethodsGeneration
 import com.kaufland.util.ConversionUtil
 import com.kaufland.util.FieldExtractionUtil
 import com.kaufland.util.TypeUtil
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
@@ -41,7 +43,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         return WordUtils.uncapitalize(WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""))
     }
 
-    abstract fun interfaceProperty() : PropertySpec
+    abstract fun interfaceProperty(): PropertySpec
 
     abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec
 

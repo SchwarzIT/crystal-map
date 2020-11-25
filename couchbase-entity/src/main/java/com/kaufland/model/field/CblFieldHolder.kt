@@ -93,6 +93,11 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
     }
 
+    fun ensureType(resultType: TypeName, format: String, vararg args: Any?): CodeBlock {
+        val forTypeConversion = evaluateClazzForTypeConversion()
+        return CodeBlock.of("${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}<%T>($format, %T::class)", resultType, *args, forTypeConversion)
+    }
+
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {
         val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
         val builder = FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(ClassName(packageName, "${entitySimpleName}.Builder"))
