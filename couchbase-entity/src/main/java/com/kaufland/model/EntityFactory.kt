@@ -22,7 +22,7 @@ object EntityFactory {
 
     fun createEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): EntityHolder {
         val annotation = cblEntityElement.getAnnotation(Entity::class.java)
-        return create(cblEntityElement, EntityHolder(annotation.database, annotation.type), allWrappers, allBaseModels) as EntityHolder
+        return create(cblEntityElement, EntityHolder(annotation.database, annotation.modifierOpen, annotation.type), allWrappers, allBaseModels) as EntityHolder
     }
 
     fun createBaseModelHolder(cblEntityElement: Element, allWrappers: List<String>): BaseModelHolder {

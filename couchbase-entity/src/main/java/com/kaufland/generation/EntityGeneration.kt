@@ -52,6 +52,10 @@ class EntityGeneration {
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        if(holder.modifierOpen){
+            typeBuilder.addModifiers(KModifier.OPEN)
+        }
+
         for (fieldHolder in holder.allFields) {
 
             fieldHolder.builderSetter(holder.dbName, holder.`package`, holder.entitySimpleName, true)?.let {
