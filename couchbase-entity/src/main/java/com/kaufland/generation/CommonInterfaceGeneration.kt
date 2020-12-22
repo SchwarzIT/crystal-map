@@ -12,10 +12,16 @@ class CommonInterfaceGeneration{
 
         var interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
 
+        var companionSpec = TypeSpec.companionObjectBuilder()
+
         for (fieldHolder in holder.allFields) {
             val propertySpec = fieldHolder.interfaceProperty()
             interfaceSpec.addProperty(propertySpec)
+
+            companionSpec.addProperties(fieldHolder.createFieldConstant())
         }
+
+        interfaceSpec.addType(companionSpec.build())
 
         return FileSpec.get(holder.`package`, interfaceSpec.build())
     }
