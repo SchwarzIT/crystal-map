@@ -10,9 +10,9 @@ class WrapperGeneration {
 
     fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
 
-        var companionSpec = TypeSpec.companionObjectBuilder()
+        val companionSpec = TypeSpec.companionObjectBuilder()
 
-        var builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
+        val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
                 .addSuperinterface(TypeUtil.mapSupport())

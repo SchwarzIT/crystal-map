@@ -42,12 +42,12 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun interfaceProperty(): PropertySpec {
-        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
+        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
         return PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC).mutable(true).build()
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
-        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
+        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
         val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
 
