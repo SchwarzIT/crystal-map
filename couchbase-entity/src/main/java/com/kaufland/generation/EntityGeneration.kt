@@ -48,9 +48,16 @@ class EntityGeneration {
                 .addFunction(CblConstantGeneration.addConstants(holder, false))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAny(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build())
                 .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
-                .addFunction(contructor(holder)).addFunction(setAll(holder)).addFunctions(TypeConversionMethodsGeneration(useSuspend).generate()).addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
+                .addFunction(contructor(holder))
+                .addFunction(setAll(holder))
+                .addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
+                .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
+
+        if (holder.comment.isNotEmpty()) {
+            typeBuilder.addKdoc(holder.comment.joinToString(separator = "\n"))
+        }
 
         for (baseModelHolder in holder.basedOn) {
             typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
