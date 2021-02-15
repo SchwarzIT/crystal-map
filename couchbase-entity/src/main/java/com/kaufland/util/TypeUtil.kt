@@ -32,6 +32,10 @@ object TypeUtil {
         return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), anyNullable())
     }
 
+    fun linkedHashMapStringAnyNullable(): ParameterizedTypeName {
+        return ClassName("kotlin.collections", "LinkedHashMap").parameterizedBy(string(), anyNullable())
+    }
+
     fun hashMapStringAny(): ParameterizedTypeName {
         return ClassName("kotlin.collections", "HashMap").parameterizedBy(string(), any())
     }

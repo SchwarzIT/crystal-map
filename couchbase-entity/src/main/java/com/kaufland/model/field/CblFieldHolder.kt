@@ -51,7 +51,6 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
         val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
 
-
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
 
