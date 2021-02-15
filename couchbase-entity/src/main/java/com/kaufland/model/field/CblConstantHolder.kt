@@ -33,6 +33,11 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
         val builder = PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC, KModifier.OVERRIDE)
                 .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, returnType).build())
+
+        if (comment.isNotEmpty()) {
+            builder.addKdoc(comment.joinToString(separator = "\n"))
+        }
+
         return builder.build()
     }
 

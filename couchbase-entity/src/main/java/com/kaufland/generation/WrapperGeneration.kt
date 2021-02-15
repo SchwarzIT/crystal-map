@@ -28,6 +28,10 @@ class WrapperGeneration {
                 .superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        if (holder.comment.isNotEmpty()) {
+            typeBuilder.addKdoc(holder.comment.joinToString(separator = "\n"))
+        }
+
         for (baseModelHolder in holder.basedOn) {
             typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
         }

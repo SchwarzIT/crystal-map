@@ -52,6 +52,10 @@ class EntityGeneration {
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        if (holder.comment.isNotEmpty()) {
+            typeBuilder.addKdoc(holder.comment.joinToString(separator = "\n"))
+        }
+
         for (baseModelHolder in holder.basedOn) {
             typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
         }
