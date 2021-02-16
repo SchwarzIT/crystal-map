@@ -56,6 +56,8 @@ kapt {
         arg("useSuspend", "false")
         arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
         arg("entityframework.documentation.fileName", "demo.html")
+        arg("entityframework.scheme.generated", "${buildDir.absolutePath}/entity_scheme")
+        arg("entityframework.scheme.fileName", "demo_scheme.json")
     }
 }
 

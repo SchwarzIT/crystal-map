@@ -1,6 +1,7 @@
 package com.kaufland.model.field
 
 import com.kaufland.generation.TypeConversionMethodsGeneration
+import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.ConversionUtil
 import com.kaufland.util.FieldExtractionUtil
 import com.kaufland.util.TypeUtil
@@ -45,7 +46,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     abstract fun interfaceProperty(): PropertySpec
 
-    abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec
+    abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec
 
     abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec?
 

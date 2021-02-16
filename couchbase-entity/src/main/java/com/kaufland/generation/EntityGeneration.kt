@@ -52,6 +52,16 @@ class EntityGeneration {
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        holder.deprecated?.addDeprecated(typeBuilder)
+
+        if(holder.entityType != Entity.Type.READONLY){
+            holder.docId?.let {
+                companionSpec.addFunction(it.companionFunction(holder))
+                typeBuilder.addFunction(it.buildExpectedDocId(holder))
+                typeBuilder.addSuperinterface(TypeUtil.iDocId())
+            }
+        }
+
         for (baseModelHolder in holder.basedOn) {
             typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
         }
@@ -67,7 +77,7 @@ class EntityGeneration {
             }
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(holder.dbName, holder.abstractParts, true))
+            typeBuilder.addProperty(fieldHolder.property(holder.dbName, holder.abstractParts, true, holder.deprecated))
         }
 
         typeBuilder.addType(companionSpec.build())

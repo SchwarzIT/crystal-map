@@ -2,6 +2,7 @@ package com.kaufland.model.field
 
 import com.kaufland.generation.TypeConversionMethodsGeneration
 import com.kaufland.javaToKotlinType
+import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.ConversionUtil
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
@@ -28,7 +29,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
         return PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC).build()
     }
 
-    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
+    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, null)
 
         val builder = PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC, KModifier.OVERRIDE)

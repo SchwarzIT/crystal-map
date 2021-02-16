@@ -1,10 +1,7 @@
 package kaufland.com.demo.entity
 
 import com.couchbase.lite.Blob
-import kaufland.com.coachbasebinderapi.Comment
-import kaufland.com.coachbasebinderapi.Entity
-import kaufland.com.coachbasebinderapi.Field
-import kaufland.com.coachbasebinderapi.Fields
+import kaufland.com.coachbasebinderapi.*
 import kaufland.com.coachbasebinderapi.query.Queries
 import kaufland.com.coachbasebinderapi.query.Query
 
@@ -20,4 +17,5 @@ import kaufland.com.coachbasebinderapi.query.Query
 @Queries(
         Query(fields = ["type"])
 )
+@DocId(prefix = "myProduct", fields = ["type", "name"])
 open class Product

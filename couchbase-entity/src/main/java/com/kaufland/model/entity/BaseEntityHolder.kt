@@ -1,9 +1,11 @@
 package com.kaufland.model.entity
 
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
+import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.model.field.CblBaseFieldHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
+import com.kaufland.model.id.DocIdHolder
 import com.kaufland.model.query.CblQueryHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
@@ -30,7 +32,11 @@ abstract class BaseEntityHolder {
 
     val generateAccessors : MutableList<CblGenerateAccessorHolder> = ArrayList()
 
+    var deprecated : DeprecatedModel? = null
+
     val basedOn : MutableList<BaseModelHolder> = ArrayList()
+
+    var docId : DocIdHolder? = null
 
     val allFields: List<CblBaseFieldHolder>
         get() {

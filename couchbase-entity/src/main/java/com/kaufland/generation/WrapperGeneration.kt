@@ -28,6 +28,14 @@ class WrapperGeneration {
                 .superclass(holder.sourceElement!!.asType().asTypeName())
                 .addFunction(BuilderClassGeneration.generateBuilderFun())
 
+        holder.deprecated?.addDeprecated(typeBuilder)
+
+        holder.docId?.let {
+            companionSpec.addFunction(it.companionFunction(holder))
+            typeBuilder.addFunction(it.buildExpectedDocId(holder))
+            typeBuilder.addSuperinterface(TypeUtil.iDocId())
+        }
+
         for (baseModelHolder in holder.basedOn) {
             typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
         }
@@ -39,7 +47,7 @@ class WrapperGeneration {
         for (fieldHolder in holder.allFields) {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false))
+            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
             fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false)?.let {
                 builderBuilder.addFunction(it)
             }

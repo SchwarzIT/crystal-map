@@ -80,6 +80,10 @@ object TypeUtil {
         return ClassName("kaufland.com.coachbasebinderapi", "MapSupport")
     }
 
+    fun iDocId(): TypeName {
+        return ClassName("kaufland.com.coachbasebinderapi", "IDocId")
+    }
+
     fun getSimpleName(type: TypeMirror): String {
         val parts = type.toString().split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         return if (parts.size > 1) parts[parts.size - 1] else parts[0]

@@ -1,15 +1,18 @@
 package com.kaufland.model
 
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
+import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
+import com.kaufland.model.id.DocIdHolder
 import com.kaufland.model.query.CblQueryHolder
 import com.kaufland.util.FieldExtractionUtil
 import kaufland.com.coachbasebinderapi.*
+import kaufland.com.coachbasebinderapi.deprecated.Deprecated
 
 import javax.lang.model.element.Element
 
@@ -39,6 +42,8 @@ object EntityFactory {
         content.abstractParts = findPossibleOverrides(cblEntityElement)
         content.sourceElement = cblEntityElement
         content.comment = cblEntityElement.getAnnotation(Comment::class.java)?.comment ?: arrayOf()
+        content.deprecated = cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
+        content.docId = cblEntityElement.getAnnotation(DocId::class.java)?.let { DocIdHolder(it) }
 
         val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)?.let { FieldExtractionUtil.typeMirror(it) }
 
@@ -55,6 +60,7 @@ object EntityFactory {
         parseQueries(cblEntityElement, content)
         parseFields(cblEntityElement, content, allWrappers, allBaseModels)
         parseGenerateAccessors(cblEntityElement, content)
+
 
         return content
 
