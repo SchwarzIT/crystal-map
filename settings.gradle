@@ -1,1 +1,2 @@
+include ':couchbase-entity-versioning-plugin'
 include ':couchbase-entity-api', ':couchbase-entity', ':demo', ':couchbase-entity-connector'

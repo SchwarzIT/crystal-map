@@ -1,7 +1,33 @@
+import kaufland.com.coachbasebinderapi.scheme.DefaultSchemeValidator
+
+buildscript {
+    ext.kotlin_version = '1.3.72'
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
+        classpath fileTree(dir:'../couchbase-entity-versioning-plugin/build/libs', include: ['*.jar'])
+        classpath fileTree(dir:'../couchbase-entity-api/build/libs', include: ['*.jar'])
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'andcouchbase-entity-versioning-plugin'
+
+couchbaseEntityVersioning{
+    currentScheme "${buildDir.absolutePath}/entity_scheme/demo_scheme.json"
+    versionedSchemePath = "${buildDir.absolutePath}/version_test"
+    validationClazz = DefaultSchemeValidator.class
+}
 
 android {
     compileSdkVersion 29

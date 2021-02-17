@@ -1,0 +1,30 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'kotlin'
+}
+
+//repositories {
+//    mavenCentral()
+//}
+
+gradlePlugin {
+    plugins {
+        andcouchbaseentityversioning {
+            id = 'andcouchbase-entity-versioning-plugin'
+            implementationClass = 'kaufland.com.couchbaseentityversioningplugin.VersioningPlugin'
+        }
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation(gradleApi())
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation project(path: ':couchbase-entity-api', configuration: 'default')
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
+}
