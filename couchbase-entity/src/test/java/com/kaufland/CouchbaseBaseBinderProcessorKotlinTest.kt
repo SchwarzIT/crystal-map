@@ -5,6 +5,7 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import org.junit.Assert
 import org.junit.Test
+import java.util.regex.Pattern
 
 class CouchbaseBaseBinderProcessorKotlinTest {
 
@@ -51,6 +52,16 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     fun testSuccessDocIdGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"), useSuspend = true)
         Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
+    fun blabla() {
+        val pattern : String= "myProduct:%type%:%name%"
+        val matcher = Pattern.compile("%(.+?)%").matcher(pattern)
+        while (matcher.find()){
+            val test = matcher.group(1)
+        }
+        assert(false)
     }
 
     @Test

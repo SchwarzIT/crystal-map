@@ -17,5 +17,5 @@ import kaufland.com.coachbasebinderapi.query.Query
 @Queries(
         Query(fields = ["type"])
 )
-@DocId(prefix = "myProduct", fields = ["type", "name"])
+@DocId( "myProduct:%type%:%name%")
 open class Product

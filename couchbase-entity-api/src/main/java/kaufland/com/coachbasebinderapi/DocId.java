@@ -10,7 +10,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface DocId {
 
-    String[] fields() default {};
-
-    String prefix() default "";
+    String value() default "";
 }

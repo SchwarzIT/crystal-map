@@ -56,17 +56,35 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
 
     }
 
+    private fun validateDocId(baseEntityHolder: BaseEntityHolder){
+        baseEntityHolder.docId?.let {
+
+            //we always need our variables between %
+            if(it.pattern.count { it == '%' } % 2 != 0){
+                logger.error("all variables in a DocId should be wrapped in % e.G. %variable%", baseEntityHolder.sourceElement)
+            }
+
+            for (concatedField in it.concatedFields) {
+                if(!baseEntityHolder.fieldConstants.containsKey(concatedField) && !baseEntityHolder.fields.containsKey(concatedField)){
+                    logger.error("field [${concatedField}] for DocId generation does not exists", baseEntityHolder.sourceElement)
+                }
+            }
+        }
+    }
+
     fun postValidate(): Boolean {
 
         for (wrapper in wrapperModels) {
             validateQuery(wrapper.value)
             validateDeprecated(wrapper.value)
+            validateDocId(wrapper.value)
         }
 
 
         for (entity in entityModels) {
             validateQuery(entity.value)
             validateDeprecated(entity.value)
+            validateDocId(entity.value)
         }
 
         return logger.hasErrors().not()

@@ -11,6 +11,7 @@ import kaufland.com.coachbasebinderapi.DocId
 import kaufland.com.coachbasebinderapi.Field
 import org.apache.commons.lang3.text.WordUtils
 import java.lang.StringBuilder
+import java.util.regex.Pattern
 import javax.lang.model.type.TypeMirror
 
 /**
@@ -19,29 +20,32 @@ import javax.lang.model.type.TypeMirror
 
 class DocIdHolder(docId: DocId) {
 
-    val idPrefix = docId.prefix
+    val pattern = docId.value
 
-    val concatedFields: List<String> = docId.fields.toList()
+    val concatedFields: List<String> = Pattern.compile("%(.+?)%").matcher(pattern).let {
+        val list = mutableListOf<String>()
+        while (it.find()) {
+            list.add(it.group(1))
+        }
+        list
+    }
 
 
     fun companionFunction(entity: BaseEntityHolder): FunSpec {
         val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).returns(TypeUtil.string())
-        val list = mutableListOf<String>()
+        var statement = pattern
         for (concatedField in concatedFields) {
             (entity.fields[concatedField] ?: entity.fieldConstants[concatedField])?.apply {
                 spec.addParameter(accessorSuffix(), TypeUtil.parseMetaType(typeMirror, isIterable, null).copy(nullable = !isConstant))
-                list.add(accessorSuffix())
+                statement = statement.replace("%$concatedField%", "\$${accessorSuffix()}")
             }
         }
-        var statement = if (idPrefix.isNotBlank()) "$idPrefix:" else ""
-
-        statement += list.joinToString(separator = ":", transform = { "$$it" })
 
         spec.addStatement("return %P", statement)
         return spec.build()
     }
 
-    fun buildExpectedDocId(entity: BaseEntityHolder): FunSpec{
+    fun buildExpectedDocId(entity: BaseEntityHolder): FunSpec {
         val spec = FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string()).addModifiers(KModifier.OVERRIDE)
         val list = mutableListOf<String>()
         for (concatedField in concatedFields) {
