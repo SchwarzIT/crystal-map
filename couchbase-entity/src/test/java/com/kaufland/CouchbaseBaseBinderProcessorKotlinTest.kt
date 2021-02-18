@@ -55,16 +55,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
-    fun blabla() {
-        val pattern : String= "myProduct:%type%:%name%"
-        val matcher = Pattern.compile("%(.+?)%").matcher(pattern)
-        while (matcher.find()){
-            val test = matcher.group(1)
-        }
-        assert(false)
-    }
-
-    @Test
     fun testFailedWrongDeprecatedGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"), useSuspend = true)
         Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)

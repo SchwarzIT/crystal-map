@@ -9,7 +9,7 @@ import java.lang.String
         Field(name = "identifiers", type = String::class, list = true),
         Field(name = "map", type = Map::class, list = true)
 )
-@DocId("my:%name:%type")
+@DocId("my:%name%:%type%")
 open class EntityWithDocId {
 
 }
