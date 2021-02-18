@@ -32,7 +32,7 @@ class DocIdHolder(docId: DocId) {
 
 
     fun companionFunction(entity: BaseEntityHolder): FunSpec {
-        val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).returns(TypeUtil.string())
+        val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class).returns(TypeUtil.string())
         var statement = pattern
         for (concatedField in concatedFields) {
             (entity.fields[concatedField] ?: entity.fieldConstants[concatedField])?.apply {

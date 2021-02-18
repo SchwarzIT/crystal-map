@@ -32,12 +32,13 @@ class SchemeGenerator(path: String, val fileName: String) {
                 fields = entityHolder.fields.fieldsToSchemeList(),
                 basedOn = entityHolder.basedOn.map { it.sourceClazzSimpleName },
                 queries = entityHolder.queries.queriesToSchemeList(),
+                docId = entityHolder.docId?.let { DocId(it.pattern) },
                 deprecatedScheme = entityHolder.deprecated?.deprecatedToScheme()
         )
         jsonEntitySegments[entityHolder.sourceClazzSimpleName] = entityScheme
     }
 
-    private fun DeprecatedModel.deprecatedToScheme() : DeprecatedScheme = DeprecatedScheme(replacedBy = this.replacedByTypeMirror.toString(), replaceIn = this.replacedIn, deprecatedFields = this.deprecatedFields.values.map { DeprecatedFields(field = it.field, replacedBy = it.replacedBy, replaceIn = it.replacedIn) })
+    private fun DeprecatedModel.deprecatedToScheme() : DeprecatedScheme = DeprecatedScheme(replacedBy = this.replacedByTypeMirror.toString(), inUse = this.inUse, deprecatedFields = this.deprecatedFields.values.map { DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse) })
 
     private fun MutableMap<String, CblFieldHolder>.fieldsToSchemeList(): List<Fields> = map { Fields(dbField = it.value.dbField, fieldType = it.value.fieldType.toString(), isIterable = it.value.isIterable, isConstant = it.value.isConstant, defaultValue = it.value.defaultValue) }
 

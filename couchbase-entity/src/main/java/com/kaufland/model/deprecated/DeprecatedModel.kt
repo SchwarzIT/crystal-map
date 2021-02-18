@@ -13,7 +13,7 @@ class DeprecatedModel(deprecated: Deprecated) {
 
     val replacedByTypeMirror: TypeMirror? = FieldExtractionUtil.typeMirror(deprecated)
 
-    val replacedIn: String? = deprecated.replacedIn
+    val inUse: Boolean = deprecated.inUse
 
     val deprecatedFields: Map<String, DeprecatedField> = deprecated.fields.map { it.field to it }.toMap()
 
@@ -22,7 +22,8 @@ class DeprecatedModel(deprecated: Deprecated) {
         deprecatedFields[field]?.let {
             val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
 
-            builder.addMember("message = %S", evaluateDeprecationMessage(it.replacedIn))
+            builder.addMember("message = %S", "will be removed in future release")
+            builder.addMember("level = %T.${evaluateDeprecationLevel(it.inUse)}", DeprecationLevel::class.java)
 
             if (it.replacedBy.isNotBlank()) {
                 builder.addMember("replaceWith = %T(%S)", ReplaceWith::class.java, it.replacedBy)
@@ -32,12 +33,10 @@ class DeprecatedModel(deprecated: Deprecated) {
         }
     }
 
-    private fun evaluateDeprecationMessage(replacedIn: String): String {
-        return "Will be removed in " + if (replacedIn.isNotBlank()) {
-            replacedIn
-        } else {
-            "future release"
-        }
+    private fun evaluateDeprecationLevel(inUse: Boolean) = if (inUse) {
+        DeprecationLevel.WARNING
+    } else {
+        DeprecationLevel.ERROR
     }
 
     fun addDeprecated(spec: TypeSpec.Builder) {
@@ -45,7 +44,8 @@ class DeprecatedModel(deprecated: Deprecated) {
         replacedByTypeMirror?.let {
             if (it.toString() != Void::class.java.canonicalName) {
                 val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
-                builder.addMember("message = %S", evaluateDeprecationMessage(replacedIn ?: ""))
+                builder.addMember("message = %S", "will be removed in future release")
+                builder.addMember("level = %T.${evaluateDeprecationLevel(inUse)}", DeprecationLevel::class.java)
                 builder.addMember("replaceWith = %T(%S)", ReplaceWith::class.java, it.toString())
                 spec.addAnnotation(builder.build())
             }

@@ -1,87 +1,77 @@
 package kaufland.com.couchbaseentityversioningplugin
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import kaufland.com.coachbasebinderapi.scheme.EntityScheme
+import kaufland.com.couchbaseentityversioningplugin.task.ValidationTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import java.io.File
+
+private const val EXTENSION_NAME = "couchbaseEntityVersioning"
+
+private const val TASK_VALIDATE_SCHEME = "validateScheme"
+private const val TASK_REMOVE_SCHEME = "removeScheme"
+private const val TASK_ADD_SCHEME = "addScheme"
+
+private const val PARAM_VERSION = "entity-version"
 
 class VersioningPlugin : Plugin<Project> {
 
 
-
     override fun apply(project: Project) {
-        val extension = project.extensions.create("couchbaseEntityVersioning", VersioningPluginExtension::class.java)
+        val extension = project.extensions.create(EXTENSION_NAME, VersioningPluginExtension::class.java)
 
-        project.task("markCurrentSchemeAsReleased") {
-            it.doLast {
-
-                val version : String = when{
-                    project.hasProperty("entity-version") -> project.property("entity-version") as String
-                    else -> System.console().readLine("insert version of release")
-                }
-
-                val currentVersionFile = File(extension.currentScheme)
-
-                File(extension.versionedSchemePath).mkdirs()
-                val target = File(extension.versionedSchemePath, "$version.json")
-                try {
-                    currentVersionFile.copyTo(target)
-                    println("added new version")
-                } catch (fnf: NoSuchFileException) {
-                    throw Exception("source file not exists ${extension.currentScheme}")
-                } catch (fae: FileAlreadyExistsException) {
-                    throw Exception("version already exists ${target.absolutePath}")
-                }
+        project.run {
+            tasks.register(TASK_VALIDATE_SCHEME, ValidationTask::class.java){
+                it.extension = extension
             }
-        }
-        project.task("removeScheme") {
-            it.doLast {
-                val version : String = when{
-                    project.hasProperty("entity-version") -> project.property("entity-version") as String
-                    else -> System.console().readLine("insert version to remove")
-                }
-
-                val target = File(extension.versionedSchemePath, "$version.json")
-                try {
-                    target.delete()
-                    println("version removed")
-                } catch (fnf: NoSuchFileException) {
-                    println("version not exists ${target.absolutePath}")
-                }
+            tasks.register(TASK_REMOVE_SCHEME) {
+                removeScheme(project, extension, it)
             }
-        }
-        project.task("validateScheme") {
-            it.doLast { task ->
-
-                extension.validationClazz?.let {
-                    val currentVersionFile = parseVersionScheme(File(extension.currentScheme))
-
-                    val validator = it.newInstance()
-                    var result = true
-                    for (versionFile in File(extension.versionedSchemePath).listFiles()) {
-                        val version = versionFile.nameWithoutExtension
-                        if (versionFile.extension == "json") {
-                            result = result && validator.validate(currentVersionFile, parseVersionScheme(versionFile), version)
-                        } else {
-                            println("skipped validation for ${versionFile.name}")
-                        }
-                    }
-
-                    if (!result) {
-                        throw Exception("validation failed")
-                    }
-
-                } ?: println("no SchemeValidator registered")
-
+            tasks.register(TASK_ADD_SCHEME) {
+                markCurrentSchemeAsReleased(project, extension, it)
             }
         }
     }
 
-    private fun parseVersionScheme(file: File): List<EntityScheme> {
-        val mapper = ObjectMapper().registerModule(KotlinModule())
-        return mapper.readValue(file, object : TypeReference<List<EntityScheme>>() {})
+
+    private fun markCurrentSchemeAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
+        task.doLast {
+
+            val version: String = when {
+                project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
+                else -> System.console().readLine("insert version of release")
+            }
+
+            val currentVersionFile = File(extension.currentScheme)
+
+            File(extension.versionedSchemePath).mkdirs()
+            val target = File(extension.versionedSchemePath, "$version.json")
+            try {
+                currentVersionFile.copyTo(target)
+                println("added new version")
+            } catch (fnf: NoSuchFileException) {
+                throw Exception("source file not exists ${extension.currentScheme}")
+            } catch (fae: FileAlreadyExistsException) {
+                throw Exception("version already exists ${target.absolutePath}")
+            }
+        }
     }
+
+    private fun removeScheme(project: Project, extension: VersioningPluginExtension, task: Task) {
+        task.doLast {
+            val version: String = when {
+                project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
+                else -> System.console().readLine("insert version to remove")
+            }
+
+            val target = File(extension.versionedSchemePath, "$version.json")
+            try {
+                target.delete()
+                println("version removed")
+            } catch (fnf: NoSuchFileException) {
+                println("version not exists ${target.absolutePath}")
+            }
+        }
+    }
+
 }

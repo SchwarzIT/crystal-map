@@ -11,7 +11,7 @@ public @interface Deprecated {
 
     Class<?> replacedBy() default Void.class;
 
-    String replacedIn() default "";
+    boolean inUse() default true;
 
     DeprecatedField[] fields() default {};
 
