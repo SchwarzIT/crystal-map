@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import kaufland.com.coachbasebinderapi.scheme.EntityScheme
-import kaufland.com.couchbaseentityversioningplugin.SchemeValidationLoggerImpl
+import kaufland.com.coachbasebinderapi.schema.EntitySchema
+import kaufland.com.couchbaseentityversioningplugin.SchemaValidationLoggerImpl
 import kaufland.com.couchbaseentityversioningplugin.VersioningPluginExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -22,16 +22,16 @@ open class ValidationTask : DefaultTask() {
     fun generate() {
 
         extension.validationClazz?.let {
-            val currentVersionFile = parseVersionScheme(File(extension.currentScheme))
+            val currentVersionFile = parseVersionSchema(File(extension.currentSchema))
             val prettyPrinter = services.get(StyledTextOutputFactory::class.java)
 
             val validator = it.newInstance()
             var result = true
-            for (versionFile in File(extension.versionedSchemePath).listFiles()) {
+            for (versionFile in File(extension.versionedSchemaPath).listFiles()) {
                 if (versionFile.extension == "json") {
 
-                    val logger = SchemeValidationLoggerImpl()
-                    validator.validate(currentVersionFile, parseVersionScheme(versionFile), logger)
+                    val logger = SchemaValidationLoggerImpl()
+                    validator.validate(currentVersionFile, parseVersionSchema(versionFile), logger)
                     logger.print(prettyPrinter.create("model"))
                     result = result && !logger.hasErrors()
                 } else {
@@ -43,12 +43,12 @@ open class ValidationTask : DefaultTask() {
                 throw Exception("validation failed")
             }
 
-        } ?: println("no SchemeValidator registered")
+        } ?: println("no SchemaValidator registered")
 
     }
 
-    private fun parseVersionScheme(file: File): List<EntityScheme> {
+    private fun parseVersionSchema(file: File): List<EntitySchema> {
         val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(KotlinModule())
-        return mapper.readValue(file, object : TypeReference<List<EntityScheme>>() {})
+        return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
     }
 }

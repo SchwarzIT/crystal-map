@@ -23,17 +23,18 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     val constantValueAccessorName = "DOC_$constantName"
 
 
-    override fun interfaceProperty(): PropertySpec {
-        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, null)
+    override val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, null)
 
-        return PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC).build()
+
+    override fun interfaceProperty(): PropertySpec {
+
+        return PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC).build()
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
-        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, null)
 
-        val builder = PropertySpec.builder(accessorSuffix(), returnType, KModifier.PUBLIC, KModifier.OVERRIDE)
-                .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, returnType).build())
+        val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
+                .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, fieldType).build())
 
         if (comment.isNotEmpty()) {
             builder.addKdoc(comment.joinToString(separator = "\n"))

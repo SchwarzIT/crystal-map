@@ -3,8 +3,8 @@ package com.kaufland
 import com.google.auto.service.AutoService
 import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
-import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEME_FILENAME_OPTION_NAME
-import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEME_PATH_OPTION_NAME
+import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
+import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEMA_PATH_OPTION_NAME
 import com.kaufland.CoachBaseBinderProcessor.Companion.FRAMEWORK_USE_SUSPEND_OPTION_NAME
 import com.kaufland.CoachBaseBinderProcessor.Companion.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.kaufland.documentation.DocumentationGenerator
@@ -13,7 +13,7 @@ import com.kaufland.generation.CodeGenerator
 import com.kaufland.generation.CommonInterfaceGeneration
 import com.kaufland.generation.EntityGeneration
 import com.kaufland.generation.WrapperGeneration
-import com.kaufland.meta.SchemeGenerator
+import com.kaufland.meta.SchemaGenerator
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.processing.ModelWorkSet
 import com.squareup.kotlinpoet.FileSpec
@@ -27,7 +27,7 @@ import javax.lang.model.element.TypeElement
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor::class)
-@SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME, FRAMEWORK_USE_SUSPEND_OPTION_NAME, FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME, FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, FRAMEWORK_SCHEME_PATH_OPTION_NAME, FRAMEWORK_SCHEME_FILENAME_OPTION_NAME)
+@SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME, FRAMEWORK_USE_SUSPEND_OPTION_NAME, FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME, FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, FRAMEWORK_SCHEMA_PATH_OPTION_NAME, FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME)
 class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private lateinit var mLogger: Logger
@@ -38,7 +38,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private var documentationGenerator: DocumentationGenerator? = null
     private var entityRelationshipGenerator: EntityRelationshipGenerator? = null
-    private var metaDescriptionGenerator: SchemeGenerator? = null
+    private var schemaGenerator: SchemaGenerator? = null
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
@@ -47,8 +47,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "entityframework.documentation.fileName"
         const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "entityframework.documentation.entityrelationship.generated"
         const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "entityframework.documentation.entityrelationship.fileName"
-        const val FRAMEWORK_SCHEME_PATH_OPTION_NAME = "entityframework.scheme.generated"
-        const val FRAMEWORK_SCHEME_FILENAME_OPTION_NAME = "entityframework.scheme.fileName"
+        const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "entityframework.schema.generated"
+        const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "entityframework.schema.fileName"
 
 
     }
@@ -64,8 +64,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
             documentationGenerator = DocumentationGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, "default.html"))
 
         }
-        processingEnvironment.options[FRAMEWORK_SCHEME_PATH_OPTION_NAME]?.let {
-            metaDescriptionGenerator = SchemeGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_SCHEME_FILENAME_OPTION_NAME, "scheme.json"))
+        processingEnvironment.options[FRAMEWORK_SCHEMA_PATH_OPTION_NAME]?.let {
+            schemaGenerator = SchemaGenerator(it, processingEnvironment.options.getOrDefault(FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME, "schema.json"))
         }
 
         processingEnvironment.options[FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME]?.let {
@@ -108,7 +108,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
         documentationGenerator?.generate()
         entityRelationshipGenerator?.generate()
-        metaDescriptionGenerator?.generate()
+        schemaGenerator?.generate()
 
         return true // no further processing of this annotation type
     }
@@ -118,7 +118,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         for (model in models) {
             generateInterface(generatedInterfaces, model)
             documentationGenerator?.addEntitySegments(model)
-            metaDescriptionGenerator?.addEntity(model)
+            schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
             generate(model)?.apply {
                 mCodeGenerator!!.generate(this, processingEnv)

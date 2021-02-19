@@ -1,9 +1,9 @@
 package kaufland.com.couchbaseentityversioningplugin
 
-import kaufland.com.coachbasebinderapi.scheme.SchemeValidator
+import kaufland.com.coachbasebinderapi.schema.SchemaValidator
 
 open class VersioningPluginExtension {
-    var currentScheme : String? = null
-    var versionedSchemePath: String? = null
-    var validationClazz: Class<SchemeValidator>? = null
+    var currentSchema : String? = null
+    var versionedSchemaPath: String? = null
+    var validationClazz: Class<SchemaValidator>? = null
 }

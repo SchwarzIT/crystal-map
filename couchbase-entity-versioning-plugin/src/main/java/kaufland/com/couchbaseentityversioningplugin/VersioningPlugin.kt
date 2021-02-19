@@ -8,9 +8,9 @@ import java.io.File
 
 private const val EXTENSION_NAME = "couchbaseEntityVersioning"
 
-private const val TASK_VALIDATE_SCHEME = "validateScheme"
-private const val TASK_REMOVE_SCHEME = "removeScheme"
-private const val TASK_ADD_SCHEME = "addScheme"
+private const val TASK_VALIDATE_SCHEMA = "validateSchema"
+private const val TASK_REMOVE_SCHEMA = "removeSchema"
+private const val TASK_ADD_SCHEMA = "addSchema"
 
 private const val PARAM_VERSION = "entity-version"
 
@@ -21,50 +21,51 @@ class VersioningPlugin : Plugin<Project> {
         val extension = project.extensions.create(EXTENSION_NAME, VersioningPluginExtension::class.java)
 
         project.run {
-            tasks.register(TASK_VALIDATE_SCHEME, ValidationTask::class.java){
+            tasks.register(TASK_VALIDATE_SCHEMA, ValidationTask::class.java){
+                it.dependsOn.add("build")
                 it.extension = extension
             }
-            tasks.register(TASK_REMOVE_SCHEME) {
-                removeScheme(project, extension, it)
+            tasks.register(TASK_REMOVE_SCHEMA) {
+                removeSchema(project, extension, it)
             }
-            tasks.register(TASK_ADD_SCHEME) {
-                markCurrentSchemeAsReleased(project, extension, it)
+            tasks.register(TASK_ADD_SCHEMA) {
+                markCurrentSchemaAsReleased(project, extension, it)
             }
         }
     }
 
 
-    private fun markCurrentSchemeAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
-        task.doLast {
+    private fun markCurrentSchemaAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
+        task.dependsOn("build").doLast {
 
             val version: String = when {
                 project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
                 else -> System.console().readLine("insert version of release")
             }
 
-            val currentVersionFile = File(extension.currentScheme)
+            val currentVersionFile = File(extension.currentSchema)
 
-            File(extension.versionedSchemePath).mkdirs()
-            val target = File(extension.versionedSchemePath, "$version.json")
+            File(extension.versionedSchemaPath).mkdirs()
+            val target = File(extension.versionedSchemaPath, "$version.json")
             try {
                 currentVersionFile.copyTo(target)
                 println("added new version")
             } catch (fnf: NoSuchFileException) {
-                throw Exception("source file not exists ${extension.currentScheme}")
+                throw Exception("source file not exists ${extension.currentSchema}")
             } catch (fae: FileAlreadyExistsException) {
                 throw Exception("version already exists ${target.absolutePath}")
             }
         }
     }
 
-    private fun removeScheme(project: Project, extension: VersioningPluginExtension, task: Task) {
+    private fun removeSchema(project: Project, extension: VersioningPluginExtension, task: Task) {
         task.doLast {
             val version: String = when {
                 project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
                 else -> System.console().readLine("insert version to remove")
             }
 
-            val target = File(extension.versionedSchemePath, "$version.json")
+            val target = File(extension.versionedSchemaPath, "$version.json")
             try {
                 target.delete()
                 println("version removed")

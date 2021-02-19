@@ -23,12 +23,12 @@ apply plugin: 'kotlin-kapt'
 //TODO enable to localy test plugin
 //apply plugin: 'andcouchbase-entity-versioning-plugin'
 //
-//import kaufland.com.coachbasebinderapi.scheme.DefaultSchemeValidator
+//import kaufland.com.coachbasebinderapi.schema.DefaultSchemaValidator
 //
 //couchbaseEntityVersioning{
-//    currentScheme "${buildDir.absolutePath}/entity_scheme/demo_scheme.json"
-//    versionedSchemePath = "${buildDir.absolutePath}/version_test"
-//    validationClazz = DefaultSchemeValidator.class
+//    currentSchema "${buildDir.absolutePath}/entity_schema/demo_schema.json"
+//    versionedSchemaPath = "${buildDir.absolutePath}/version_test"
+//    validationClazz = DefaultSchemaValidator.class
 //}
 
 android {
@@ -84,8 +84,8 @@ kapt {
         arg("useSuspend", "false")
         arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
         arg("entityframework.documentation.fileName", "demo.html")
-        arg("entityframework.scheme.generated", "${buildDir.absolutePath}/entity_scheme")
-        arg("entityframework.scheme.fileName", "demo_scheme.json")
+        arg("entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
+        arg("entityframework.schema.fileName", "demo_schema.json")
     }
 }
 

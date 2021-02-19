@@ -1,10 +1,10 @@
-package kaufland.com.coachbasebinderapi.scheme
+package kaufland.com.coachbasebinderapi.schema
 
-open class DefaultSchemeValidator : SchemeValidator {
+open class DefaultSchemaValidator : SchemaValidator {
 
-    override fun validate(current: List<EntityScheme>, released: List<EntityScheme>, logger: SchemeValidationLogger) {
-        val currentMap: Map<String, EntityScheme> = current.map { it.name to it }.toMap()
-        val releasedMap: Map<String, EntityScheme> = released.map { it.name to it }.toMap()
+    override fun validate(current: List<EntitySchema>, released: List<EntitySchema>, logger: SchemaValidationLogger) {
+        val currentMap: Map<String, EntitySchema> = current.map { it.name to it }.toMap()
+        val releasedMap: Map<String, EntitySchema> = released.map { it.name to it }.toMap()
 
         for (entry in releasedMap) {
             if (currentMap[entry.key] != entry.value) {
@@ -15,13 +15,13 @@ open class DefaultSchemeValidator : SchemeValidator {
         }
     }
 
-    protected open fun validateModelLevel(current: EntityScheme?, released: EntityScheme, logger: SchemeValidationLogger): Boolean {
+    protected open fun validateModelLevel(current: EntitySchema?, released: EntitySchema, logger: SchemaValidationLogger): Boolean {
 
         current?.let {
 
             released.docId?.let {
                 if(current?.docId?.scheme != it.scheme){
-                    logger.error(released, "forbidden DocId Scheme change")
+                    logger.error(released, "forbidden DocId Schema change")
                 }
             }
 
@@ -39,16 +39,16 @@ open class DefaultSchemeValidator : SchemeValidator {
         return true
     }
 
-    protected open fun validateFieldLevel(released: EntityScheme, key: String, logger: SchemeValidationLogger) {
-        if (released?.deprecatedScheme?.deprecatedFields?.find { it.field == key }?.inUse != false) {
+    protected open fun validateFieldLevel(released: EntitySchema, key: String, logger: SchemaValidationLogger) {
+        if (released?.deprecatedSchema?.deprecatedFields?.find { it.field == key }?.inUse != false) {
             logger.error(released, "forbidden change on existing field [$key]")
         } else {
             logger.info(released, "allowed change on existing field [$key] since it's deprecated and no longer in use")
         }
     }
 
-    private fun modelDeletedDuringValidDeprecationPeriod(released: EntityScheme, logger: SchemeValidationLogger) {
-        if(released?.deprecatedScheme == null || released?.deprecatedScheme.inUse){
+    private fun modelDeletedDuringValidDeprecationPeriod(released: EntitySchema, logger: SchemaValidationLogger) {
+        if(released?.deprecatedSchema == null || released?.deprecatedSchema.inUse){
             logger.error(released, "forbidden model deletion")
         }else{
             logger.error(released, "allowed model deletion")

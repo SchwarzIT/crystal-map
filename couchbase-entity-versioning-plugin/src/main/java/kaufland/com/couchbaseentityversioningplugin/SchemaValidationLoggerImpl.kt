@@ -1,10 +1,10 @@
 package kaufland.com.couchbaseentityversioningplugin
 
-import kaufland.com.coachbasebinderapi.scheme.EntityScheme
-import kaufland.com.coachbasebinderapi.scheme.SchemeValidationLogger
+import kaufland.com.coachbasebinderapi.schema.EntitySchema
+import kaufland.com.coachbasebinderapi.schema.SchemaValidationLogger
 import org.gradle.internal.logging.text.StyledTextOutput
 
-class SchemeValidationLoggerImpl : SchemeValidationLogger {
+class SchemaValidationLoggerImpl : SchemaValidationLogger {
 
     private data class Message(val message: String, val level: Level)
 
@@ -14,26 +14,26 @@ class SchemeValidationLoggerImpl : SchemeValidationLogger {
         ERROR
     }
 
-    private val map: MutableMap<EntityScheme, MutableList<Message>> = HashMap()
+    private val map: MutableMap<EntitySchema, MutableList<Message>> = HashMap()
 
 
-    override fun info(entityScheme: EntityScheme, message: String) {
-        add(entityScheme, message, Level.INFO)
+    override fun info(entitySchema: EntitySchema, message: String) {
+        add(entitySchema, message, Level.INFO)
     }
 
-    override fun error(entityScheme: EntityScheme, message: String) {
-        add(entityScheme, message, Level.ERROR)
+    override fun error(entitySchema: EntitySchema, message: String) {
+        add(entitySchema, message, Level.ERROR)
     }
 
-    override fun warning(entityScheme: EntityScheme, message: String) {
-        add(entityScheme, message, Level.WARNING)
+    override fun warning(entitySchema: EntitySchema, message: String) {
+        add(entitySchema, message, Level.WARNING)
     }
 
-    private fun add(entityScheme: EntityScheme, message: String, level: Level) {
-        map.computeIfAbsent(entityScheme) {
+    private fun add(entitySchema: EntitySchema, message: String, level: Level) {
+        map.computeIfAbsent(entitySchema) {
             mutableListOf()
         }
-        map[entityScheme]?.add(Message(message, level))
+        map[entitySchema]?.add(Message(message, level))
     }
 
     fun print(printer: StyledTextOutput) {

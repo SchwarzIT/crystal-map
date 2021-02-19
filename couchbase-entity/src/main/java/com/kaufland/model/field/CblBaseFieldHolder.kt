@@ -39,6 +39,8 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
     val comment: Array<String>
         get() = mField.comment
 
+    abstract val fieldType: TypeName
+
 
     fun accessorSuffix(): String {
         return WordUtils.uncapitalize(WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""))
