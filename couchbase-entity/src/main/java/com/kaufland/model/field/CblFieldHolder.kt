@@ -43,7 +43,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun interfaceProperty(): PropertySpec {
-        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
+        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
         return PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC).mutable(true).build()
     }
 
@@ -51,7 +51,6 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
         val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
-
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
@@ -95,6 +94,10 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
         }
 
+        if (comment.isNotEmpty()) {
+            propertyBuilder.addKdoc(comment.joinToString(separator = "\n"))
+        }
+
         return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
     }
 
@@ -103,9 +106,16 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         return CodeBlock.of("${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}<%T>($format, %T::class)", resultType, *args, forTypeConversion)
     }
 
-    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {
+    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec {
         val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
-        val builder = FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(ClassName(packageName, "${entitySimpleName}.Builder"))
+        val builder = FunSpec.builder("set" + accessorSuffix().capitalize())
+                .addModifiers(KModifier.PUBLIC)
+                .addParameter("value", fieldType)
+                .returns(ClassName(packageName, "${entitySimpleName}.Builder"))
+
+        if (this.comment.isNotEmpty()) {
+            builder.addKdoc(this.comment.joinToString(separator = "\n"))
+        }
 
         builder.addStatement("obj.${accessorSuffix()} = value")
         builder.addStatement("return this")

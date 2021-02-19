@@ -18,11 +18,11 @@ import javax.lang.model.element.Element
 
 abstract class BaseEntityHolder {
 
-    val fields: MutableMap<String, CblFieldHolder> = HashMap()
+    val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()
 
-    var abstractParts: Set<String> = HashSet()
+    var abstractParts: Set<String> = mutableSetOf()
 
-    val fieldConstants: MutableMap<String, CblConstantHolder> = HashMap()
+    val fieldConstants: MutableMap<String, CblConstantHolder> = mutableMapOf()
 
     var sourceElement: Element? = null
 

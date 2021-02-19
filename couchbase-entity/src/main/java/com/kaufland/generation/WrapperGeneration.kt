@@ -10,9 +10,9 @@ class WrapperGeneration {
 
     fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
 
-        var companionSpec = TypeSpec.companionObjectBuilder()
+        val companionSpec = TypeSpec.companionObjectBuilder()
 
-        var builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
+        val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
                 .addSuperinterface(TypeUtil.mapSupport())
@@ -22,7 +22,7 @@ class WrapperGeneration {
                 .addFunction(CblDefaultGeneration.addDefaults(holder, true))
                 .addFunction(CblConstantGeneration.addConstants(holder, true))
                 .addFunction(MapSupportGeneration.toMap(holder))
-                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
+                .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build())
                 .addFunction(constructorMap())
                 .addFunction(constructorDefault())
                 .superclass(holder.sourceElement!!.asType().asTypeName())
@@ -34,6 +34,9 @@ class WrapperGeneration {
             companionSpec.addFunction(it.companionFunction(holder))
             typeBuilder.addFunction(it.buildExpectedDocId(holder))
             typeBuilder.addSuperinterface(TypeUtil.iDocId())
+        }
+        if (holder.comment.isNotEmpty()) {
+            typeBuilder.addKdoc(holder.comment.joinToString(separator = "\n"))
         }
 
         for (baseModelHolder in holder.basedOn) {
