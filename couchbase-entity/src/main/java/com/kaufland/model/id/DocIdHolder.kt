@@ -14,9 +14,6 @@ import java.lang.StringBuilder
 import java.util.regex.Pattern
 import javax.lang.model.type.TypeMirror
 
-/**
- * Created by sbra0902 on 21.06.17.
- */
 
 class DocIdHolder(docId: DocId) {
 

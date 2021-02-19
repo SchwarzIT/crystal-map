@@ -1,6 +1,6 @@
 package kaufland.com.coachbasebinderapi.scheme
 
-class DefaultSchemeValidator : SchemeValidator {
+open class DefaultSchemeValidator : SchemeValidator {
 
     override fun validate(current: List<EntityScheme>, released: List<EntityScheme>, logger: SchemeValidationLogger) {
         val currentMap: Map<String, EntityScheme> = current.map { it.name to it }.toMap()
@@ -10,12 +10,12 @@ class DefaultSchemeValidator : SchemeValidator {
             if (currentMap[entry.key] != entry.value) {
                 validateModelLevel(currentMap[entry.key], entry.value, logger)
             } else {
-                logger.info(entry.value, "did not changed")
+                logger.info(entry.value, "did not change")
             }
         }
     }
 
-    fun validateModelLevel(current: EntityScheme?, released: EntityScheme, logger: SchemeValidationLogger): Boolean {
+    protected open fun validateModelLevel(current: EntityScheme?, released: EntityScheme, logger: SchemeValidationLogger): Boolean {
 
         current?.let {
 
@@ -30,19 +30,21 @@ class DefaultSchemeValidator : SchemeValidator {
 
             for (key in releasedFields.keys) {
                 if(currentFields[key] != releasedFields[key]){
-
-                    if(released?.deprecatedScheme?.deprecatedFields?.find { it.field == key }?.inUse != false){
-                        logger.error(released, "forbidden change on existing field [$key]")
-                    }else{
-                        logger.error(released, "allowed change on existing field [$key] since it's deprecated an no longer in use")
-                    }
-
+                    validateFieldLevel(released, key, logger)
                 }
             }
 
         } ?: modelDeletedDuringValidDeprecationPeriod(released, logger)
 
         return true
+    }
+
+    protected open fun validateFieldLevel(released: EntityScheme, key: String, logger: SchemeValidationLogger) {
+        if (released?.deprecatedScheme?.deprecatedFields?.find { it.field == key }?.inUse != false) {
+            logger.error(released, "forbidden change on existing field [$key]")
+        } else {
+            logger.info(released, "allowed change on existing field [$key] since it's deprecated and no longer in use")
+        }
     }
 
     private fun modelDeletedDuringValidDeprecationPeriod(released: EntityScheme, logger: SchemeValidationLogger) {
