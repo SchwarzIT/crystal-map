@@ -20,16 +20,16 @@ open class DefaultSchemaValidator : SchemaValidator {
         current?.let {
 
             released.docId?.let {
-                if(current?.docId?.scheme != it.scheme){
+                if (current?.docId?.scheme != it.scheme) {
                     logger.error(released, "forbidden DocId Schema change")
                 }
             }
 
-            val currentFields = current.fields.map { it.dbField to it }.toMap()
-            val releasedFields = released.fields.map { it.dbField to it }.toMap()
+            val currentFields = current.fields.associateBy { it.dbField }
+            val releasedFields = released.fields.associateBy { it.dbField }
 
             for (key in releasedFields.keys) {
-                if(currentFields[key] != releasedFields[key]){
+                if (currentFields[key] != releasedFields[key]) {
                     validateFieldLevel(released, key, logger)
                 }
             }
@@ -48,9 +48,9 @@ open class DefaultSchemaValidator : SchemaValidator {
     }
 
     private fun modelDeletedDuringValidDeprecationPeriod(released: EntitySchema, logger: SchemaValidationLogger) {
-        if(released?.deprecatedSchema == null || released?.deprecatedSchema.inUse){
+        if (released?.deprecatedSchema == null || released?.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")
-        }else{
+        } else {
             logger.error(released, "allowed model deletion")
         }
     }

@@ -39,15 +39,16 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
         }
 
         for (field in deprecatedFields) {
-            if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key)){
+            if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key)) {
                 logger.error("replacement field [${field.key}] does not exists", model.sourceElement)
             }
 
             field.value.replacedBy?.let { replacement ->
                 val replacingIncludedInModel = model.fields.containsKey(replacement) || model.fieldConstants.containsKey(replacement)
-                val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) ||  it.fieldConstants?.containsKey(replacement)} ?: false
+                val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) }
+                        ?: false
 
-                if(!replacingIncludedInModel  && !replacementIncludedReplacingModel){
+                if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
                     logger.error("replacement [${replacement}] for field [${field.key}] does not exists", model.sourceElement)
                 }
             }
@@ -56,18 +57,31 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
 
     }
 
-    private fun validateDocId(baseEntityHolder: BaseEntityHolder){
+    private fun validateDocId(baseEntityHolder: BaseEntityHolder) {
         baseEntityHolder.docId?.let {
 
             //we always need our variables between %
-            if(it.pattern.count { it == '%' } % 2 != 0){
+            if (it.pattern.count { it == '%' } % 2 != 0) {
                 logger.error("all variables in a DocId should be wrapped in % e.G. %variable%", baseEntityHolder.sourceElement)
             }
 
-            for (concatedField in it.concatedFields) {
-                if(!baseEntityHolder.fieldConstants.containsKey(concatedField) && !baseEntityHolder.fields.containsKey(concatedField)){
-                    logger.error("field [${concatedField}] for DocId generation does not exists", baseEntityHolder.sourceElement)
+            for (segment in it.segments) {
+                for (field in segment.fields) {
+                    if (!baseEntityHolder.fieldConstants.containsKey(field) && !baseEntityHolder.fields.containsKey(field)) {
+                        logger.error("field [${field}] for DocId generation does not exists", baseEntityHolder.sourceElement)
+                    }
                 }
+                segment.customSegment?.apply {
+                    if (!it.customSegments.containsKey(name)) {
+                        logger.error("DocIdSegment annotated [${name}] not found in DocId", baseEntityHolder.sourceElement)
+                    }
+                }
+
+                if (segment.customSegment == null && (segment.segment.contains('(') || segment.segment.contains(')'))) {
+                    logger.error("It looks like you try to use a DocIdSegment which not exists", baseEntityHolder.sourceElement)
+                }
+
+
             }
         }
     }

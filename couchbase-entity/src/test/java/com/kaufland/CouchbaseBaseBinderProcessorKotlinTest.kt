@@ -55,6 +55,12 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSuccessDocIdSegmentGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"), useSuspend = true)
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
     fun testFailedWrongDeprecatedGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"), useSuspend = true)
         Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)

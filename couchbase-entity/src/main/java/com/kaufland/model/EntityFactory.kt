@@ -9,6 +9,7 @@ import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.model.id.DocIdHolder
+import com.kaufland.model.id.DocIdSegmentHolder
 import com.kaufland.model.query.CblQueryHolder
 import com.kaufland.util.FieldExtractionUtil
 import kaufland.com.coachbasebinderapi.*
@@ -43,7 +44,7 @@ object EntityFactory {
         content.sourceElement = cblEntityElement
         content.comment = cblEntityElement.getAnnotation(Comment::class.java)?.comment ?: arrayOf()
         content.deprecated = cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
-        content.docId = cblEntityElement.getAnnotation(DocId::class.java)?.let { DocIdHolder(it) }
+
 
         val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)?.let { FieldExtractionUtil.typeMirror(it) }
 
@@ -59,8 +60,20 @@ object EntityFactory {
 
         parseQueries(cblEntityElement, content)
         parseFields(cblEntityElement, content, allWrappers, allBaseModels)
-        parseGenerateAccessors(cblEntityElement, content)
 
+        val docId = cblEntityElement.getAnnotation(DocId::class.java)
+        val docIdSegments: MutableList<DocIdSegmentHolder> = mutableListOf()
+
+        parseStaticsFromStructure(cblEntityElement) {
+            if (it.getAnnotation(GenerateAccessor::class.java) != null) {
+                content.generateAccessors.add(CblGenerateAccessorHolder(content.sourceClazzSimpleName, it))
+            }
+            it.getAnnotation(DocIdSegment::class.java)?.apply {
+                docIdSegments.add(DocIdSegmentHolder(this, it))
+            }
+        }
+
+        content.docId = docId?.let { DocIdHolder(it, docIdSegments) }
 
         return content
 
@@ -80,26 +93,20 @@ object EntityFactory {
         }
     }
 
-    private fun parseGenerateAccessors(cblEntityElement: Element, content: BaseEntityHolder){
-
+    private fun parseStaticsFromStructure(cblEntityElement: Element, mapper: (Element) -> Unit) {
         for (childElement in cblEntityElement.enclosedElements) {
-            if(childElement.modifiers.contains(Modifier.STATIC)){
-                if(childElement.kind == ElementKind.CLASS && childElement.simpleName.toString() == "Companion"){
+            if (childElement.modifiers.contains(Modifier.STATIC)) {
+                if (childElement.kind == ElementKind.CLASS && childElement.simpleName.toString() == "Companion") {
                     for (companionMembers in childElement.enclosedElements) {
-                        addIfAnnotationIsPresent(content.sourceClazzSimpleName, companionMembers, content.generateAccessors)
+                        mapper.invoke(companionMembers)
                     }
                     continue
                 }
-                addIfAnnotationIsPresent(content.sourceClazzSimpleName, childElement, content.generateAccessors)
+                mapper.invoke(childElement)
             }
         }
     }
 
-    private fun addIfAnnotationIsPresent(className: String, companionMembers: Element, generateAccessors: MutableList<CblGenerateAccessorHolder>) {
-        if (companionMembers.getAnnotation(GenerateAccessor::class.java) != null) {
-            generateAccessors.add(CblGenerateAccessorHolder(className, companionMembers))
-        }
-    }
 
     private fun parseQueries(cblEntityElement: Element, content: BaseEntityHolder) {
         val queries = cblEntityElement.getAnnotation(Queries::class.java) ?: return
