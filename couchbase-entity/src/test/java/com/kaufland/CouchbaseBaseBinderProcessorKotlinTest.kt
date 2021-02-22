@@ -5,6 +5,7 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import org.junit.Assert
 import org.junit.Test
+import java.util.regex.Pattern
 
 class CouchbaseBaseBinderProcessorKotlinTest {
 
@@ -39,6 +40,31 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
 
         Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
+    fun testSuccessDeprecatedGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"), useSuspend = true)
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
+    fun testSuccessDocIdGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"), useSuspend = true)
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
+    fun testSuccessDocIdSegmentGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"), useSuspend = true)
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
+    fun testFailedWrongDeprecatedGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"), useSuspend = true)
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        Assert.assertTrue(compilation.messages.contains("replacement [name2] for field [name] does not exists"))
     }
 
     @Test

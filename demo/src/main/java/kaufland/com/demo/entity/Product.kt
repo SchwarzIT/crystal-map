@@ -18,4 +18,12 @@ import kaufland.com.coachbasebinderapi.query.Query
 @Queries(
         Query(fields = ["type"])
 )
-open class Product
+@DocId( "myProduct:%type%:%name%:%custom(name)%")
+open class Product{
+
+    companion object{
+        @DocIdSegment
+        fun custom(name : String?) : String = "${name}blub"
+    }
+
+}

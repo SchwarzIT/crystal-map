@@ -3,6 +3,8 @@ package schwarz.fwws.shared.model.article
 import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.coachbasebinderapi.MapWrapper
+import kaufland.com.coachbasebinderapi.deprecated.Deprecated
+import kaufland.com.coachbasebinderapi.deprecated.DeprecatedField
 import schwarz.fwws.shared.model.DWG
 import schwarz.fwws.shared.model.Model
 
@@ -33,6 +35,7 @@ import schwarz.fwws.shared.model.Model
         Field(name = "kolli_qty", type = Int::class),
         Field(name = "dwg", type = String::class)
 )
+@Deprecated(replacedBy = StoreArticle::class,  fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")])
 open class BaseArticle {
     companion object {
         const val PREFIX: String = "basearticle"

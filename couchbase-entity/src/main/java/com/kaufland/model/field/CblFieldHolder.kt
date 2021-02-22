@@ -2,6 +2,7 @@ package com.kaufland.model.field
 
 import com.kaufland.generation.KDocGeneration
 import com.kaufland.generation.TypeConversionMethodsGeneration
+import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import kaufland.com.coachbasebinderapi.Field
@@ -27,7 +28,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
-    val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
+    override val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
     init {
         if (allWrappers.contains(typeMirror.toString())) {
@@ -47,13 +48,17 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         return PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC).mutable(true).build()
     }
 
-    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean): PropertySpec {
-        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
+    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
+        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
         val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
+
+        deprecated?.let {
+            it.addDeprecated(dbField, propertyBuilder)
+        }
 
         val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
 

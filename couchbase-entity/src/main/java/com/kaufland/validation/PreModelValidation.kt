@@ -1,23 +1,20 @@
 package com.kaufland.validation
 
 import com.kaufland.Logger
-import com.kaufland.model.entity.BaseEntityHolder
-import com.kaufland.util.FieldExtractionUtil
 import com.sun.tools.javac.code.Symbol
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.coachbasebinderapi.MapWrapper
-import kaufland.com.coachbasebinderapi.query.Queries
-import java.util.*
+import java.util.ArrayList
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 
-class PreValidator {
+object PreModelValidation {
 
 
     @Throws(ClassNotFoundException::class)
-    fun preValidate(entityElement: Element, logger: Logger) {
+    fun validate(entityElement: Element, logger: Logger) {
 
         if(entityElement.getAnnotation(Entity::class.java) != null || entityElement.getAnnotation(MapWrapper::class.java) != null){
 
@@ -57,19 +54,5 @@ class PreValidator {
                 }
             }
         }
-
-
-    }
-
-    fun postValidate(baseEntityHolder: BaseEntityHolder, logger: Logger){
-
-        for (query in baseEntityHolder.queries) {
-            for (field in query.fields) {
-                if(!baseEntityHolder.fields.containsKey(field) && !baseEntityHolder.fieldConstants.containsKey(field)){
-                    logger.error("query param [$field] is not a part of this entity", baseEntityHolder.sourceElement)
-                }
-            }
-        }
-
     }
 }
