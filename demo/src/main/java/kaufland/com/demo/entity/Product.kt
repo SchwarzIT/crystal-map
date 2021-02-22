@@ -11,7 +11,7 @@ import kaufland.com.coachbasebinderapi.query.Query
 @Fields(
         Field(name = "type", type = String::class, defaultValue = "product", readonly = true, comment = ["Document type"]),
         Field(name = "name", type = String::class, comment = ["contains the product name.", "and other infos"]),
-        Field(name = "comments", type = UserComment::class, list = true),
+        Field(name = "comments", type = UserComment::class, list = true, comment = ["I'm also comfortable with pseudo %2D placeholders"]),
         Field(name = "image", type = Blob::class),
         Field(name = "identifiers", type = String::class, list = true)
 )

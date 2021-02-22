@@ -36,7 +36,7 @@ class WrapperGeneration {
             typeBuilder.addSuperinterface(TypeUtil.iDocId())
         }
         if (holder.comment.isNotEmpty()) {
-            typeBuilder.addKdoc(holder.comment.joinToString(separator = "\n"))
+            typeBuilder.addKdoc(KDocGeneration.generate(holder.comment))
         }
 
         for (baseModelHolder in holder.basedOn) {

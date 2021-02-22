@@ -1,5 +1,6 @@
 package com.kaufland.model.field
 
+import com.kaufland.generation.KDocGeneration
 import com.kaufland.generation.TypeConversionMethodsGeneration
 import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.TypeUtil
@@ -95,7 +96,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         }
 
         if (comment.isNotEmpty()) {
-            propertyBuilder.addKdoc(comment.joinToString(separator = "\n"))
+            propertyBuilder.addKdoc(KDocGeneration.generate(comment))
         }
 
         return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
@@ -114,7 +115,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
                 .returns(ClassName(packageName, "${entitySimpleName}.Builder"))
 
         if (this.comment.isNotEmpty()) {
-            builder.addKdoc(this.comment.joinToString(separator = "\n"))
+            builder.addKdoc(KDocGeneration.generate(comment))
         }
 
         builder.addStatement("obj.${accessorSuffix()} = value")
