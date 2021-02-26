@@ -94,4 +94,6 @@ kapt {
 ### [**Guide for Couchbase 2.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-2.x.x)
 
 ### [**Guide for Couchbase 3.x.x and other Databases**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Implementation-Guide-3.x.x)
+
+### [**Cookbook (more useful features with examples)**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/Cookbook)
   
