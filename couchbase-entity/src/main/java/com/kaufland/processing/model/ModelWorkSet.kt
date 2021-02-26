@@ -1,15 +1,17 @@
-package com.kaufland.processing
+package com.kaufland.processing.model
 
 import com.kaufland.Logger
 import com.kaufland.model.EntityFactory
 import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
-import com.kaufland.validation.ModelValidation
-import com.kaufland.validation.PreModelValidation
+import com.kaufland.processing.WorkSet
+import com.kaufland.validation.model.ModelValidation
+import com.kaufland.validation.model.PreModelValidation
+import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
-class ModelWorkSet(val logger: Logger, val allEntityElements: Set<Element>, val allWrapperElements: Set<Element>, val allBaseModelElements: Set<Element>) {
+class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: Set<Element>, val allBaseModelElements: Set<Element>) : WorkSet {
 
     private val entityModels: MutableMap<String, EntityHolder> = HashMap()
 
@@ -17,13 +19,13 @@ class ModelWorkSet(val logger: Logger, val allEntityElements: Set<Element>, val 
 
     private val baseModels: MutableMap<String, BaseModelHolder> = HashMap()
 
-    init {
+    override fun preValidate(logger: Logger) {
         for (element in hashSetOf(*allBaseModelElements.toTypedArray(), *allEntityElements.toTypedArray(), *allWrapperElements.toTypedArray())) {
             PreModelValidation.validate(element, logger)
         }
     }
 
-    fun loadModels() {
+    override fun loadModels(logger: Logger, env: ProcessingEnvironment) {
 
         val allWrapperStrings = allWrapperElements.map { element -> element.toString() }
 

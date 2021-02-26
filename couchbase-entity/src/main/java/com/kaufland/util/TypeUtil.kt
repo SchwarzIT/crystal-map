@@ -5,6 +5,9 @@ import com.squareup.kotlinpoet.*
 
 import javax.lang.model.type.TypeMirror
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import kaufland.com.coachbasebinderapi.mapify.IMapper
+import kaufland.com.coachbasebinderapi.mapify.IMapifyable
+import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 
 object TypeUtil {
 
@@ -82,6 +85,22 @@ object TypeUtil {
 
     fun mapSupport(): TypeName {
         return ClassName("kaufland.com.coachbasebinderapi", "MapSupport")
+    }
+
+    fun iMapper(typename: TypeName): TypeName {
+        return IMapper::class.asTypeName().parameterizedBy(typename)
+    }
+
+    fun iMapifyable(typename: TypeName) : TypeName {
+        return IMapifyable::class.asTypeName().parameterizedBy(typename)
+    }
+
+    fun mapifyable() : TypeName {
+        return Mapifyable::class.asTypeName()
+    }
+
+    fun clazz(typename: TypeName) : TypeName{
+        return ClassName("java.lang", "Class").parameterizedBy(typename)
     }
 
     fun iDocId(): TypeName {

@@ -1,11 +1,8 @@
 package com.kaufland.model.field
 
-import com.kaufland.generation.TypeConversionMethodsGeneration
 import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.ConversionUtil
 import com.kaufland.util.FieldExtractionUtil
-import com.kaufland.util.TypeUtil
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName

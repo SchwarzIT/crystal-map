@@ -1,6 +1,8 @@
 package com.kaufland.generation
 
 import com.kaufland.CoachBaseBinderProcessor
+import com.kaufland.ProcessingContext
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File
 
@@ -13,6 +15,10 @@ class CodeGenerator(private val filer: Filer) {
 
     @Throws(IOException::class)
     fun generate(entityToGenerate: FileSpec, processingEnvironment: ProcessingEnvironment) {
+
+        ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
+            ProcessingContext.createdQualitfiedClazzNames[this.toString()] = this
+        }
 
         val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]
         val fileWithHeader = entityToGenerate.toBuilder().addComment(HEADER).build()

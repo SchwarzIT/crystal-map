@@ -1,5 +1,6 @@
 package com.kaufland.generation
 
+import com.kaufland.generation.model.KDocGeneration
 import org.junit.Test
 
 class KDocGenerationTest {

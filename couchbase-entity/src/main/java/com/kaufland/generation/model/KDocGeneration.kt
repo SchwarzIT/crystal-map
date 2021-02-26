@@ -1,4 +1,4 @@
-package com.kaufland.generation
+package com.kaufland.generation.model
 
 import com.squareup.kotlinpoet.CodeBlock
 

@@ -1,4 +1,4 @@
-package com.kaufland.validation
+package com.kaufland.validation.model
 
 import com.kaufland.Logger
 import com.kaufland.model.entity.BaseEntityHolder

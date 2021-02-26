@@ -1,4 +1,4 @@
-package com.kaufland.generation
+package com.kaufland.generation.model
 
 import com.kaufland.model.entity.BaseEntityHolder
 import com.squareup.kotlinpoet.FunSpec

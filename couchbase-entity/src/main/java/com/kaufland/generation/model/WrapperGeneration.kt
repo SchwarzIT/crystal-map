@@ -1,5 +1,6 @@
-package com.kaufland.generation
+package com.kaufland.generation.model
 
+import com.kaufland.generation.MapifyableImplGeneration
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.util.TypeUtil
@@ -63,6 +64,8 @@ class WrapperGeneration {
         typeBuilder.addFunction(RebindMethodGeneration().generate(false))
         typeBuilder.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
         typeBuilder.addType(builderBuilder.build())
+        typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
+        typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
 
