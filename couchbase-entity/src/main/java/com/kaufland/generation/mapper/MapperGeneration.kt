@@ -51,7 +51,7 @@ class MapperGeneration {
             resolveDeclaringName(field.declaringName, resolverParam)
 
             resolverParam?.apply {
-                fromMap.addStatement("obj.%N = map?.let{${fromMapBuilder.toString()}}", field.fieldName, *fromMapParams.toTypedArray())
+                fromMap.addStatement("obj.%N = map[%S]?.let{${fromMapBuilder.toString()}}", field.fieldName, field.mapName, *fromMapParams.toTypedArray())
                 toMap.addStatement("map[%S] =  obj.%N?.let{${toMapBuilder.toString()}}", field.mapName,field.fieldName, *toMapParams.toTypedArray())
             }
 
@@ -104,11 +104,14 @@ class MapperGeneration {
                     resolverParam.fromMapBuilder.append("}")
                 }
                 isAssignable(Map::class.java) -> {
-                    resolverParam.toMapBuilder.append("it.map{")
+                    resolverParam.toMapBuilder.append("it.map{it.key.let{")
+                    resolverParam.fromMapBuilder.append("it.map{it.key.let{")
                     resolveDeclaringName(name.typeParams[0], resolverParam)
-                    resolverParam.toMapBuilder.append(" to ")
+                    resolverParam.toMapBuilder.append("} to it.value.let{")
+                    resolverParam.fromMapBuilder.append("} to it.value.let{")
                     resolveDeclaringName(name.typeParams[1], resolverParam)
-                    resolverParam.toMapBuilder.append("}")
+                    resolverParam.toMapBuilder.append("}}")
+                    resolverParam.fromMapBuilder.append("}}.toMap()")
                 }
                 else -> {
                     FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {

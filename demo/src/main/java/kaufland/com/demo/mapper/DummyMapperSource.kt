@@ -18,6 +18,9 @@ class DummyMapperSource {
     @Mapify
     private val innerObjectList : List<MyMapifyableTest> = listOf(MyMapifyableTest())
 
+    @Mapify
+    private val innerObjectMap : Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest())
+
     @Mapifyable(MyMapifyableTest.Mapper::class)
     class MyMapifyableTest {
 
