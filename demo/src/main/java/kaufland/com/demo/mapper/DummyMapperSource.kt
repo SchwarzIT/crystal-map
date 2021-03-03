@@ -4,13 +4,16 @@ import kaufland.com.coachbasebinderapi.mapify.IMapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
+import kaufland.com.demo.entity.ProductEntity
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.Serializable
 
 @Mapper
-class DummyMapperSource {
+class DummyMapperSource(simple: String = "test123") {
 
     @Mapify
-    private val myPrivateVal = "test123"
+    val myPrivateVal : String? = simple
 
     @Mapify
     private val innerObject : MyMapifyableTest = MyMapifyableTest()
@@ -20,6 +23,14 @@ class DummyMapperSource {
 
     @Mapify
     private val innerObjectMap : Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest())
+
+    @Mapify
+    val testSerializable : TestSerializable = TestSerializable(simple, 5)
+
+    @Mapify
+    private val product : ProductEntity? = null
+
+    data class TestSerializable(val test1: String, val test2: Int) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
     class MyMapifyableTest {

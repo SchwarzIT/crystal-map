@@ -2,14 +2,18 @@ package com.kaufland.generation.mapper
 
 import com.kaufland.ProcessingContext
 import com.kaufland.ProcessingContext.isAssignable
-import com.kaufland.model.mapper.MapifyHolder
 import com.kaufland.model.mapper.MapperHolder
 import com.kaufland.util.FieldExtractionUtil
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
+import kaufland.com.coachbasebinderapi.util.SerializableMapifyable
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
 import java.lang.StringBuilder
 import java.lang.reflect.Field
+import java.util.*
 
 class MapperGeneration {
 
@@ -35,24 +39,22 @@ class MapperGeneration {
 
         for (field in holder.fields.values) {
 
-            if (!field.accessible) {
-                typeSpec.addProperty(PropertySpec.builder(field.accessorName, Field::class.java.asTypeName())
-                        .initializer("%T::class.java.getDeclaredField(%S).apply{isAccessible = true}", holder.sourceClazzTypeName, field.fieldName)
-                        .build())
+            typeSpec.addProperty(PropertySpec.builder(field.reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
+                    .initializer("%T::class.java.getDeclaredField(%S).apply{isAccessible = true}", holder.sourceClazzTypeName, field.fieldName)
+                    .build())
 
 
-                typeSpec.addProperty(PropertySpec.builder(field.fieldName, field.typeName).receiver(holder.sourceClazzTypeName).mutable(true)
-                        .getter(FunSpec.getterBuilder().addStatement("return %N.get(this) as %T", field.accessorName, field.typeName).build())
-                        .setter(FunSpec.setterBuilder().addParameter("value", field.typeName).addStatement("%N.set(this, value)", field.accessorName).build())
-                        .build())
+            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.typeName, KModifier.PRIVATE).receiver(holder.sourceClazzTypeName).mutable(true)
+                    .getter(FunSpec.getterBuilder().addStatement("return %N.get(this) as %T", field.reflectedFieldName, field.typeName).build())
+                    .setter(FunSpec.setterBuilder().addParameter("value", field.typeName).addStatement("%N.set(this, value)", field.reflectedFieldName).build())
+                    .build())
 
-            }
             val resolverParam = ResolverParam()
             resolveDeclaringName(field.declaringName, resolverParam)
 
             resolverParam?.apply {
-                fromMap.addStatement("obj.%N = map[%S]?.let{${fromMapBuilder.toString()}}", field.fieldName, field.mapName, *fromMapParams.toTypedArray())
-                toMap.addStatement("map[%S] =  obj.%N?.let{${toMapBuilder.toString()}}", field.mapName,field.fieldName, *toMapParams.toTypedArray())
+                fromMap.addCode("map[%S]?.let{${fromMapBuilder.toString()}}?.apply{obj.%N=this}", field.mapName, *fromMapParams.toTypedArray(), field.accessorName)
+                toMap.addCode("map[%S]·=·obj.%N?.let{${toMapBuilder.toString()}}", field.mapName, field.accessorName, *toMapParams.toTypedArray())
             }
 
 
@@ -67,11 +69,6 @@ class MapperGeneration {
     }
 
     private data class ResolverParam(val fromMapBuilder: StringBuilder = StringBuilder(), val fromMapParams: MutableList<Any> = mutableListOf(), val toMapBuilder: StringBuilder = StringBuilder(), val toMapParams: MutableList<Any> = mutableListOf())
-
-    private enum class ParentType {
-        LIST,
-        NONE
-    }
 
     private fun resolveDeclaringName(name: ProcessingContext.DeclaringName, resolverParam: ResolverParam) {
 
@@ -98,20 +95,29 @@ class MapperGeneration {
             when {
                 isAssignable(List::class.java) -> {
                     resolverParam.toMapBuilder.append("it.map{")
-                    resolverParam.fromMapBuilder.append("it.map{")
+                    resolverParam.fromMapBuilder.append("(it as? %T)?.map{")
+                    resolverParam.fromMapParams.add(TypeUtil.list(TypeUtil.any()))
                     resolveDeclaringName(name.typeParams[0], resolverParam)
                     resolverParam.toMapBuilder.append("}")
                     resolverParam.fromMapBuilder.append("}")
                 }
                 isAssignable(Map::class.java) -> {
                     resolverParam.toMapBuilder.append("it.map{it.key.let{")
-                    resolverParam.fromMapBuilder.append("it.map{it.key.let{")
+                    resolverParam.fromMapBuilder.append("(it as? %T)?.map{it.key.let{")
+                    resolverParam.fromMapParams.add(TypeUtil.mapAnyAny())
                     resolveDeclaringName(name.typeParams[0], resolverParam)
                     resolverParam.toMapBuilder.append("} to it.value.let{")
                     resolverParam.fromMapBuilder.append("} to it.value.let{")
                     resolveDeclaringName(name.typeParams[1], resolverParam)
                     resolverParam.toMapBuilder.append("}}")
-                    resolverParam.fromMapBuilder.append("}}.toMap()")
+                    resolverParam.fromMapBuilder.append("}}?.toMap()")
+                }
+                isAssignable(Serializable::class.java) -> {
+                    resolverParam.fromMapBuilder.append("%T().fromMap(it as %T)")
+                    resolverParam.fromMapParams.addAll(listOf(TypeUtil.serializableMapifyable(name.asTypeName()!!), TypeUtil.mapStringAny()))
+
+                    resolverParam.toMapBuilder.append("%T().toMap(it)")
+                    resolverParam.toMapParams.add(TypeUtil.serializableMapifyable(name.asTypeName()!!))
                 }
                 else -> {
                     FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {

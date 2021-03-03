@@ -8,6 +8,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import kaufland.com.coachbasebinderapi.mapify.IMapper
 import kaufland.com.coachbasebinderapi.mapify.IMapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
+import kaufland.com.coachbasebinderapi.util.SerializableMapifyable
 
 object TypeUtil {
 
@@ -49,6 +50,10 @@ object TypeUtil {
 
     fun mapStringAny(): ParameterizedTypeName {
         return map().parameterizedBy(string(), any())
+    }
+
+    fun mapAnyAny(): ParameterizedTypeName {
+        return map().parameterizedBy(any(), any())
     }
 
     fun mutableMapStringAnyNullable(): ParameterizedTypeName {
@@ -97,6 +102,10 @@ object TypeUtil {
 
     fun mapifyable() : TypeName {
         return Mapifyable::class.asTypeName()
+    }
+
+    fun serializableMapifyable(typename: TypeName) : TypeName{
+        return SerializableMapifyable::class.asTypeName().parameterizedBy(typename)
     }
 
     fun clazz(typename: TypeName) : TypeName{

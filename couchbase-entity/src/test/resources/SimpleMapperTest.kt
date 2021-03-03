@@ -2,18 +2,24 @@ import kaufland.com.coachbasebinderapi.mapify.IMapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
+import java.io.Serializable
 
 @Mapper
 class SimpleMapperTest {
 
     @Mapify
-    private val name : String = ""
+    private val name : String? = ""
 
     @Mapify
     private val innerObject : MyMapifyableTest = MyMapifyableTest()
 
     @Mapify
     private val listInnerObject : List<MyMapifyableTest> = listOf(MyMapifyableTest(), MyMapifyableTest())
+
+    @Mapify
+    private val testSerializable : TestSerializable = TestSerializable("test123", 5)
+
+    data class TestSerializable(val test1: String, val test2: Int) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
     class MyMapifyableTest {

@@ -4,6 +4,7 @@ apply plugin: 'maven'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
+    implementation "commons-codec:commons-codec:1.15"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
