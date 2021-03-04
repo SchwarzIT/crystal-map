@@ -17,7 +17,7 @@ class CodeGenerator(private val filer: Filer) {
     fun generate(entityToGenerate: FileSpec, processingEnvironment: ProcessingEnvironment) {
 
         ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
-            ProcessingContext.createdQualitfiedClazzNames[this.toString()] = this
+            ProcessingContext.createdQualitfiedClazzNames.add(this)
         }
 
         val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]

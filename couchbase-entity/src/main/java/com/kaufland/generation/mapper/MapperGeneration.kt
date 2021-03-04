@@ -50,11 +50,21 @@ class MapperGeneration {
                     .build())
 
             val resolverParam = ResolverParam()
-            resolveDeclaringName(field.declaringName, resolverParam)
+
 
             resolverParam?.apply {
-                fromMap.addCode("map[%S]?.let{${fromMapBuilder.toString()}}?.apply{obj.%N=this}", field.mapName, *fromMapParams.toTypedArray(), field.accessorName)
-                toMap.addCode("map[%S]·=·obj.%N?.let{${toMapBuilder.toString()}}", field.mapName, field.accessorName, *toMapParams.toTypedArray())
+                resolverParam.fromMapBuilder.beginControlFlow("map[%S]?.let", field.mapName)
+                resolverParam.toMapBuilder.beginControlFlow("map[%S]·=·obj.%N?.let",  field.mapName, field.accessorName)
+                resolveDeclaringName(field.declaringName, resolverParam)
+                resolverParam.fromMapBuilder.endControlFlow()
+                resolverParam.fromMapBuilder.beginControlFlow("?.apply")
+                resolverParam.fromMapBuilder.addStatement("obj.%N=this",  field.accessorName)
+                resolverParam.fromMapBuilder.endControlFlow()
+
+                resolverParam.toMapBuilder.endControlFlow()
+
+                fromMap.addCode(resolverParam.fromMapBuilder.build())
+                toMap.addCode(resolverParam.toMapBuilder.build())
             }
 
 
@@ -68,25 +78,22 @@ class MapperGeneration {
         return FileSpec.get(holder.`package`, typeSpec.build())
     }
 
-    private data class ResolverParam(val fromMapBuilder: StringBuilder = StringBuilder(), val fromMapParams: MutableList<Any> = mutableListOf(), val toMapBuilder: StringBuilder = StringBuilder(), val toMapParams: MutableList<Any> = mutableListOf())
+    private data class ResolverParam(val fromMapBuilder: CodeBlock.Builder = CodeBlock.builder(), val toMapBuilder: CodeBlock.Builder = CodeBlock.builder())
 
     private fun resolveDeclaringName(name: ProcessingContext.DeclaringName, resolverParam: ResolverParam) {
 
         if (name.isProcessingType()) {
-            resolverParam.fromMapBuilder.append("%T.Mapper().fromMap(it as %T)")
-            resolverParam.fromMapParams.addAll(listOf(name.asTypeName()!!, TypeUtil.mapStringAny()))
+            resolverParam.fromMapBuilder.addStatement("%T.Mapper().fromMap(it as %T)", name.asTypeName()!!, TypeUtil.mapStringAny())
 
-            resolverParam.toMapBuilder.append("%T.Mapper().toMap(it)")
-            resolverParam.toMapParams.add(name.asTypeName()!!)
+            resolverParam.toMapBuilder.addStatement("%T.Mapper().toMap(it)", name.asTypeName()!!)
             return
         }
 
         if (name.isPlainType()) {
             name.asTypeName()?.let {
-                resolverParam.fromMapBuilder.append("it as %T")
-                resolverParam.fromMapParams.add(it)
+                resolverParam.fromMapBuilder.addStatement("it as %T", it)
 
-                resolverParam.toMapBuilder.append("it")
+                resolverParam.toMapBuilder.addStatement("it")
             }
             return
         }
@@ -94,39 +101,42 @@ class MapperGeneration {
         name.asTypeElement()?.apply {
             when {
                 isAssignable(List::class.java) -> {
-                    resolverParam.toMapBuilder.append("it.map{")
-                    resolverParam.fromMapBuilder.append("(it as? %T)?.map{")
-                    resolverParam.fromMapParams.add(TypeUtil.list(TypeUtil.any()))
+                    resolverParam.toMapBuilder.beginControlFlow("it.map")
+                    resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.map", TypeUtil.list(TypeUtil.any()))
                     resolveDeclaringName(name.typeParams[0], resolverParam)
-                    resolverParam.toMapBuilder.append("}")
-                    resolverParam.fromMapBuilder.append("}")
+                    resolverParam.toMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.endControlFlow()
                 }
                 isAssignable(Map::class.java) -> {
-                    resolverParam.toMapBuilder.append("it.map{it.key.let{")
-                    resolverParam.fromMapBuilder.append("(it as? %T)?.map{it.key.let{")
-                    resolverParam.fromMapParams.add(TypeUtil.mapAnyAny())
+                    resolverParam.toMapBuilder.beginControlFlow("it.map")
+                    resolverParam.toMapBuilder.beginControlFlow("(it.key.let")
+                    resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.map", TypeUtil.mapAnyAny())
+                    resolverParam.fromMapBuilder.beginControlFlow("(it.key.let")
                     resolveDeclaringName(name.typeParams[0], resolverParam)
-                    resolverParam.toMapBuilder.append("} to it.value.let{")
-                    resolverParam.fromMapBuilder.append("} to it.value.let{")
+                    resolverParam.toMapBuilder.endControlFlow()
+                    resolverParam.toMapBuilder.beginControlFlow(" to it.value.let")
+                    resolverParam.fromMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.beginControlFlow(" to it.value.let")
                     resolveDeclaringName(name.typeParams[1], resolverParam)
-                    resolverParam.toMapBuilder.append("}}")
-                    resolverParam.fromMapBuilder.append("}}?.toMap()")
+
+                    resolverParam.toMapBuilder.endControlFlow()
+                    resolverParam.toMapBuilder.addStatement(")")
+                    resolverParam.toMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.addStatement(")")
+                    resolverParam.fromMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.addStatement("?.toMap()")
                 }
                 isAssignable(Serializable::class.java) -> {
-                    resolverParam.fromMapBuilder.append("%T().fromMap(it as %T)")
-                    resolverParam.fromMapParams.addAll(listOf(TypeUtil.serializableMapifyable(name.asTypeName()!!), TypeUtil.mapStringAny()))
-
-                    resolverParam.toMapBuilder.append("%T().toMap(it)")
-                    resolverParam.toMapParams.add(TypeUtil.serializableMapifyable(name.asTypeName()!!))
+                    resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", TypeUtil.serializableMapifyable(name.asTypeName()!!), TypeUtil.mapStringAny())
+                    resolverParam.toMapBuilder.addStatement("%T().toMap(it)", TypeUtil.serializableMapifyable(name.asTypeName()!!))
                 }
                 else -> {
                     FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {
                         val fullTypeName = ProcessingContext.DeclaringName(toString()).asFullTypeName()
-                        resolverParam.fromMapBuilder.append("%T().fromMap(it as %T)")
-                        resolverParam.fromMapParams.addAll(listOf(fullTypeName!!, TypeUtil.mapStringAny()))
+                        resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", fullTypeName!!, TypeUtil.mapStringAny())
 
-                        resolverParam.toMapBuilder.append("%T().toMap(it)")
-                        resolverParam.toMapParams.add(fullTypeName!!)
+                        resolverParam.toMapBuilder.addStatement("%T().toMap(it)", fullTypeName!!)
                     }
                 }
             }

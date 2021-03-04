@@ -19,7 +19,7 @@ object ProcessingContext {
 
     lateinit var env: ProcessingEnvironment
 
-    val createdQualitfiedClazzNames: MutableMap<String, TypeName> = hashMapOf()
+    val createdQualitfiedClazzNames: MutableSet<ClassName> = hashSetOf()
 
 
     fun Element.isAssignable(clazz: Class<*>) = ProcessingContext.env.let {
@@ -45,7 +45,7 @@ object ProcessingContext {
             }
         }
 
-        fun asTypeName() : TypeName? = createdQualitfiedClazzNames[name] ?: asTypeElement()?.asClassName()?.javaToKotlinType()
+        fun asTypeName() : TypeName? = createdQualitfiedClazzNames.firstOrNull { it.simpleName == name } ?: asTypeElement()?.asClassName()?.javaToKotlinType()
 
         fun asFullTypeName() : TypeName? = asTypeName()?.let {
             if(it is ClassName && typeParams.isNotEmpty()){
@@ -57,7 +57,9 @@ object ProcessingContext {
 
         fun asTypeElement() : TypeElement? = env.elementUtils.getTypeElement(name)
 
-        fun isProcessingType() : Boolean = createdQualitfiedClazzNames.containsKey(name) && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
+        fun isProcessingType() : Boolean {
+            return createdQualitfiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
+        }
     }
 
 }
