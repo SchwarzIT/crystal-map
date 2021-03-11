@@ -22,7 +22,9 @@ object CblDefaultGeneration {
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
+                builder.beginControlFlow("if(map[%N] == null)", fieldHolder.constantName)
                 builder.addStatement("map.put(%N, " +  fieldHolder.ensureType(typeConversionReturnType, ConversionUtil.convertStringToDesiredFormat(fieldHolder.typeMirror, fieldHolder.defaultValue)) + "!!)", fieldHolder.constantName)
+                builder.endControlFlow()
             }
         }
         return builder.build()

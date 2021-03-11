@@ -12,7 +12,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 
-private val plainTypes = listOf(String::class.java.canonicalName, Int::class.java.canonicalName, Double::class.java.canonicalName, Long::class.java.canonicalName, BigDecimal::class.java.canonicalName)
+private val plainTypes = listOf(String::class.java.canonicalName, Int::class.java.canonicalName, Double::class.java.canonicalName, Long::class.java.canonicalName, BigDecimal::class.java.canonicalName, Boolean::class.java.canonicalName)
 object ProcessingContext {
 
     lateinit var roundEnv: RoundEnvironment
