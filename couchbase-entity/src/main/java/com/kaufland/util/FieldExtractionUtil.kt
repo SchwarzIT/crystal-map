@@ -7,6 +7,7 @@ import javax.lang.model.type.TypeMirror
 
 import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.deprecated.Deprecated
+import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import javax.lang.model.type.MirroredTypesException
 import javax.management.Query
 
@@ -28,6 +29,15 @@ object FieldExtractionUtil {
             if (annotation.replacedBy != null) {
                 throw Exception("Expected to get a MirroredTypeException")
             } else null
+        } catch (mte: MirroredTypeException) {
+            mte.typeMirror
+        }
+    }
+
+    fun typeMirror(annotation: Mapifyable): TypeMirror? {
+        return try {
+            annotation.value
+            throw Exception("Expected to get a MirroredTypeException")
         } catch (mte: MirroredTypeException) {
             mte.typeMirror
         }

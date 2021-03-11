@@ -1,5 +1,6 @@
-package com.kaufland.generation
+package com.kaufland.generation.model
 
+import com.kaufland.generation.MapifyableImplGeneration
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
@@ -95,6 +96,8 @@ class EntityGeneration {
         }
 
         typeBuilder.addType(builderBuilder.build())
+        typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
+        typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
 

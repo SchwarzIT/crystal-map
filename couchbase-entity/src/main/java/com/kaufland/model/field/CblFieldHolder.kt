@@ -1,7 +1,7 @@
 package com.kaufland.model.field
 
-import com.kaufland.generation.KDocGeneration
-import com.kaufland.generation.TypeConversionMethodsGeneration
+import com.kaufland.generation.model.KDocGeneration
+import com.kaufland.generation.model.TypeConversionMethodsGeneration
 import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
