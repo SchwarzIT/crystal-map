@@ -58,6 +58,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                 MapperWorker(mLogger, mCodeGenerator, processingEnvironment)
         )
 
+        workers.forEach { it.init() }
+
         super.init(processingEnvironment)
     }
 
