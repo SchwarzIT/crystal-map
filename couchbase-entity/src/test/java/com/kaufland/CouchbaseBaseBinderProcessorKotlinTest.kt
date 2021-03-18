@@ -19,6 +19,14 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSucessMapperWithTypeParam() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithTypeParam"))
+
+
+        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+    }
+
+    @Test
     fun testSucessWithQueries() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"))
 

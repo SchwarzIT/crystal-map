@@ -7,10 +7,11 @@ import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 
 object MapifyableImplGeneration {
 
-    data class Config(val clazzName: String, val typeParam: TypeName, val fromMap: (FunSpec.Builder) -> FunSpec, val toMap: (FunSpec.Builder) -> FunSpec)
+    data class Config(val clazzName: String, val typeParam: TypeName, val fromMap: (FunSpec.Builder) -> FunSpec, val toMap: (FunSpec.Builder) -> FunSpec, val modifiers: Array<KModifier> = emptyArray())
 
     fun typeSpec(config: Config) =
             TypeSpec.classBuilder(config.clazzName)
+                    .addModifiers(*config.modifiers)
                     .addSuperinterface(TypeUtil.iMapifyable(config.typeParam))
                     .addFunction(config.fromMap(FunSpec.builder("fromMap")
                             .addModifiers(KModifier.OVERRIDE)

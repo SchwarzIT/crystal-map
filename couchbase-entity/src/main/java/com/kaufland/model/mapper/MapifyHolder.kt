@@ -10,6 +10,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
+import kaufland.com.coachbasebinderapi.mapify.Mapper
 import java.io.Serializable
 import java.math.BigDecimal
 import javax.annotation.processing.ProcessingEnvironment
@@ -35,6 +36,8 @@ class MapifyHolder(val element: Element, val mapify: Mapify, env: ProcessingEnvi
 
     val typeHandleMode: TypeHandleMode = when {
         declaringName.isPlainType() -> TypeHandleMode.PLAIN
+        declaringName.asTypeElement()?.getAnnotation(Mapper::class.java) != null -> TypeHandleMode.MAPPER
+        declaringName.isTypeVar() -> TypeHandleMode.TYPEVAR
         isMapifyable(declaringName) -> TypeHandleMode.MAPIFYABLE
         else -> TypeHandleMode.UNKNOWN
     }
@@ -45,7 +48,9 @@ class MapifyHolder(val element: Element, val mapify: Mapify, env: ProcessingEnvi
 
     enum class TypeHandleMode {
         PLAIN,
+        MAPPER,
         MAPIFYABLE,
+        TYPEVAR,
         UNKNOWN
     }
 }

@@ -1,5 +1,6 @@
 package com.kaufland.model.mapper
 
+import com.kaufland.ProcessingContext
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
 import com.kaufland.model.deprecated.DeprecatedModel
 import com.kaufland.model.field.CblBaseFieldHolder
@@ -23,7 +24,11 @@ class MapperHolder(val sourceElement: Element) {
     val sourceClazzSimpleName: String
         get() = (sourceElement as Symbol.ClassSymbol).simpleName.toString()
 
+    val typeParams : List<ProcessingContext.DeclaringName> = (sourceElement as Symbol.ClassSymbol).typeParameters.mapNotNull { ProcessingContext.DeclaringName(it.asType()) }
+
     val sourceClazzTypeName: TypeName = ClassName(`package`, sourceClazzSimpleName)
+
+    val declaringName = ProcessingContext.DeclaringName(sourceElement.asType())
 
     val targetMapperSimpleName: String
         get() = sourceClazzSimpleName + "Mapper"
