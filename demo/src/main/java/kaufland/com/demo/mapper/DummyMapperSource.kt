@@ -1,61 +1,64 @@
 package kaufland.com.demo.mapper
 
-import androidx.lifecycle.MutableLiveData
 import kaufland.com.coachbasebinderapi.mapify.IMapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 import kaufland.com.demo.entity.ProductEntity
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.Serializable
 import java.math.BigDecimal
+import kotlin.properties.ReadOnlyProperty
 
 @Mapper
 class DummyMapperSource(simple: String = "test123") {
 
     @Mapify
-    val myPrivateValWithAVeryVeryVeryVeryLongName: String? = simple
+    private val myPrivateValWithAVeryVeryVeryVeryLongName: String? = simple
 
     @Mapify
-    private val innerObject: MyMapifyableTest = MyMapifyableTest()
+    var innerObject: MyMapifyableTest = MyMapifyableTest(simple)
 
     @Mapify
-    private val innerObjectList: List<MyMapifyableTest> = listOf(MyMapifyableTest())
+    var innerObjectList: List<MyMapifyableTest> = listOf(MyMapifyableTest(simple))
 
     @Mapify
-    private val innerObjectMap: Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest())
+    var innerObjectMap: Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest(simple))
 
     @Mapify
-    val testSerializable: TestSerializable = TestSerializable(simple, 5)
+    var testSerializable: TestSerializable = TestSerializable(simple, 5)
 
     @Mapify
-    private val product: ProductEntity? = null
+    var product: ProductEntity? = null
 
     @Mapify
-    private val booleanValue: Boolean = true
+    var booleanValue: Boolean = true
 
     @Mapify
-    private val bigDecimalValue: BigDecimal? = null
+    var bigDecimalValue: BigDecimal? = null
 
     @Mapify
-    private val mapper : InnerMapper<MyMapifyableTest> = InnerMapper()
+    val mapper: InnerMapperSource<MyMapifyableTest, String> = InnerMapperSource(MyMapifyableTest(simple), simple)
 
+
+    val privateValExpose
+        get() = myPrivateValWithAVeryVeryVeryVeryLongName
 
     data class TestSerializable(val test1: String, val test2: Int) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
-    class MyMapifyableTest {
+    class MyMapifyableTest(val myString: String) {
 
         class Mapper : IMapifyable<MyMapifyableTest> {
             override fun fromMap(map: Map<String, Any>): MyMapifyableTest {
-                return MyMapifyableTest()
+                return MyMapifyableTest(map["test"] as String)
             }
 
             override fun toMap(obj: MyMapifyableTest): Map<String, Any> {
-                return mapOf()
+                return mapOf("test" to obj.myString)
             }
 
         }
     }
+
+
 }

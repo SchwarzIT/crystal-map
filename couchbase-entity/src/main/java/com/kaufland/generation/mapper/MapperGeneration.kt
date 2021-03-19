@@ -172,7 +172,12 @@ class MapperGeneration {
             resolverParam.fromMapBuilder.addStatement("obj.%N", accessorName)
             resolverParam.fromMapBuilder.endControlFlow()
             resolverParam.fromMapBuilder.beginControlFlow("catch(e: Exception)")
-            resolverParam.fromMapBuilder.addStatement("%T()", fullTypeName)
+            if(name.hasEmptyConstructor()){
+                resolverParam.fromMapBuilder.addStatement("%T()", fullTypeName)
+            }else{
+                resolverParam.fromMapBuilder.addStatement("throw %T(%S)", Exception::class.java.asClassName(), "no empty ctr and not automatically filled")
+            }
+
             resolverParam.fromMapBuilder.endControlFlow()
             resolverParam.fromMapBuilder.addStatement("%T($helperInit).fromMap(myObj, it as %T)", mapperTypeName!!, TypeUtil.mapStringAny())
             resolverParam.fromMapBuilder.addStatement("myObj")
@@ -205,6 +210,7 @@ class MapperGeneration {
                     resolverParam.toMapBuilder.endControlFlow()
                     resolverParam.toMapBuilder.addStatement(")")
                     resolverParam.toMapBuilder.endControlFlow()
+                    resolverParam.toMapBuilder.addStatement("?.toMap()")
                     resolverParam.fromMapBuilder.endControlFlow()
                     resolverParam.fromMapBuilder.addStatement(")")
                     resolverParam.fromMapBuilder.endControlFlow()
