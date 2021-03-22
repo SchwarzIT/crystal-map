@@ -30,11 +30,11 @@ class MapperGeneration {
 
             holder.typeParams.forEachIndexed { index, typeVariableSymbol ->
                 typeSpec.addTypeVariable(TypeVariableName(typeVariableSymbol.name))
-                typeSpec.addProperty(PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
+                typeSpec.addProperty(PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
                         .initializer("typeParam$index")
                         .addModifiers(KModifier.PRIVATE)
                         .build())
-                constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
+                constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
             }
             typeSpec.primaryConstructor(constructorBuilder.build())
         }
@@ -80,7 +80,7 @@ class MapperGeneration {
             typeSpec.addType(MapifyableImplGeneration.typeSpec(MapifyableImplGeneration.Config(
                     modifiers = arrayOf(KModifier.PRIVATE),
                     clazzName = helperClazzName,
-                    typeParam = mapifyHelper.asFullTypeName()!!,
+                    typeParam = mapifyHelper.asFullTypeName()!!.copy(nullable = true),
                     fromMap = { it.addCode(param.fromMapBuilder.build()).build() },
                     toMap = { it.addCode(param.toMapBuilder.build()).build() })))
         }
@@ -190,6 +190,14 @@ class MapperGeneration {
 
         name.asTypeElement()?.apply {
             when {
+                getAnnotation(Mapifyable::class.java) != null -> {
+                    FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {
+                        val fullTypeName = ProcessingContext.DeclaringName(this).asFullTypeName()
+                        resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", fullTypeName!!, TypeUtil.mapStringAny())
+
+                        resolverParam.toMapBuilder.addStatement("%T().toMap(it)", fullTypeName!!)
+                    }
+                }
                 isAssignable(List::class.java) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")
                     resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.map", TypeUtil.list(TypeUtil.any()))
@@ -223,12 +231,7 @@ class MapperGeneration {
                     resolverParam.toMapBuilder.addStatement("%T().toMap(it)", TypeUtil.serializableMapifyable(name.asTypeName()!!))
                 }
                 else -> {
-                    FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {
-                        val fullTypeName = ProcessingContext.DeclaringName(this).asFullTypeName()
-                        resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", fullTypeName!!, TypeUtil.mapStringAny())
-
-                        resolverParam.toMapBuilder.addStatement("%T().toMap(it)", fullTypeName!!)
-                    }
+                    throw Exception("unknown field type ${name.name}")
                 }
             }
         }

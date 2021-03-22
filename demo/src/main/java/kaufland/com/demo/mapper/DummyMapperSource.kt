@@ -36,7 +36,7 @@ class DummyMapperSource(simple: String = "test123") {
     var bigDecimalValue: BigDecimal? = null
 
     @Mapify
-    val mapper: InnerMapperSource<MyMapifyableTest, String> = InnerMapperSource(MyMapifyableTest(simple), simple)
+    val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)
 
     @Mapify
     val liveData = ExposingSource<String>()
