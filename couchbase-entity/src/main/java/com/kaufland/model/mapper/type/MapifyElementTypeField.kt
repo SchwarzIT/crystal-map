@@ -31,7 +31,7 @@ class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyE
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.get(this) as %T", reflectedFieldName, typeName).build()
+        return FunSpec.getterBuilder().addStatement("return %N.get(this) as? %T", reflectedFieldName, typeName.copy(nullable = true)).build()
     }
 
     override fun setterFunSpec(): FunSpec {

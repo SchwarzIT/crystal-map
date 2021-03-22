@@ -62,7 +62,7 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.invoke(this) as %T", getterSetter.getterInternalAccessor(), typeName).build()
+        return FunSpec.getterBuilder().addStatement("return %N.invoke(this) as? %T", getterSetter.getterInternalAccessor(), typeName.copy(nullable = true)).build()
     }
 
     override fun setterFunSpec(): FunSpec {

@@ -90,8 +90,8 @@ class MapperGeneration {
 
             typeSpec.addProperties(field.reflectionProperties(holder.sourceClazzTypeName))
 
-            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.declaringName.asFullTypeName()
-                    ?: field.typeName, KModifier.PRIVATE).receiver(mapperTypeParam).mutable(true)
+            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.declaringName.asFullTypeName()?.copy(nullable = true)
+                    ?: field.typeName.copy(nullable = true), KModifier.PRIVATE).receiver(mapperTypeParam).mutable(true)
                     .getter(field.getterFunSpec())
                     .setter(field.setterFunSpec())
                     .build())
@@ -170,18 +170,17 @@ class MapperGeneration {
             }
             val fullTypeName = name.asFullTypeName()
             val helperInit = name.typeParams.map { "${buildHelperClazzName(it)}()" }.joinToString()
-            resolverParam.fromMapBuilder.beginControlFlow("val myObj : %T = try", fullTypeName)
-            resolverParam.fromMapBuilder.addStatement("obj.%N", accessorName)
-            resolverParam.fromMapBuilder.endControlFlow()
-            resolverParam.fromMapBuilder.beginControlFlow("catch(e: Exception)")
-            if (name.hasEmptyConstructor()) {
-                resolverParam.fromMapBuilder.addStatement("%T()", fullTypeName)
-            } else {
-                resolverParam.fromMapBuilder.addStatement("throw %T(%S)", Exception::class.java.asClassName(), "no empty ctr and not automatically filled")
+
+            if(name.hasEmptyConstructor()){
+                resolverParam.fromMapBuilder.addStatement("val myObj = obj.%N ?: %T()", accessorName, fullTypeName)
+            }else{
+                resolverParam.fromMapBuilder.addStatement("val myObj = obj.%N", accessorName)
             }
 
+            resolverParam.fromMapBuilder.beginControlFlow("myObj?.let")
+            resolverParam.fromMapBuilder.addStatement("obj ->")
+            resolverParam.fromMapBuilder.addStatement("%T($helperInit).fromMap(obj, it as %T)", mapperTypeName!!, TypeUtil.mapStringAny())
             resolverParam.fromMapBuilder.endControlFlow()
-            resolverParam.fromMapBuilder.addStatement("%T($helperInit).fromMap(myObj, it as %T)", mapperTypeName!!, TypeUtil.mapStringAny())
             resolverParam.fromMapBuilder.addStatement("myObj")
 
             resolverParam.toMapBuilder.addStatement("%T($helperInit).toMap(it)", mapperTypeName!!)
