@@ -7,7 +7,6 @@ import kaufland.com.coachbasebinderapi.mapify.Mapper
 import kaufland.com.demo.entity.ProductEntity
 import java.io.Serializable
 import java.math.BigDecimal
-import kotlin.properties.ReadOnlyProperty
 
 @Mapper
 class DummyMapperSource(simple: String = "test123") {
@@ -38,6 +37,9 @@ class DummyMapperSource(simple: String = "test123") {
 
     @Mapify
     val mapper: InnerMapperSource<MyMapifyableTest, String> = InnerMapperSource(MyMapifyableTest(simple), simple)
+
+    @Mapify
+    val liveData = ExposingSource<String>()
 
 
     val privateValExpose

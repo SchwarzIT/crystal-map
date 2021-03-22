@@ -25,20 +25,19 @@ class MapperGeneration {
                 .addSuperinterface(TypeUtil.iMapper(mapperTypeParam))
 
 
-                if(holder.typeParams.isNotEmpty()){
-                    val constructorBuilder = FunSpec.constructorBuilder()
+        if (holder.typeParams.isNotEmpty()) {
+            val constructorBuilder = FunSpec.constructorBuilder()
 
-                    holder.typeParams.forEachIndexed { index, typeVariableSymbol ->
-                        typeSpec.addTypeVariable(TypeVariableName(typeVariableSymbol.name))
-                        typeSpec.addProperty(PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
-                                        .initializer("typeParam$index")
-                                        .addModifiers(KModifier.PRIVATE)
-                                        .build())
-                        constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
-                    }
-                    typeSpec.primaryConstructor(constructorBuilder.build())
-                }
-
+            holder.typeParams.forEachIndexed { index, typeVariableSymbol ->
+                typeSpec.addTypeVariable(TypeVariableName(typeVariableSymbol.name))
+                typeSpec.addProperty(PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
+                        .initializer("typeParam$index")
+                        .addModifiers(KModifier.PRIVATE)
+                        .build())
+                constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name)))
+            }
+            typeSpec.primaryConstructor(constructorBuilder.build())
+        }
 
 
         val fromMap = FunSpec.builder("fromMap")
@@ -53,8 +52,15 @@ class MapperGeneration {
                 .addStatement("val map = %T()", TypeUtil.hashMapStringAny())
 
 
+        val addedHelpers = mutableSetOf<String>()
         for (mapifyHelper in holder.fields.values.filter { it.typeHandleMode == MapifyHolder.TypeHandleMode.MAPPER && it.declaringName.typeParams.isNotEmpty() }.map { it.declaringName.typeParams }.flatten()) {
             val helperClazzName = buildHelperClazzName(mapifyHelper)
+
+            if (addedHelpers.contains(helperClazzName)) {
+                continue
+            }
+            addedHelpers.add(helperClazzName)
+
             val param = ResolverParam()
 
             param.fromMapBuilder.beginControlFlow("return map[%S].let", "value")
@@ -69,6 +75,8 @@ class MapperGeneration {
             param.toMapBuilder.addStatement("return map")
 
 
+
+
             typeSpec.addType(MapifyableImplGeneration.typeSpec(MapifyableImplGeneration.Config(
                     modifiers = arrayOf(KModifier.PRIVATE),
                     clazzName = helperClazzName,
@@ -80,18 +88,12 @@ class MapperGeneration {
 
         for (field in holder.fields.values) {
 
-            typeSpec.addProperty(PropertySpec.builder(field.reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
-                    .initializer(CodeBlock.builder()
-                            .addStatement("%T::class.java.getDeclaredField(%S)", holder.sourceClazzTypeName, field.fieldName)
-                            .beginControlFlow(".apply")
-                            .addStatement("isAccessible·=·true")
-                            .endControlFlow().build())
-                    .build())
+            typeSpec.addProperties(field.reflectionProperties(holder.sourceClazzTypeName))
 
-
-            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.declaringName.asFullTypeName() ?: field.typeName, KModifier.PRIVATE).receiver(mapperTypeParam).mutable(true)
-                    .getter(FunSpec.getterBuilder().addStatement("return %N.get(this) as %T", field.reflectedFieldName, field.typeName).build())
-                    .setter(FunSpec.setterBuilder().addParameter("value", field.typeName).addStatement("%N.set(this,·value)", field.reflectedFieldName).build())
+            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.declaringName.asFullTypeName()
+                    ?: field.typeName, KModifier.PRIVATE).receiver(mapperTypeParam).mutable(true)
+                    .getter(field.getterFunSpec())
+                    .setter(field.setterFunSpec())
                     .build())
 
             val resolverParam = ResolverParam()
@@ -125,7 +127,7 @@ class MapperGeneration {
         return FileSpec.get(holder.`package`, typeSpec.build())
     }
 
-    private fun buildHelperClazzName(name: ProcessingContext.DeclaringName): String{
+    private fun buildHelperClazzName(name: ProcessingContext.DeclaringName): String {
         return "Helper${name.name.split('.').map { it.capitalize() }.joinToString(separator = "")}"
     }
 
@@ -149,7 +151,7 @@ class MapperGeneration {
             return
         }
 
-        if(name.isTypeVar()){
+        if (name.isTypeVar()) {
 
             typeParams.indexOfFirst { it.name == name.name }?.let {
                 resolverParam.fromMapBuilder.addStatement("typeParam$it.fromMap(it as %T)", TypeUtil.mapStringAny())
@@ -158,11 +160,11 @@ class MapperGeneration {
 
         }
 
-        if(name.asTypeElement()?.getAnnotation(Mapper::class.java) != null){
+        if (name.asTypeElement()?.getAnnotation(Mapper::class.java) != null) {
             val mapperTypeName = ClassName.bestGuess("${name.name}Mapper")?.let {
-                if(name.typeParams.isNotEmpty()){
+                if (name.typeParams.isNotEmpty()) {
                     it.parameterizedBy(name.typeParams.mapNotNull { it.asFullTypeName() })
-                }else{
+                } else {
                     it
                 }
             }
@@ -172,9 +174,9 @@ class MapperGeneration {
             resolverParam.fromMapBuilder.addStatement("obj.%N", accessorName)
             resolverParam.fromMapBuilder.endControlFlow()
             resolverParam.fromMapBuilder.beginControlFlow("catch(e: Exception)")
-            if(name.hasEmptyConstructor()){
+            if (name.hasEmptyConstructor()) {
                 resolverParam.fromMapBuilder.addStatement("%T()", fullTypeName)
-            }else{
+            } else {
                 resolverParam.fromMapBuilder.addStatement("throw %T(%S)", Exception::class.java.asClassName(), "no empty ctr and not automatically filled")
             }
 
