@@ -19,6 +19,9 @@ class SimpleMapperTest {
     @Mapify
     private val testSerializable : TestSerializable = TestSerializable("test123", 5)
 
+    @Mapify
+    private val booleanValue: Boolean = true
+
     data class TestSerializable(val test1: String, val test2: Int) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)

@@ -7,8 +7,10 @@ import java.lang.annotation.Target;
 
 
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Mapify {
+
+    int[] nullableIndexes() default {-1};
 
     String name() default "";
 }

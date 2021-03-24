@@ -5,45 +5,68 @@ import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 import kaufland.com.demo.entity.ProductEntity
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.Serializable
+import java.math.BigDecimal
 
 @Mapper
 class DummyMapperSource(simple: String = "test123") {
 
     @Mapify
-    val myPrivateVal : String? = simple
+    private val myPrivateValWithAVeryVeryVeryVeryLongName: String? = simple
 
     @Mapify
-    private val innerObject : MyMapifyableTest = MyMapifyableTest()
+    var innerObject: MyMapifyableTest = MyMapifyableTest(simple)
 
     @Mapify
-    private val innerObjectList : List<MyMapifyableTest> = listOf(MyMapifyableTest())
+    var innerObjectList: List<MyMapifyableTest> = listOf(MyMapifyableTest(simple))
 
     @Mapify
-    private val innerObjectMap : Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest())
+    var innerObjectMap: Map<String, MyMapifyableTest> = mapOf("test" to MyMapifyableTest(simple))
 
     @Mapify
-    val testSerializable : TestSerializable = TestSerializable(simple, 5)
+    var testSerializable: TestSerializable = TestSerializable(simple, 5)
+
+    @Mapify(nullableIndexes = [0])
+    var product: ProductEntity? = null
 
     @Mapify
-    private val product : ProductEntity? = null
+    var booleanValue: Boolean = true
+
+    @Mapify(nullableIndexes = [0])
+    var bigDecimalValue: BigDecimal? = null
+
+    @Mapify(nullableIndexes = [1])
+    var nullableList : MutableList<String?> = mutableListOf(null)
+
+    @Mapify(nullableIndexes = [1, 2])
+    private val nullableMap : Map<String?, Int?> = mapOf()
+
+    @Mapify
+    val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)
+
+    @Mapify
+    val liveData = ExposingSource<String>()
+
+
+    val privateValExpose
+        get() = myPrivateValWithAVeryVeryVeryVeryLongName
 
     data class TestSerializable(val test1: String, val test2: Int) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
-    class MyMapifyableTest {
+    class MyMapifyableTest(val myString: String) {
 
         class Mapper : IMapifyable<MyMapifyableTest> {
             override fun fromMap(map: Map<String, Any>): MyMapifyableTest {
-                return MyMapifyableTest()
+                return MyMapifyableTest(map["test"] as String)
             }
 
             override fun toMap(obj: MyMapifyableTest): Map<String, Any> {
-                return mapOf()
+                return mapOf("test" to obj.myString)
             }
 
         }
     }
+
+
 }
