@@ -47,6 +47,7 @@ class DummyMapperSourceTest {
             product = ProductEntity.create().builder().setName("Foo").exit()
             testSerializable = DummyMapperSource.TestSerializable("Bar", 1)
             liveData.exposedVal = "myLiveVal"
+            nullableList.add("1")
         }
         val mapToPersist = mapper.toMap(obj)
 
@@ -67,6 +68,8 @@ class DummyMapperSourceTest {
             assertEquals("oldValue", newObj.innerObjectList[0].myString)
             assertEquals("oldValue", newObj.innerObjectMap["test"]!!.myString)
             assertEquals("myLiveVal", newObj.liveData.exposedVal)
+            assertEquals(2, newObj.nullableList.size)
+            assertEquals(null, newObj.nullableList[0])
         }
     }
 }

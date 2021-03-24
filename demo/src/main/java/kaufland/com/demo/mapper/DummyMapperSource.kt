@@ -26,14 +26,20 @@ class DummyMapperSource(simple: String = "test123") {
     @Mapify
     var testSerializable: TestSerializable = TestSerializable(simple, 5)
 
-    @Mapify
+    @Mapify(nullableIndexes = [0])
     var product: ProductEntity? = null
 
     @Mapify
     var booleanValue: Boolean = true
 
-    @Mapify
+    @Mapify(nullableIndexes = [0])
     var bigDecimalValue: BigDecimal? = null
+
+    @Mapify(nullableIndexes = [1])
+    var nullableList : MutableList<String?> = mutableListOf(null)
+
+    @Mapify(nullableIndexes = [1, 2])
+    private val nullableMap : Map<String?, Int?> = mapOf()
 
     @Mapify
     val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)

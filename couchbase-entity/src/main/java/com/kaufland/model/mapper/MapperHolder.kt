@@ -1,19 +1,9 @@
 package com.kaufland.model.mapper
 
 import com.kaufland.ProcessingContext
-import com.kaufland.model.accessor.CblGenerateAccessorHolder
-import com.kaufland.model.deprecated.DeprecatedModel
-import com.kaufland.model.field.CblBaseFieldHolder
-import com.kaufland.model.field.CblConstantHolder
-import com.kaufland.model.field.CblFieldHolder
-import com.kaufland.model.id.DocIdHolder
-import com.kaufland.model.query.CblQueryHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.sun.tools.javac.code.Symbol
-import kaufland.com.coachbasebinderapi.query.Query
-
-import java.util.ArrayList
 
 import javax.lang.model.element.Element
 

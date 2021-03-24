@@ -1,15 +1,12 @@
 package com.kaufland.model.mapper.type
 
 import com.kaufland.ProcessingContext
-import com.kaufland.ProcessingContext.asDeclaringName
 import com.kaufland.javaToKotlinType
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.sun.tools.javac.code.Symbol
 import kaufland.com.coachbasebinderapi.mapify.Mapify
-import java.lang.reflect.Field
 import java.lang.reflect.Method
-import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val fieldName : String) : MapifyElementType {
@@ -44,7 +41,7 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
         it.getterElement?.modifiers?.contains(Modifier.PUBLIC) == true && it.setterElement?.modifiers?.contains(Modifier.PUBLIC) == true
     } ?: false
 
-    override val declaringName: ProcessingContext.DeclaringName = ProcessingContext.DeclaringName(getterSetter.setterElement!!.params()[0]!!.asType())
+    override val declaringName: ProcessingContext.DeclaringName = ProcessingContext.DeclaringName(getterSetter.setterElement!!.params()[0]!!.asType(), 0, getterSetter.mapify!!.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
         return listOf(PropertySpec.builder(getterSetter.getterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
@@ -62,10 +59,10 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.invoke(this) as? %T", getterSetter.getterInternalAccessor(), typeName.copy(nullable = true)).build()
+        return FunSpec.getterBuilder().addStatement("return %N.invoke(this) as? %T", getterSetter.getterInternalAccessor(), declaringName.asFullTypeName()!!.copy(nullable = true)).build()
     }
 
     override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter("value", typeName).addStatement("%N.invoke(this,·value)", getterSetter.setterInternalAccessor()).build()
+        return FunSpec.setterBuilder().addParameter("value", declaringName.asFullTypeName()!!).addStatement("%N.invoke(this,·value)", getterSetter.setterInternalAccessor()).build()
     }
 }

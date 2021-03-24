@@ -12,7 +12,6 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 import java.io.Serializable
-import java.lang.reflect.Field
 import java.util.*
 
 class MapperGeneration {
@@ -226,8 +225,8 @@ class MapperGeneration {
                     resolverParam.fromMapBuilder.addStatement("?.toMap()")
                 }
                 isAssignable(Serializable::class.java) -> {
-                    resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", TypeUtil.serializableMapifyable(name.asTypeName()!!), TypeUtil.mapStringAny())
-                    resolverParam.toMapBuilder.addStatement("%T().toMap(it)", TypeUtil.serializableMapifyable(name.asTypeName()!!))
+                    resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", TypeUtil.serializableMapifyable(name.asFullTypeName()!!.copy(nullable = false)), TypeUtil.mapStringAny())
+                    resolverParam.toMapBuilder.addStatement("%T().toMap(it)", TypeUtil.serializableMapifyable(name.asFullTypeName()!!.copy(nullable = false)))
                 }
                 else -> {
                     throw Exception("unknown field type ${name.name}")

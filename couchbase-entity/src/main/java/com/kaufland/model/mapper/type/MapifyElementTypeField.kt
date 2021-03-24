@@ -19,7 +19,7 @@ class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyE
 
     override val accessible = element.modifiers.contains(Modifier.PUBLIC)
 
-    override val declaringName: ProcessingContext.DeclaringName = element.asDeclaringName()
+    override val declaringName: ProcessingContext.DeclaringName = element.asDeclaringName(mapify.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
         return listOf(PropertySpec.builder(reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
@@ -31,10 +31,10 @@ class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyE
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.get(this) as? %T", reflectedFieldName, typeName.copy(nullable = true)).build()
+        return FunSpec.getterBuilder().addStatement("return %N.get(this) as? %T", reflectedFieldName, declaringName.asFullTypeName()!!.copy(nullable = true)).build()
     }
 
     override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter("value", typeName).addStatement("%N.set(this,·value)", reflectedFieldName).build()
+        return FunSpec.setterBuilder().addParameter("value", declaringName.asFullTypeName()!!).addStatement("%N.set(this,·value)", reflectedFieldName).build()
     }
 }
