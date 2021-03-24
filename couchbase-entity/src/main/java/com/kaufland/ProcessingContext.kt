@@ -26,7 +26,7 @@ object ProcessingContext {
 
     lateinit var env: ProcessingEnvironment
 
-    val createdQualitfiedClazzNames: MutableSet<ClassName> = hashSetOf()
+    val createdQualifiedClazzNames: MutableSet<ClassName> = hashSetOf()
 
 
     fun Element.isAssignable(clazz: Class<*>) = ProcessingContext.env.let {
@@ -37,7 +37,7 @@ object ProcessingContext {
 
     fun Element.asDeclaringName(optinalIndexes: Array<Int>): DeclaringName = DeclaringName(this.asType(), 0, optinalIndexes)
 
-    data class DeclaringName(private val typeMirror: TypeMirror, private val relevantIndex : Int = 0, private val nullableIndexes: Array<Int> = emptyArray()) {
+    data class DeclaringName(private val typeMirror: TypeMirror, private val relevantIndex: Int = 0, private val nullableIndexes: Array<Int> = emptyArray()) {
         val name: String
 
         val typeParams: List<DeclaringName>
@@ -51,17 +51,21 @@ object ProcessingContext {
             }
         }
 
-        fun asTypeName(): TypeName? = createdQualitfiedClazzNames.firstOrNull { it.simpleName == name }
-                ?: if(isTypeVar()) TypeVariableName(name).copy(nullable = isNullable()) else asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(nullable = isNullable())
+        fun asTypeName(): TypeName? = createdQualifiedClazzNames.firstOrNull { it.simpleName == name }
+                ?: if (isTypeVar()) TypeVariableName(name).copy(nullable = isNullable()) else asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(nullable = isNullable())
 
         fun asFullTypeName(): TypeName? = asTypeName()?.let {
             if (it is ClassName && typeParams.isNotEmpty()) {
-                it.parameterizedBy(typeParams.mapNotNull { if(it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() })
+                it.parameterizedBy(typeParams.mapNotNull { if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() })
             } else it
         }
 
 
-        fun hasEmptyConstructor() = (typeMirror as? Type.ClassType?)?.let { it.asElement().enclosedElements.any { it.getKind() == ElementKind.CONSTRUCTOR && (it as? Symbol.MethodSymbol)?.parameters?.size == 0 && !it.modifiers.contains(Modifier.PRIVATE) }} ?: false
+        fun hasEmptyConstructor() = (typeMirror as? Type.ClassType?)?.let {
+            it.asElement().enclosedElements.any {
+                it.getKind() == ElementKind.CONSTRUCTOR && (it as? Symbol.MethodSymbol)?.parameters?.size == 0 && !it.modifiers.contains(Modifier.PRIVATE)
+            }
+        } ?: false
 
         fun isPlainType() = plainTypes.contains(name)
 
@@ -69,10 +73,11 @@ object ProcessingContext {
 
         fun isNullable() = nullableIndexes.contains(relevantIndex)
 
-        fun asTypeElement(): TypeElement? = (typeMirror as? PrimitiveType?)?.let { env.typeUtils.boxedClass(it) } ?: env.elementUtils.getTypeElement(name)
+        fun asTypeElement(): TypeElement? = (typeMirror as? PrimitiveType?)?.let { env.typeUtils.boxedClass(it) }
+                ?: env.elementUtils.getTypeElement(name)
 
         fun isProcessingType(): Boolean {
-            return createdQualitfiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
+            return createdQualifiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
         }
     }
 
