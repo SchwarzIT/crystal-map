@@ -5,6 +5,8 @@ import com.couchbase.lite.Blob
 import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.coachbasebinderapi.MapWrapper
+import kaufland.com.coachbasebinderapi.deprecated.Deprecated
+import kaufland.com.coachbasebinderapi.deprecated.DeprecatedField
 import kaufland.com.demo.entity.UserComment
 import java.util.*
 
@@ -19,6 +21,7 @@ import java.util.*
         Field(name = "sales_price", type = String::class),
         Field(name = "currency_unit", type = String::class)
 )
+@Deprecated(fields = [DeprecatedField("sales_price", inUse = false)])
 open class Price {
     companion object {
         const val TYPE: String = "Price"

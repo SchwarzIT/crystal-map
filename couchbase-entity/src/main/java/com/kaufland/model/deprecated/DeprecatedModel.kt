@@ -20,17 +20,16 @@ class DeprecatedModel(deprecated: Deprecated) {
     fun addDeprecated(field: String, spec: PropertySpec.Builder) {
 
         deprecatedFields[field]?.let {
-            val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
-
-            builder.addMember("message = %S", "will be removed in future release")
-            builder.addMember("level = %T.${evaluateDeprecationLevel(it.inUse)}", DeprecationLevel::class.java)
-
-            if (it.replacedBy.isNotBlank()) {
-                builder.addMember("replaceWith = %T(%S)", ReplaceWith::class.java, it.replacedBy)
-            }
-
-            spec.addAnnotation(builder.build())
+            spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
         }
+    }
+
+    fun addDeprecated(field: String, spec: FunSpec.Builder) : Boolean {
+
+        return deprecatedFields[field]?.let {
+            spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
+            true
+        } ?: false
     }
 
     private fun evaluateDeprecationLevel(inUse: Boolean) = if (inUse) {
@@ -39,15 +38,23 @@ class DeprecatedModel(deprecated: Deprecated) {
         DeprecationLevel.ERROR
     }
 
+    private fun buildDeprecatedAnnotation(inUse: Boolean, replaceWith: String?): AnnotationSpec {
+        val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
+        builder.addMember("message = %S", "will be removed in future release")
+        builder.addMember("level = %T.${evaluateDeprecationLevel(inUse)}", DeprecationLevel::class.java)
+        replaceWith?.let {
+            if (it.isNotBlank()) {
+                builder.addMember("replaceWith = %T(%S)", ReplaceWith::class.java, it)
+            }
+        }
+        return builder.build()
+    }
+
     fun addDeprecated(spec: TypeSpec.Builder) {
 
         replacedByTypeMirror?.let {
             if (it.toString() != Void::class.java.canonicalName) {
-                val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
-                builder.addMember("message = %S", "will be removed in future release")
-                builder.addMember("level = %T.${evaluateDeprecationLevel(inUse)}", DeprecationLevel::class.java)
-                builder.addMember("replaceWith = %T(%S)", ReplaceWith::class.java, it.toString())
-                spec.addAnnotation(builder.build())
+                spec.addAnnotation(buildDeprecatedAnnotation(inUse, it.toString()))
             }
         }
 

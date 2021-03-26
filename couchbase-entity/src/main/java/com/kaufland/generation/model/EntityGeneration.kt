@@ -79,7 +79,7 @@ class EntityGeneration {
 
         for (fieldHolder in holder.allFields) {
 
-            fieldHolder.builderSetter(holder.dbName, holder.`package`, holder.entitySimpleName, true)?.let {
+            fieldHolder.builderSetter(holder.dbName, holder.`package`, holder.entitySimpleName, true, holder.deprecated)?.let {
                 builderBuilder.addFunction(it)
             }
 

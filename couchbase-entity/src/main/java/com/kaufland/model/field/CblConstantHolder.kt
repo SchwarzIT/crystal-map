@@ -52,7 +52,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
                 PropertySpec.builder(constantValueAccessorName, typeMirror.asTypeName().javaToKotlinType(), KModifier.FINAL, KModifier.PUBLIC).initializer(ConversionUtil.convertStringToDesiredFormat(typeMirror, constantValue)).addAnnotation(JvmField::class).build())
     }
 
-    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec? {
+    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec? {
         return null
     }
 }
