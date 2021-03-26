@@ -52,7 +52,7 @@ class WrapperGeneration {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
-            fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false)?.let {
+            fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false, holder.deprecated)?.let {
                 builderBuilder.addFunction(it)
             }
         }

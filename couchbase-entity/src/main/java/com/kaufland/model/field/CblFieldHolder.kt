@@ -107,7 +107,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         return CodeBlock.of("${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}<%T>($format, %T::class)", resultType, *args, forTypeConversion)
     }
 
-    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec {
+    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec {
         val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
         val builder = FunSpec.builder("set" + accessorSuffix().capitalize())
                 .addModifiers(KModifier.PUBLIC)
@@ -118,8 +118,12 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        builder.addStatement("obj.${accessorSuffix()} = value")
-        builder.addStatement("return this")
+        if(deprecated?.addDeprecated(dbField, builder) == true){
+            builder.addStatement("throw %T()", UnsupportedOperationException::class)
+        }else{
+            builder.addStatement("obj.${accessorSuffix()} = value")
+            builder.addStatement("return this")
+        }
 
         return builder.build()
     }

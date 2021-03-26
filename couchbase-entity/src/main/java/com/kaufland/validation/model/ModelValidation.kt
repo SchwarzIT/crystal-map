@@ -44,12 +44,14 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
             }
 
             field.value.replacedBy?.let { replacement ->
-                val replacingIncludedInModel = model.fields.containsKey(replacement) || model.fieldConstants.containsKey(replacement)
-                val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) }
-                        ?: false
+                if (replacement.isNotEmpty()) {
+                    val replacingIncludedInModel = model.fields.containsKey(replacement) || model.fieldConstants.containsKey(replacement)
+                    val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) }
+                            ?: false
 
-                if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
-                    logger.error("replacement [${replacement}] for field [${field.key}] does not exists", model.sourceElement)
+                    if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
+                        logger.error("replacement [${replacement}] for field [${field.key}] does not exists", model.sourceElement)
+                    }
                 }
             }
         }

@@ -47,7 +47,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec
 
-    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean): FunSpec?
+    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec?
 
     abstract fun createFieldConstant(): List<PropertySpec>
 }
