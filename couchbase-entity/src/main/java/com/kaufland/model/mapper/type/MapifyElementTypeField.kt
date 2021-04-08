@@ -10,6 +10,7 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyElementType {
+    override val elements: Array<Element> = arrayOf(element)
 
     override val fieldName = element.simpleName.toString()
 

@@ -33,7 +33,6 @@ interface Worker<T : WorkSet> {
         if (logger.hasErrors()) {
             return false
         }
-
         doWork(workSet, useSuspend)
         return true
     }

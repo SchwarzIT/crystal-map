@@ -31,7 +31,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private var useSuspend: Boolean = false
 
-    private lateinit var workers : Set<Worker<*>>
+    private lateinit var workers: Set<Worker<*>>
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
@@ -67,10 +67,16 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         ProcessingContext.roundEnv = roundEnv
 
         for (worker in workers) {
-            if(!worker.invoke(roundEnv, useSuspend)){
-                //error in worker no further processing
+            try {
+                if (!worker.invoke(roundEnv, useSuspend)) {
+                    //error in worker no further processing
+                    return true
+                }
+            } catch (e: PostValidationException) {
+                mLogger.abortWithError(e)
                 return true
             }
+
         }
 
         return true // no further processing of this annotation type

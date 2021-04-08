@@ -7,9 +7,12 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
+import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 interface MapifyElementType {
+
+    val elements: Array<Element>
 
     val fieldName : String
 
