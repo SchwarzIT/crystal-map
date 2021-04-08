@@ -8,10 +8,10 @@ class PostValidationException : Exception {
     var causingElements : List<Element> = emptyList()
 
     constructor(message: String, vararg causingElement : Element) : super(message){
-        this.causingElements = causingElement?.toList()
+        this.causingElements = causingElement.toList()
     }
 
     constructor(throwable: Throwable, vararg causingElement : Element) : super(throwable){
-        this.causingElements = causingElement?.toList()
+        this.causingElements = causingElement.toList()
     }
 }
