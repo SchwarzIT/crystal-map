@@ -13,7 +13,11 @@ import java.util.*
 class EntityGeneration {
 
     private val id: FunSpec
-        get() = FunSpec.builder("getId").addModifiers(KModifier.PUBLIC).returns(TypeUtil.string().copy(nullable = true)).addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string().copy(nullable = true)).build()
+        get() = FunSpec.builder("getId")
+            .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
+            .returns(TypeUtil.string().copy(nullable = true))
+            .addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string().copy(nullable = true))
+            .build()
 
 
     fun generateModel(holder: EntityHolder, useSuspend : Boolean): FileSpec {
@@ -43,6 +47,7 @@ class EntityGeneration {
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(TypeUtil.mapSupport())
+                .addSuperinterface(TypeUtil.iEntity())
                 .addSuperinterface(holder.interfaceTypeName)
                 .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
                 .addFunction(CblDefaultGeneration.addDefaults(holder, false))
