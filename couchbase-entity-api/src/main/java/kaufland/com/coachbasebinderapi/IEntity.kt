@@ -1,5 +1,5 @@
 package kaufland.com.coachbasebinderapi
 
-interface IEntity {
+interface IEntity : MapSupport {
     fun getId(): String?
 }

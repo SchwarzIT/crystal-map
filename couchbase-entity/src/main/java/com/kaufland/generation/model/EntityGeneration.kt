@@ -46,7 +46,6 @@ class EntityGeneration {
 
         val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
                 .addModifiers(KModifier.PUBLIC)
-                .addSuperinterface(TypeUtil.mapSupport())
                 .addSuperinterface(TypeUtil.iEntity())
                 .addSuperinterface(holder.interfaceTypeName)
                 .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
