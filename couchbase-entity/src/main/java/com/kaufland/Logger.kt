@@ -41,4 +41,15 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) {
     fun hasErrors(): Boolean {
         return hasErrors
     }
+
+    fun abortWithError(e: PostValidationException) {
+        if(e.causingElements.isNotEmpty()){
+            for (causingElement in e.causingElements) {
+                error(e.message ?: "unknown", causingElement)
+            }
+        }else{
+         error(e.message ?: "unknown", null)
+        }
+        throw e
+    }
 }

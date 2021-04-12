@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.*
 import com.sun.tools.javac.code.Symbol
 import kaufland.com.coachbasebinderapi.mapify.Mapify
 import java.lang.reflect.Method
+import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val fieldName : String) : MapifyElementType {
@@ -32,6 +33,8 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
             return "a${setterName().capitalize()}"
         }
     }
+
+    override val elements: Array<Element> = arrayOf(getterSetter.getterElement, getterSetter.setterElement).map { it as? Element }?.filterNotNull().toTypedArray()
 
     override val mapName = getterSetter.mapify?.name?.let { if(it.isNotBlank()) it else null } ?: fieldName
 
