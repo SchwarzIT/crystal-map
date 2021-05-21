@@ -62,21 +62,21 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions : Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(docId: String, dbName: String): Map<String, Any>? {
-        if (docId == null) {
-           return null
-        }
-
-        val document = getDatabase(dbName).getDocument(docId) ?: return null
+    override fun getDocument(id: String, dbName: String): Map<String, Any>? {
+        val document = getDatabase(dbName).getDocument(id) ?: return null
 
         val result = document.toMap()
-        result["_id"] = docId
+        result["_id"] = id
         return result
     }
 
+    override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>> =
+        ids.mapNotNull { docId ->
+            getDocument(docId, dbName)
+        }
+
     @Throws(PersistenceException::class)
     override fun deleteDocument(id: String, dbName: String) {
-
         try {
             val document = getDatabase(dbName).getDocument(id)
             if (document != null) {
