@@ -3,12 +3,12 @@ package com.kaufland.generation.model
 import com.kaufland.generation.MapifyableImplGeneration
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.util.TypeUtil
+import com.kaufland.util.TypeUtil.string
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.jvm.throws
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
-import java.util.*
 
 class EntityGeneration {
 
@@ -19,13 +19,12 @@ class EntityGeneration {
             .addStatement("return mDoc.get(%N) as %T", "_ID", TypeUtil.string().copy(nullable = true))
             .build()
 
-
     fun generateModel(holder: EntityHolder, useSuspend : Boolean): FileSpec {
-
-        var companionSpec = TypeSpec.companionObjectBuilder()
+        val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addProperty(idConstant())
         companionSpec.addFunctions(create(holder, useSuspend))
         companionSpec.addFunction(findById(holder, useSuspend))
+        companionSpec.addFunction(findByIds(holder, useSuspend))
 
         for (query in holder.queries) {
             query.queryFun(holder.dbName, holder, useSuspend)?.let {
@@ -53,7 +52,7 @@ class EntityGeneration {
                 .addFunction(CblConstantGeneration.addConstants(holder, false))
                 .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAny(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build())
                 .addProperty(PropertySpec.builder("mDocChanges", TypeUtil.mutableMapStringAnyNullable(), KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build())
-                .addFunction(contructor(holder))
+                .addFunction(constructor(holder))
                 .addFunction(setAll(holder))
                 .addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
                 .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
@@ -82,7 +81,6 @@ class EntityGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-
             fieldHolder.builderSetter(holder.dbName, holder.`package`, holder.entitySimpleName, true, holder.deprecated)?.let {
                 builderBuilder.addFunction(it)
             }
@@ -104,7 +102,6 @@ class EntityGeneration {
         typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
         return FileSpec.get(holder.`package`, typeBuilder.build())
-
     }
 
     private fun findById(holder: EntityHolder, useSuspend: Boolean): FunSpec {
@@ -114,21 +111,24 @@ class EntityGeneration {
                .returns(holder.entityTypeName.copy(true)).build()
     }
 
+    private fun findByIds(holder: EntityHolder, useSuspend: Boolean): FunSpec {
+        return FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend)).addParameter("ids", TypeUtil.list(string())).addAnnotation(JvmStatic::class)
+            .addStatement("val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S)", PersistenceConfig::class, holder.dbName)
+            .addStatement("return result.filterNotNull().mapNotNull { %N(it) }", holder.entitySimpleName)
+            .returns(TypeUtil.list(holder.entityTypeName.copy(true))).build()
+    }
 
     private fun idConstant(): PropertySpec {
         return PropertySpec.builder("_ID", String::class, KModifier.PUBLIC, KModifier.FINAL).initializer("%S", "_id").addAnnotation(JvmField::class).build()
     }
 
-
     private fun setAll(holder: EntityHolder): FunSpec {
-
         val setAllBuilder = FunSpec.builder("setAll").addModifiers(KModifier.PUBLIC).addParameter("map", TypeUtil.mapStringAnyNullable()).addStatement("mDocChanges.putAll(map)", TypeUtil.mapStringAnyNullable(), PersistenceConfig::class, holder.dbName)
 
         return setAllBuilder.build()
     }
 
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-
         var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
 
         if(useSuspend){
@@ -170,7 +170,7 @@ class EntityGeneration {
         return saveBuilder.build()
     }
 
-    private fun contructor(holder: EntityHolder): FunSpec {
+    private fun constructor(holder: EntityHolder): FunSpec {
         return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mapStringAny()).addStatement("rebind(ensureTypes(doc))").build()
     }
 
@@ -180,7 +180,7 @@ class EntityGeneration {
 
     private fun create(holder: EntityHolder, useSuspend: Boolean): List<FunSpec> {
 
-        return Arrays.asList(
+        return listOf(
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement("return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
                         holder.entitySimpleName, PersistenceConfig::class, holder.dbName).returns(holder.entityTypeName).build(),
                 FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend)).addAnnotation(JvmStatic::class).addStatement("return %N(%T())",
@@ -194,6 +194,10 @@ class EntityGeneration {
 
         private fun getDocumentMethod(useSuspend: Boolean) : String{
             return "${if(useSuspend) "suspendingConnector" else "connector"}.getDocument"
+        }
+
+        private fun getDocumentsMethod(useSuspend: Boolean) : String{
+            return "${if(useSuspend) "suspendingConnector" else "connector"}.getDocuments"
         }
 
         private fun deleteDocumentMethod(useSuspend: Boolean) : String{

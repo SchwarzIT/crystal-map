@@ -9,6 +9,7 @@ object PersistenceConfig {
     interface Connector {
         val typeConversions: Map<KClass<*>, TypeConversion>
         fun getDocument(id: String, dbName: String): Map<String, Any>?
+        fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?>
         fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
@@ -23,6 +24,8 @@ object PersistenceConfig {
         val typeConversions: Map<KClass<*>, TypeConversion>
 
         suspend fun getDocument(id: String, dbName: String): Map<String, Any>?
+
+        suspend fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>>
 
         suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>>
 
