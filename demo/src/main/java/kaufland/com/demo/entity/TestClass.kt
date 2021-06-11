@@ -11,5 +11,5 @@ import kaufland.com.coachbasebinderapi.*
         Field(name = "just_some_class_with_a_very_long_name", type = JustSomeClassWithAVeryLongName::class, list = true),
         Field(name = "map", type = Map::class, list = true)
 )
-@BasedOn(BaseModel::class, AnotherBaseModel::class)
+@BasedOn(AnotherBaseModel::class)
 open class TestClass

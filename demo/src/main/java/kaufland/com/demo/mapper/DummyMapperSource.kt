@@ -5,6 +5,7 @@ import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 import kaufland.com.demo.entity.ProductEntity
+import kaufland.com.demo.entity.TestClass
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -26,6 +27,9 @@ class DummyMapperSource(simple: String = "test123") {
     @Mapify
     var testSerializable: TestSerializable = TestSerializable(simple, 5)
 
+    @Mapify
+    var testSerializableList: List<TestSerializable> = listOf(TestSerializable(simple, 5))
+
     @Mapify(nullableIndexes = [0])
     var product: ProductEntity? = null
 
@@ -45,7 +49,10 @@ class DummyMapperSource(simple: String = "test123") {
     val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)
 
     @Mapify
-    val liveData = ExposingSource<String>()
+    val liveData = ExposingSource<TestSerializable>(TestSerializable(simple, 5))
+
+    @Mapify
+    val liveDataList : ExposingSource<List<TestSerializable>> = ExposingSource(listOf(TestSerializable(simple, 5)))
 
 
     val privateValExpose

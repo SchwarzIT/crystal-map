@@ -34,6 +34,11 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
             baseModels[element.toString()] = baseModel
         }
 
+        // we can resolve the based on chain when all base models are parsed.
+        for (baseModel in baseModels.values) {
+            EntityFactory.addBasedOn(baseModel.sourceElement!!, baseModels, baseModel)
+        }
+
         for (element in allEntityElements) {
             val entityModel = EntityFactory.createEntityHolder(element, allWrapperStrings, baseModels)
             entityModels[element.toString()] = entityModel
