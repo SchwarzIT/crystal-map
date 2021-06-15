@@ -211,7 +211,8 @@ class MapperGeneration {
                 }
                 isAssignable(List::class.java) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")
-                    resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.map", TypeUtil.list(TypeUtil.any()))
+                    val mapFun = if(name.typeParams[0].isNullable()) "map" else "mapNotNull"
+                    resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.$mapFun", TypeUtil.list(TypeUtil.any()))
                     resolveDeclaringName(name.typeParams[0], resolverParam, accessorName, typeParams)
                     resolverParam.toMapBuilder.endControlFlow()
                     resolverParam.fromMapBuilder.endControlFlow()

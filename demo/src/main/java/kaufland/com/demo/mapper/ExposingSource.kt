@@ -5,7 +5,7 @@ import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 
 @Mapper
-class ExposingSource<T> : HiddingSource<T>(){
+class ExposingSource<T>(value : T) : HiddingSource<T>(){
 
 
     @get:Mapify

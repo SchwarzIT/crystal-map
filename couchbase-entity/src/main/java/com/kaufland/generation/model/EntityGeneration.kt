@@ -47,6 +47,7 @@ class EntityGeneration {
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(TypeUtil.iEntity())
                 .addSuperinterface(holder.interfaceTypeName)
+                .addProperty(holder.dbNameProperty())
                 .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
                 .addFunction(CblDefaultGeneration.addDefaults(holder, false))
                 .addFunction(CblConstantGeneration.addConstants(holder, false))

@@ -46,17 +46,7 @@ object EntityFactory {
         content.deprecated = cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
 
 
-        val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)?.let { FieldExtractionUtil.typeMirror(it) }
-
-        basedOnValue?.forEach { type ->
-            allBaseModels[type.toString()]?.let {
-                content.basedOn.add(it)
-                content.fieldConstants.putAll(it.fieldConstants)
-                content.fields.putAll(it.fields)
-                content.generateAccessors.addAll(it.generateAccessors)
-                content.queries.addAll(it.queries)
-            }
-        }
+        addBasedOn(cblEntityElement, allBaseModels, content)
 
         parseQueries(cblEntityElement, content)
         parseFields(cblEntityElement, content, allWrappers, allBaseModels)
@@ -77,6 +67,25 @@ object EntityFactory {
 
         return content
 
+    }
+
+    fun addBasedOn(
+        cblEntityElement: Element,
+        allBaseModels: Map<String, BaseModelHolder>,
+        content: BaseEntityHolder
+    ) {
+        val basedOnValue = cblEntityElement.getAnnotation(BasedOn::class.java)
+            ?.let { FieldExtractionUtil.typeMirror(it) }
+
+        basedOnValue?.forEach { type ->
+            allBaseModels[type.toString()]?.let {
+                content.basedOn.add(it)
+                content.fieldConstants.putAll(it.fieldConstants)
+                content.fields.putAll(it.fields)
+                content.generateAccessors.addAll(it.generateAccessors)
+                content.queries.addAll(it.queries)
+            }
+        }
     }
 
     private fun parseFields(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>) {
