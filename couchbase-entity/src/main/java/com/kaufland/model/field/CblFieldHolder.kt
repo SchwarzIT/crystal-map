@@ -49,16 +49,14 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
-        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
+        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
         val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
 
-        deprecated?.let {
-            it.addDeprecated(dbField, propertyBuilder)
-        }
+        deprecated?.addDeprecated(dbField, propertyBuilder)
 
         val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
 
@@ -92,7 +90,6 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             getter.addStatement("return null")
 
             setter.addStatement("%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %T::class))", docName, constantName, forTypeConversion)
-
         }
 
         if (comment.isNotEmpty()) {
@@ -118,9 +115,9 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        if(deprecated?.addDeprecated(dbField, builder) == true){
+        if (deprecated?.inUse == false && deprecated.addDeprecated(dbField, builder)){
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
-        }else{
+        } else {
             builder.addStatement("obj.${accessorSuffix()} = value")
             builder.addStatement("return this")
         }
@@ -129,9 +126,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     }
 
     override fun createFieldConstant(): List<PropertySpec> {
-
         val fieldAccessorConstant = PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", dbField).addAnnotation(JvmField::class).build()
-
         return listOf(fieldAccessorConstant)
     }
 
@@ -139,6 +134,5 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         return if (isIterable) {
             TypeUtil.string()
         } else TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
-
     }
 }
