@@ -73,6 +73,4 @@ class DummyMapperSource(simple: String = "test123") {
 
         }
     }
-
-
 }

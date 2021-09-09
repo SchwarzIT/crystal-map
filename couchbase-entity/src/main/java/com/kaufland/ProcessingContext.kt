@@ -80,5 +80,4 @@ object ProcessingContext {
             return createdQualifiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
         }
     }
-
 }

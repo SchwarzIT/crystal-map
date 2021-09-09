@@ -2,7 +2,6 @@ package com.kaufland.util
 
 import com.kaufland.javaToKotlinType
 import com.squareup.kotlinpoet.asTypeName
-import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.lang.model.type.TypeMirror
 
@@ -17,7 +16,7 @@ object ConversionUtil {
 
         val sb = StringBuffer()
         while (m.find()) {
-            m.appendReplacement(sb, "_" + m.group().toLowerCase())
+            m.appendReplacement(sb, "_" + m.group().lowercase())
         }
         m.appendTail(sb)
 

@@ -34,13 +34,15 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
         }
     }
 
-    override val elements: Array<Element> = arrayOf(getterSetter.getterElement, getterSetter.setterElement).map { it as? Element }?.filterNotNull().toTypedArray()
+    override val elements: Array<Element> = arrayOf(getterSetter.getterElement, getterSetter.setterElement).map { it as? Element }
+        .filterNotNull()
+        .toTypedArray()
 
     override val mapName = getterSetter.mapify?.name?.let { if(it.isNotBlank()) it else null } ?: fieldName
 
     override val typeName = getterSetter.setterElement!!.params()[0]!!.asType().asTypeName().javaToKotlinType()
 
-    override val accessible = getterSetter?.let {
+    override val accessible = getterSetter.let {
         it.getterElement?.modifiers?.contains(Modifier.PUBLIC) == true && it.setterElement?.modifiers?.contains(Modifier.PUBLIC) == true
     } ?: false
 
