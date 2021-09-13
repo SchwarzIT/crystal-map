@@ -79,6 +79,7 @@ android {
 }
 
 kapt {
+    correctErrorTypes = true
     arguments {
         arg("useSuspend", "false")
         arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")

@@ -115,7 +115,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        if (deprecated?.inUse == false && deprecated.addDeprecated(dbField, builder)){
+        if (deprecated?.evaluateFieldDeprecationLevel(dbField) == DeprecationLevel.ERROR && deprecated?.addDeprecated(dbField, builder)){
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement("obj.${accessorSuffix()} = value")
