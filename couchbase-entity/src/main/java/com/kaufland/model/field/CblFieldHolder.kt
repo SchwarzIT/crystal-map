@@ -132,7 +132,11 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
     private fun evaluateClazzForTypeConversion(): TypeName {
         return if (isIterable) {
-            TypeUtil.string()
+            if (TypeUtil.isMap(fieldType)) {
+                TypeUtil.string()
+            } else {
+                fieldType
+            }
         } else TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
     }
 }

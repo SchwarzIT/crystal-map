@@ -23,6 +23,10 @@ class DummyMapperSourceTest {
                 return null
             }
 
+            override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?> {
+                TODO("Not yet implemented")
+            }
+
             override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
                 return emptyList()
             }
@@ -46,7 +50,7 @@ class DummyMapperSourceTest {
             booleanValue = true
             product = ProductEntity.create().builder().setName("Foo").exit()
             testSerializable = DummyMapperSource.TestSerializable("Bar", 1)
-            liveData.exposedVal = "myLiveVal"
+            liveData.exposedVal = DummyMapperSource.TestSerializable("myLiveVal", 1)
             nullableList.add("1")
         }
         val mapToPersist = mapper.toMap(obj)

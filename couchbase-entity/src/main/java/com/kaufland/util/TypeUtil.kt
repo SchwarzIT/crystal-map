@@ -164,4 +164,8 @@ object TypeUtil {
     fun classStar(): ParameterizedTypeName {
         return ClassName("kotlin.reflect", "KClass").parameterizedBy(star())
     }
+
+    fun isMap(fieldType: TypeName): Boolean {
+        return fieldType.toString().startsWith("kotlin.collections.Map")
+    }
 }
