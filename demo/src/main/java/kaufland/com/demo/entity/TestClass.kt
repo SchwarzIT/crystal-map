@@ -12,4 +12,9 @@ import kaufland.com.coachbasebinderapi.*
         Field(name = "map", type = Map::class, list = true)
 )
 @BasedOn(AnotherBaseModel::class)
-open class TestClass
+open class TestClass{
+        companion object{
+                @DocIdSegment
+                fun prefix() = "hurra"
+        }
+}
