@@ -32,6 +32,10 @@ class TypeConversionTest {
                 return emptyMap()
             }
 
+            override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?> {
+                TODO("Not yet implemented")
+            }
+
             override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
                 throw Exception("should not called")
             }

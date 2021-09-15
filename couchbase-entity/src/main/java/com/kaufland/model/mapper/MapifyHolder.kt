@@ -1,23 +1,13 @@
 package com.kaufland.model.mapper
 
 import com.kaufland.ProcessingContext
-import com.kaufland.ProcessingContext.asDeclaringName
-import com.kaufland.ProcessingContext.asTypeElement
 import com.kaufland.ProcessingContext.isAssignable
-import com.kaufland.javaToKotlinType
 import com.kaufland.model.mapper.type.MapifyElementType
-import com.kaufland.util.FieldExtractionUtil
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
-import kaufland.com.coachbasebinderapi.mapify.Mapify
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import kaufland.com.coachbasebinderapi.mapify.Mapper
 import java.io.Serializable
-import java.math.BigDecimal
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.Modifier
-
 
 class MapifyHolder(val mapifyElement : MapifyElementType, env: ProcessingEnvironment)
     : MapifyElementType by mapifyElement{

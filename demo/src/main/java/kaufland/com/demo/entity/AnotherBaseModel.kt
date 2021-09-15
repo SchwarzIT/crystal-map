@@ -1,9 +1,7 @@
 package kaufland.com.demo.entity
 
+import kaufland.com.coachbasebinderapi.*
 import kaufland.com.coachbasebinderapi.BaseModel
-import kaufland.com.coachbasebinderapi.BasedOn
-import kaufland.com.coachbasebinderapi.Field
-import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.demo.customtypes.GenerateClassName
 
 @BaseModel
@@ -12,4 +10,7 @@ import kaufland.com.demo.customtypes.GenerateClassName
         Field(name = "clazzName", type = GenerateClassName::class, defaultValue = "GenerateClassName(this::class.simpleName ?: \"\")")
 )
 @BasedOn(kaufland.com.demo.entity.BaseModel::class)
-class AnotherBaseModel
+@DocId("%this.prefix()%:dummy:%anotherBaseThing%")
+class AnotherBaseModel{
+
+}

@@ -1,9 +1,9 @@
 
 buildscript {
-    ext.kotlin_version = '1.3.72'
+    ext.kotlin_version = '1.5.30'
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.1'
@@ -17,7 +17,6 @@ buildscript {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 //TODO enable to localy test plugin
@@ -80,6 +79,7 @@ android {
 }
 
 kapt {
+    correctErrorTypes = true
     arguments {
         arg("useSuspend", "false")
         arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")

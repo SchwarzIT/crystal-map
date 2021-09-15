@@ -8,11 +8,15 @@ import kaufland.com.coachbasebinderapi.DocId
 import java.util.regex.Pattern
 
 
-class DocIdHolder(docId: DocId, customSegments: List<DocIdSegmentHolder>) {
+class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
 
     private val docIdSegmentCallPattern = Pattern.compile("\\((.+?)\\)")
 
-    data class Segment(val segment: String, val fields: List<String>, val customSegment: DocIdSegmentHolder?) {
+    data class Segment(
+        val segment: String,
+        val fields: List<String>,
+        val customSegment: DocIdSegmentHolder?
+    ) {
 
         fun fieldsToModelFields(entity: BaseEntityHolder) = fields.map {
             entity.fields[it] ?: entity.fieldConstants[it]
@@ -22,46 +26,83 @@ class DocIdHolder(docId: DocId, customSegments: List<DocIdSegmentHolder>) {
 
     val pattern = docId.value
 
-    val customSegments = customSegments.associateBy { it.name }
-
-    //contains all segments placed between %
-    val segments: List<Segment> = Pattern.compile("%(.+?)%").matcher(pattern).let {
-        val segments = mutableListOf<Segment>()
-        while (it.find()) {
-            val plainSegment = it.group(1)
-
-            val segmentMatcher = docIdSegmentCallPattern.matcher(plainSegment)
-            if (segmentMatcher.find()) {
-                val fields = segmentMatcher.group(1).split(',').map { it.trim() }
-                segments.add(Segment(plainSegment, fields, this.customSegments[plainSegment.removeSuffix("(${segmentMatcher.group(1)})").removePrefix("this.")]))
-            } else {
-                segments.add(Segment(plainSegment, listOf(plainSegment), null))
-            }
-        }
-        segments
+    init {
+        recompile()
     }
 
-    private fun List<Segment>.distinctFieldAccessors(model: BaseEntityHolder)=this.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
+    fun recompile() {
+        customSegments = customSegmentSource.associateBy { it.name }.toMutableMap()
+        segments = Pattern.compile("%(.+?)%").matcher(pattern).let {
+            val segments = mutableListOf<Segment>()
+            while (it.find()) {
+                val plainSegment = it.group(1)
+                val segmentMatcher = docIdSegmentCallPattern.matcher(plainSegment)
+                if (segmentMatcher.find()) {
+                    val fields = segmentMatcher.group(1).split(',').map { it.trim() }
+                    segments.add(
+                        Segment(
+                            plainSegment,
+                            fields,
+                            this.customSegments[plainSegment.removeSuffix("(${segmentMatcher.group(1)})")
+                                .removePrefix("this.")]
+                        )
+                    )
+                } else if (plainSegment.contains("()")) {
+                    segments.add(
+                        Segment(
+                            plainSegment,
+                            listOf(),
+                            this.customSegments[plainSegment.removeSuffix("()")
+                                .removePrefix("this.")]
+                        )
+                    )
+                } else {
+                    segments.add(Segment(plainSegment, listOf(plainSegment), null))
+
+                }
+            }
+            segments
+        }
+    }
+
+    lateinit var customSegments: MutableMap<String, DocIdSegmentHolder>
+
+    //contains all segments placed between %
+    lateinit var segments: List<Segment>
+
+    private fun List<Segment>.distinctFieldAccessors(model: BaseEntityHolder) =
+        this.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
 
 
     fun companionFunction(entity: BaseEntityHolder): FunSpec {
-        val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class).returns(TypeUtil.string())
+        val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
+            .returns(TypeUtil.string())
         var statement = pattern
         val addedFields = mutableListOf<String>()
         for (segment in segments) {
             val entityFields = segment.fieldsToModelFields(entity).associateBy { it.dbField }
 
             val statementValue = segment.customSegment?.let {
-                "\${${it.name}(${entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")})}"
+                "\${${it.name}(${
+                    entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
+                })}"
             }
-                    ?: entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ","){"\$$it"}
+                ?: entityFields.map { it.value.accessorSuffix() }
+                    .joinToString(separator = ",") { "\$$it" }
 
             statement = statement.replace("%${segment.segment}%", statementValue)
 
             entityFields.values.forEach {
                 if (!addedFields.contains(it.dbField)) {
                     addedFields.add(it.dbField)
-                    spec.addParameter(it.accessorSuffix(), TypeUtil.parseMetaType(it.typeMirror, it.isIterable, (it as? CblFieldHolder?)?.subEntitySimpleName).copy(nullable = !it.isConstant))
+                    spec.addParameter(
+                        it.accessorSuffix(),
+                        TypeUtil.parseMetaType(
+                            it.typeMirror,
+                            it.isIterable,
+                            (it as? CblFieldHolder?)?.subEntitySimpleName
+                        ).copy(nullable = !it.isConstant)
+                    )
                 }
             }
         }
@@ -71,7 +112,8 @@ class DocIdHolder(docId: DocId, customSegments: List<DocIdSegmentHolder>) {
     }
 
     fun buildExpectedDocId(entity: BaseEntityHolder): FunSpec {
-        val spec = FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string()).addModifiers(KModifier.OVERRIDE)
+        val spec = FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string())
+            .addModifiers(KModifier.OVERRIDE)
         val list: List<String> = segments.distinctFieldAccessors(entity)
 
         spec.addStatement("return $COMPANION_BUILD_FUNCTION_NAME(${list.joinToString(separator = ",")})")

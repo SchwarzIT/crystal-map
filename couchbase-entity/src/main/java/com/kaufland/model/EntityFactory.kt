@@ -24,26 +24,58 @@ import javax.lang.model.element.Modifier
 
 object EntityFactory {
 
-    fun createEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): EntityHolder {
+    fun createEntityHolder(
+        cblEntityElement: Element,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
+    ): EntityHolder {
         val annotation = cblEntityElement.getAnnotation(Entity::class.java)
-        return create(cblEntityElement, EntityHolder(annotation.database, annotation.modifierOpen, annotation.type), allWrappers, allBaseModels) as EntityHolder
+        return create(
+            cblEntityElement,
+            EntityHolder(annotation.database, annotation.modifierOpen, annotation.type),
+            allWrappers,
+            allBaseModels
+        ) as EntityHolder
     }
 
-    fun createBaseModelHolder(cblEntityElement: Element, allWrappers: List<String>): BaseModelHolder {
-        return create(cblEntityElement, BaseModelHolder(), allWrappers, emptyMap()) as BaseModelHolder
+    fun createBaseModelHolder(
+        cblEntityElement: Element,
+        allWrappers: List<String>
+    ): BaseModelHolder {
+        return create(
+            cblEntityElement,
+            BaseModelHolder(),
+            allWrappers,
+            emptyMap()
+        ) as BaseModelHolder
     }
 
-    fun createChildEntityHolder(cblEntityElement: Element, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): WrapperEntityHolder {
+    fun createChildEntityHolder(
+        cblEntityElement: Element,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
+    ): WrapperEntityHolder {
         val annotation = cblEntityElement.getAnnotation(MapWrapper::class.java)
-        return create(cblEntityElement, WrapperEntityHolder(annotation.modifierOpen), allWrappers, allBaseModels) as WrapperEntityHolder
+        return create(
+            cblEntityElement,
+            WrapperEntityHolder(annotation.modifierOpen),
+            allWrappers,
+            allBaseModels
+        ) as WrapperEntityHolder
     }
 
-    private fun create(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>): BaseEntityHolder {
+    private fun create(
+        cblEntityElement: Element,
+        content: BaseEntityHolder,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
+    ): BaseEntityHolder {
 
         content.abstractParts = findPossibleOverrides(cblEntityElement)
         content.sourceElement = cblEntityElement
         content.comment = cblEntityElement.getAnnotation(Comment::class.java)?.comment ?: arrayOf()
-        content.deprecated = cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
+        content.deprecated =
+            cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
 
 
         addBasedOn(cblEntityElement, allBaseModels, content)
@@ -56,14 +88,22 @@ object EntityFactory {
 
         parseStaticsFromStructure(cblEntityElement) {
             if (it.getAnnotation(GenerateAccessor::class.java) != null) {
-                content.generateAccessors.add(CblGenerateAccessorHolder(content.sourceClazzTypeName, it))
+                content.generateAccessors.add(
+                    CblGenerateAccessorHolder(
+                        content.sourceClazzTypeName,
+                        it
+                    )
+                )
             }
             it.getAnnotation(DocIdSegment::class.java)?.apply {
                 docIdSegments.add(DocIdSegmentHolder(this, it))
             }
         }
 
-        content.docId = docId?.let { DocIdHolder(it, docIdSegments) }
+        content.docId = docId?.let { DocIdHolder(it, docIdSegments) } ?: content.docId?.apply {
+            customSegmentSource.addAll(docIdSegments)
+            recompile()
+        }
 
         return content
 
@@ -79,6 +119,14 @@ object EntityFactory {
 
         basedOnValue?.forEach { type ->
             allBaseModels[type.toString()]?.let {
+                it.docId?.let {
+                    if (content.docId == null) {
+                        content.docId = it
+                    } else {
+                        content.docId?.customSegmentSource?.addAll(it.customSegmentSource)
+                        content.docId?.recompile()
+                    }
+                }
                 content.basedOn.add(it)
                 content.fieldConstants.putAll(it.fieldConstants)
                 content.fields.putAll(it.fields)
@@ -88,7 +136,12 @@ object EntityFactory {
         }
     }
 
-    private fun parseFields(cblEntityElement: Element, content: BaseEntityHolder, allWrappers: List<String>, allBaseModels: Map<String, BaseModelHolder>) {
+    private fun parseFields(
+        cblEntityElement: Element,
+        content: BaseEntityHolder,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
+    ) {
         val fields = cblEntityElement.getAnnotation(Fields::class.java)
 
         for (cblField in fields.value) {

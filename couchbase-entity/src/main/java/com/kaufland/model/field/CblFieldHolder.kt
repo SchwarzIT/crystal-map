@@ -115,7 +115,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        if (deprecated?.inUse == false && deprecated.addDeprecated(dbField, builder)){
+        if (deprecated?.evaluateFieldDeprecationLevel(dbField) == DeprecationLevel.ERROR && deprecated?.addDeprecated(dbField, builder)){
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement("obj.${accessorSuffix()} = value")
@@ -132,7 +132,11 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
     private fun evaluateClazzForTypeConversion(): TypeName {
         return if (isIterable) {
-            TypeUtil.string()
+            if (TypeUtil.isMap(fieldType)) {
+                TypeUtil.string()
+            } else {
+                fieldType
+            }
         } else TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
     }
 }

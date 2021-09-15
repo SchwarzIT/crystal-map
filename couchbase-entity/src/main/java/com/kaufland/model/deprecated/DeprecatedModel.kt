@@ -17,16 +17,26 @@ class DeprecatedModel(deprecated: Deprecated) {
 
     val deprecatedFields: Map<String, DeprecatedField> = deprecated.fields.map { it.field to it }.toMap()
 
+    init {
+        deprecatedFields.forEach {
+            print("field ${it.key}, value ${it.value.inUse}")
+        }
+    }
+
     fun addDeprecated(field: String, spec: PropertySpec.Builder) {
 
         deprecatedFields[field]?.let {
+            print("field ${it.field} inUse ${it.inUse}")
             spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
         }
     }
 
+    fun evaluateFieldDeprecationLevel(field: String) : DeprecationLevel? = deprecatedFields[field]?.let { evaluateDeprecationLevel(it.inUse) }
+
     fun addDeprecated(field: String, spec: FunSpec.Builder) : Boolean {
 
         return deprecatedFields[field]?.let {
+            print("field ${it.field} inUse ${it.inUse}")
             spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
             true
         } ?: false

@@ -20,7 +20,7 @@ open class DefaultSchemaValidator : SchemaValidator {
         current?.let {
 
             released.docId?.let {
-                if (current?.docId?.scheme != it.scheme) {
+                if (current.docId?.scheme != it.scheme) {
                     logger.error(released, "forbidden DocId Schema change")
                 }
             }
@@ -40,7 +40,7 @@ open class DefaultSchemaValidator : SchemaValidator {
     }
 
     protected open fun validateFieldLevel(released: EntitySchema, key: String, logger: SchemaValidationLogger) {
-        if (released?.deprecatedSchema?.deprecatedFields?.find { it.field == key }?.inUse != false) {
+        if (released.deprecatedSchema?.deprecatedFields?.find { it.field == key }?.inUse != false) {
             logger.error(released, "forbidden change on existing field [$key]")
         } else {
             logger.info(released, "allowed change on existing field [$key] since it's deprecated and no longer in use")
@@ -48,7 +48,7 @@ open class DefaultSchemaValidator : SchemaValidator {
     }
 
     private fun modelDeletedDuringValidDeprecationPeriod(released: EntitySchema, logger: SchemaValidationLogger) {
-        if (released?.deprecatedSchema == null || released?.deprecatedSchema.inUse) {
+        if (released.deprecatedSchema == null || released.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")
         } else {
             logger.error(released, "allowed model deletion")
