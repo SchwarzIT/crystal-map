@@ -1,13 +1,11 @@
 package schwarz.fwws.shared.model.article
 
 
-import kaufland.com.coachbasebinderapi.Field
-import kaufland.com.coachbasebinderapi.Fields
-import kaufland.com.coachbasebinderapi.MapWrapper
+import kaufland.com.coachbasebinderapi.*
 import schwarz.fwws.shared.model.Model
 import java.util.*
 
-@MapWrapper
+@Entity(type = Entity.Type.READONLY)
 @Fields(
         Field(name = "storeId", type = String::class),
         Field(name = "type", type = String::class, defaultValue = StoreArticle.TYPE, readonly = true),
@@ -35,6 +33,7 @@ import java.util.*
         Field(name = "max_stock", type = String::class),
         Field(name = "supplier", type = Supplier::class)
         )
+@DocId("art:%storeId%:%article_no%")
 open class StoreArticle {
     companion object {
         const val PREFIX: String = "storearticle"
