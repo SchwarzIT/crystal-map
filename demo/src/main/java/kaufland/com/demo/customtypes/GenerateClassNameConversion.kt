@@ -14,10 +14,10 @@ class GenerateClassNameConversion : TypeConversion {
     }
 
     override fun read(value: Any?): GenerateClassName =
-            when (value) {
-                is String -> {
-                    GenerateClassName(value)
-                }
-                else -> GenerateClassName()
+        when (value) {
+            is String -> {
+                GenerateClassName(value)
             }
+            else -> GenerateClassName()
+        }
 }

@@ -10,26 +10,26 @@ import java.lang.reflect.Method
 import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
-class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val fieldName : String) : MapifyElementType {
+class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val fieldName: String) : MapifyElementType {
 
-    class GetterSetter(){
-        var getterElement: Symbol.MethodSymbol?=null
-        var setterElement: Symbol.MethodSymbol?=null
+    class GetterSetter() {
+        var getterElement: Symbol.MethodSymbol? = null
+        var setterElement: Symbol.MethodSymbol? = null
         var mapify: Mapify? = null
 
-        fun getterName() : String{
+        fun getterName(): String {
             return getterElement!!.name.toString()
         }
 
-        fun getterInternalAccessor() : String{
+        fun getterInternalAccessor(): String {
             return "a${getterName().capitalize()}"
         }
 
-        fun setterName() : String{
+        fun setterName(): String {
             return setterElement!!.name.toString()
         }
 
-        fun setterInternalAccessor() : String{
+        fun setterInternalAccessor(): String {
             return "a${setterName().capitalize()}"
         }
     }
@@ -38,7 +38,7 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
         .filterNotNull()
         .toTypedArray()
 
-    override val mapName = getterSetter.mapify?.name?.let { if(it.isNotBlank()) it else null } ?: fieldName
+    override val mapName = getterSetter.mapify?.name?.let { if (it.isNotBlank()) it else null } ?: fieldName
 
     override val typeName = getterSetter.setterElement!!.params()[0]!!.asType().asTypeName().javaToKotlinType()
 
@@ -49,18 +49,24 @@ class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val
     override val declaringName: ProcessingContext.DeclaringName = ProcessingContext.DeclaringName(getterSetter.setterElement!!.params()[0]!!.asType(), 0, getterSetter.mapify!!.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
-        return listOf(PropertySpec.builder(getterSetter.getterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
-                .initializer(CodeBlock.builder()
+        return listOf(
+            PropertySpec.builder(getterSetter.getterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
+                .initializer(
+                    CodeBlock.builder()
                         .addStatement("%T::class.java.getDeclaredMethod(%S)", sourceClazzTypeName, getterSetter.getterName())
                         .beginControlFlow(".apply")
                         .addStatement("isAccessible·=·true")
-                        .endControlFlow().build()).build(),
-                PropertySpec.builder(getterSetter.setterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
-                        .initializer(CodeBlock.builder()
-                                .addStatement("%T::class.java.getDeclaredMethod(%S, %T::class.java)", sourceClazzTypeName, getterSetter.setterName(), if(declaringName.isTypeVar()) TypeUtil.any().javaToKotlinType() else typeName)
-                                .beginControlFlow(".apply")
-                                .addStatement("isAccessible·=·true")
-                                .endControlFlow().build()).build())
+                        .endControlFlow().build()
+                ).build(),
+            PropertySpec.builder(getterSetter.setterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
+                .initializer(
+                    CodeBlock.builder()
+                        .addStatement("%T::class.java.getDeclaredMethod(%S, %T::class.java)", sourceClazzTypeName, getterSetter.setterName(), if (declaringName.isTypeVar()) TypeUtil.any().javaToKotlinType() else typeName)
+                        .beginControlFlow(".apply")
+                        .addStatement("isAccessible·=·true")
+                        .endControlFlow().build()
+                ).build()
+        )
     }
 
     override fun getterFunSpec(): FunSpec {

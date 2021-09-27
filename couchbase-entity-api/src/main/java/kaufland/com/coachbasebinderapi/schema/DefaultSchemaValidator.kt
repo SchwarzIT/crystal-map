@@ -33,7 +33,6 @@ open class DefaultSchemaValidator : SchemaValidator {
                     validateFieldLevel(released, key, logger)
                 }
             }
-
         } ?: modelDeletedDuringValidDeprecationPeriod(released, logger)
 
         return true

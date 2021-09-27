@@ -7,7 +7,6 @@ import com.squareup.kotlinpoet.*
 import kaufland.com.coachbasebinderapi.DocId
 import java.util.regex.Pattern
 
-
 class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
 
     private val docIdSegmentCallPattern = Pattern.compile("\\((.+?)\\)")
@@ -20,7 +19,7 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
 
         fun fieldsToModelFields(entity: BaseEntityHolder) = fields.map {
             entity.fields[it] ?: entity.fieldConstants[it]
-            ?: throw Exception("type [$it] not found in model fields")
+                ?: throw Exception("type [$it] not found in model fields")
         }
     }
 
@@ -43,8 +42,10 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
                         Segment(
                             plainSegment,
                             fields,
-                            this.customSegments[plainSegment.removeSuffix("(${segmentMatcher.group(1)})")
-                                .removePrefix("this.")]
+                            this.customSegments[
+                                plainSegment.removeSuffix("(${segmentMatcher.group(1)})")
+                                    .removePrefix("this.")
+                            ]
                         )
                     )
                 } else if (plainSegment.contains("()")) {
@@ -52,13 +53,14 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
                         Segment(
                             plainSegment,
                             listOf(),
-                            this.customSegments[plainSegment.removeSuffix("()")
-                                .removePrefix("this.")]
+                            this.customSegments[
+                                plainSegment.removeSuffix("()")
+                                    .removePrefix("this.")
+                            ]
                         )
                     )
                 } else {
                     segments.add(Segment(plainSegment, listOf(plainSegment), null))
-
                 }
             }
             segments
@@ -67,12 +69,11 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
 
     lateinit var customSegments: MutableMap<String, DocIdSegmentHolder>
 
-    //contains all segments placed between %
+    // contains all segments placed between %
     lateinit var segments: List<Segment>
 
     private fun List<Segment>.distinctFieldAccessors(model: BaseEntityHolder) =
         this.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
-
 
     fun companionFunction(entity: BaseEntityHolder): FunSpec {
         val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
@@ -84,7 +85,7 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
 
             val statementValue = segment.customSegment?.let {
                 "\${${it.name}(${
-                    entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
+                entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
                 })}"
             }
                 ?: entityFields.map { it.value.accessorSuffix() }

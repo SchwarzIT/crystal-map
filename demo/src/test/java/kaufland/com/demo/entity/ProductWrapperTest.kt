@@ -48,10 +48,13 @@ class ProductWrapperTest {
 
         val map = product.toMap()
         map.remove(ProductWrapper.TYPE)
-        assertEquals(mapOf(
-            ProductWrapper.NAME to "name",
-            ProductWrapper.COMMENTS to listOf<UserCommentWrapper>(),
-            ProductWrapper.IDENTIFIERS to listOf("1", "2")
-        ), map)
+        assertEquals(
+            mapOf(
+                ProductWrapper.NAME to "name",
+                ProductWrapper.COMMENTS to listOf<UserCommentWrapper>(),
+                ProductWrapper.IDENTIFIERS to listOf("1", "2")
+            ),
+            map
+        )
     }
 }

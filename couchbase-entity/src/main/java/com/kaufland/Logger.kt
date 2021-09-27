@@ -7,7 +7,6 @@ import javax.tools.Diagnostic
 
 class Logger internal constructor(processingEnv: ProcessingEnvironment) {
 
-
     private val messager: Messager
 
     private var hasErrors: Boolean = false
@@ -43,12 +42,12 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) {
     }
 
     fun abortWithError(e: PostValidationException) {
-        if(e.causingElements.isNotEmpty()){
+        if (e.causingElements.isNotEmpty()) {
             for (causingElement in e.causingElements) {
                 error(e.message ?: "unknown", causingElement)
             }
-        }else{
-         error(e.message ?: "unknown", null)
+        } else {
+            error(e.message ?: "unknown", null)
         }
         throw e
     }

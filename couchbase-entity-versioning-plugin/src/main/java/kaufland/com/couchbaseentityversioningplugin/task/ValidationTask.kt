@@ -42,9 +42,7 @@ open class ValidationTask : DefaultTask() {
             if (!result) {
                 throw Exception("validation failed")
             }
-
         } ?: println("no SchemaValidator registered")
-
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {

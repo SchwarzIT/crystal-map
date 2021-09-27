@@ -16,12 +16,11 @@ class CblQueryHolder(private val mQuery: Query) {
     val fields: Array<String>
         get() = mQuery.fields
 
-
     fun queryFun(dbName: String, entityHolder: BaseEntityHolder, useSuspend: Boolean): FunSpec? {
 
         val builder = FunSpec.builder(queryFunName).addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement("val queryParams = mutableMapOf<%T, %T>()", TypeUtil.string(), TypeUtil.any()).returns(TypeUtil.list(entityHolder.entityTypeName))
 
-        if(useSuspend){
+        if (useSuspend) {
             builder.addModifiers(KModifier.SUSPEND)
         }
 
@@ -37,16 +36,14 @@ class CblQueryHolder(private val mQuery: Query) {
 
         builder.addStatement("return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams).map { %T(it) }", PersistenceConfig::class, dbName, entityHolder.entityTypeName)
 
-
-
         return builder.build()
     }
 
     private val queryFunName: String = "findBy${fields.joinToString(separator = "And") { WordUtils.capitalize(it.replace("_", " ")).replace(" ", "") }}"
 
-    companion object{
+    companion object {
 
-        private fun queryDocumentMethod(useSuspend: Boolean) : String{
+        private fun queryDocumentMethod(useSuspend: Boolean): String {
             return "${if (useSuspend) "suspendingConnector" else "connector"}.queryDoc"
         }
     }

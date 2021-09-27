@@ -39,10 +39,10 @@ class DummyMapperSource(simple: String = "test123") {
     var bigDecimalValue: BigDecimal? = null
 
     @Mapify(nullableIndexes = [1])
-    var nullableList : MutableList<String?> = mutableListOf(null)
+    var nullableList: MutableList<String?> = mutableListOf(null)
 
     @Mapify(nullableIndexes = [1, 2])
-    private val nullableMap : Map<String?, Int?> = mapOf()
+    private val nullableMap: Map<String?, Int?> = mapOf()
 
     @Mapify
     val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)
@@ -51,8 +51,7 @@ class DummyMapperSource(simple: String = "test123") {
     val liveData = ExposingSource<TestSerializable>(TestSerializable(simple, 5))
 
     @Mapify
-    val liveDataList : ExposingSource<List<TestSerializable>> = ExposingSource(listOf(TestSerializable(simple, 5)))
-
+    val liveDataList: ExposingSource<List<TestSerializable>> = ExposingSource(listOf(TestSerializable(simple, 5)))
 
     val privateValExpose
         get() = myPrivateValWithAVeryVeryVeryVeryLongName
@@ -70,7 +69,6 @@ class DummyMapperSource(simple: String = "test123") {
             override fun toMap(obj: MyMapifyableTest): Map<String, Any> {
                 return mapOf("test" to obj.myString)
             }
-
         }
     }
 }

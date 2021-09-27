@@ -60,7 +60,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         }
     }
 
-    override val typeConversions : Map<KClass<*>, TypeConversion> = mTypeConversions
+    override val typeConversions: Map<KClass<*>, TypeConversion> = mTypeConversions
 
     override fun getDocument(id: String, dbName: String): Map<String, Any>? {
         val document = getDatabase(dbName).getDocument(id) ?: return null
@@ -85,7 +85,6 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }
-
     }
 
     @Throws(PersistenceException::class)
@@ -93,25 +92,25 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         try {
 
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
-                    .from(DataSource.database(getDatabase(dbName)))
+                .from(DataSource.database(getDatabase(dbName)))
 
             parseExpressions(queryParams)?.let {
                 builder.where(it)
             }
 
-           return queryResultToMap(builder.execute())
+            return queryResultToMap(builder.execute())
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }
     }
 
-    private fun queryResultToMap(execute : ResultSet) : List<Map<String, Any>>{
+    private fun queryResultToMap(execute: ResultSet): List<Map<String, Any>> {
         val parsed: MutableList<Map<String, Any>> =
-                ArrayList()
+            ArrayList()
         if (execute != null) {
             for (result in execute) {
                 val item: MutableMap<String, Any> =
-                        HashMap()
+                    HashMap()
                 item["_id"] = result.getString(0)
                 item.putAll(result.getDictionary(1).toMap())
                 parsed.add(item)
@@ -127,7 +126,8 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         for (queryParam in queryParams) {
 
             val equalTo = Expression.property(queryParam.key).equalTo(
-                    Expression.value(queryParam.value))
+                Expression.value(queryParam.value)
+            )
             result = if (result == null) {
                 equalTo
             } else {
@@ -139,7 +139,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String) : Map<String, Any> {
+    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String): Map<String, Any> {
         if (upsert["_id"] == null && docId != null) {
             upsert["_id"] = docId
         }
@@ -152,6 +152,5 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }
-
     }
 }

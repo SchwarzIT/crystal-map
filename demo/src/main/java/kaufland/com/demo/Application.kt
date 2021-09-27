@@ -31,7 +31,6 @@ class Application : android.app.Application() {
                 Log.e(TAG, "failed to get Database", e)
                 null
             }
-
         }
 
     override fun onCreate() {
@@ -77,17 +76,13 @@ class Application : android.app.Application() {
         } catch (e: PersistenceException) {
             e.printStackTrace()
         }
-
     }
 
     companion object {
-
 
         private val TAG = Application::class.java.name
 
         @JvmField
         val DB = "mydb_db"
     }
-
-
 }

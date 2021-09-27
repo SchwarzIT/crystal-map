@@ -8,5 +8,4 @@ interface WorkSet {
     fun preValidate(logger: Logger)
 
     fun loadModels(logger: Logger, env: ProcessingEnvironment)
-
 }

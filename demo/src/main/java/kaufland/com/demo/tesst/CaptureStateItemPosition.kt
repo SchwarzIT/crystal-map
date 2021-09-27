@@ -1,13 +1,12 @@
 package schwarz.fwws.shared.model
 
-
 import kaufland.com.coachbasebinderapi.*
 
 @Entity
 @Fields(
-        Field(name = "here_state", type = CaptureState::class, list = true),
+    Field(name = "here_state", type = CaptureState::class, list = true),
 )
-open class CaptureStateItemPosition {}
+open class CaptureStateItemPosition
 
 enum class CaptureState {
     STATE_1,

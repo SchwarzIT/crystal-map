@@ -12,11 +12,10 @@ import javax.lang.model.element.Modifier
 
 object PreModelValidation {
 
-
     @Throws(ClassNotFoundException::class)
     fun validate(entityElement: Element, logger: Logger) {
 
-        if(entityElement.getAnnotation(Entity::class.java) != null || entityElement.getAnnotation(MapWrapper::class.java) != null){
+        if (entityElement.getAnnotation(Entity::class.java) != null || entityElement.getAnnotation(MapWrapper::class.java) != null) {
 
             if (entityElement.modifiers.contains(Modifier.PRIVATE)) {
                 logger.error(Entity::class.java.simpleName + " can not be private", entityElement)
@@ -40,7 +39,6 @@ object PreModelValidation {
                 logger.warn("defaultValue should not be empty for readonly fields", entityElement)
             }
             names.add(fieldAnnotation.name)
-
         }
 
         for (member in entityElement.enclosedElements) {

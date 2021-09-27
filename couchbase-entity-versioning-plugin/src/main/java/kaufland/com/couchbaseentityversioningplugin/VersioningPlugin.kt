@@ -16,12 +16,11 @@ private const val PARAM_VERSION = "entity-version"
 
 class VersioningPlugin : Plugin<Project> {
 
-
     override fun apply(project: Project) {
         val extension = project.extensions.create(EXTENSION_NAME, VersioningPluginExtension::class.java)
 
         project.run {
-            tasks.register(TASK_VALIDATE_SCHEMA, ValidationTask::class.java){
+            tasks.register(TASK_VALIDATE_SCHEMA, ValidationTask::class.java) {
                 it.dependsOn.add("build")
                 it.extension = extension
             }
@@ -33,7 +32,6 @@ class VersioningPlugin : Plugin<Project> {
             }
         }
     }
-
 
     private fun markCurrentSchemaAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
         task.dependsOn("build").doLast {
@@ -74,5 +72,4 @@ class VersioningPlugin : Plugin<Project> {
             }
         }
     }
-
 }

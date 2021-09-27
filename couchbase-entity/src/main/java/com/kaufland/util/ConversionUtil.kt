@@ -23,7 +23,7 @@ object ConversionUtil {
         return sb.toString()
     }
 
-     fun convertStringToDesiredFormat(clazz: TypeMirror, value: String): String {
+    fun convertStringToDesiredFormat(clazz: TypeMirror, value: String): String {
 
         return if (clazz.asTypeName().javaToKotlinType() == TypeUtil.string()) {
             "\"" + value + "\""

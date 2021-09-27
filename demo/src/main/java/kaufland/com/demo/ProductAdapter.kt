@@ -11,7 +11,6 @@ import android.widget.TextView
 
 import kaufland.com.demo.entity.ProductEntity
 
-
 class ProductAdapter(context: Context) : ArrayAdapter<ProductEntity>(context, 0) {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {

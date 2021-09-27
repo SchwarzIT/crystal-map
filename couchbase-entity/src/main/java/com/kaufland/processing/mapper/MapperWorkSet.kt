@@ -1,14 +1,11 @@
 package com.kaufland.processing.mapper
 
 import com.kaufland.Logger
-import com.kaufland.model.EntityFactory
 import com.kaufland.model.MapperFactory
 import com.kaufland.model.mapper.MapperHolder
 import com.kaufland.processing.WorkSet
 import com.kaufland.validation.mapper.MapperValidation
 import com.kaufland.validation.mapper.PreMapperValidation
-import com.kaufland.validation.model.ModelValidation
-import com.kaufland.validation.model.PreModelValidation
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -34,6 +31,4 @@ class MapperWorkSet(val allMapperElements: Set<Element>) : WorkSet {
 
     val mappers: List<MapperHolder>
         get() = mapperModels.values.toList()
-
-
 }

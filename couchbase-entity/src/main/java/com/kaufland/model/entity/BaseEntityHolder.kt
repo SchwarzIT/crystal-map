@@ -10,7 +10,6 @@ import com.kaufland.model.query.CblQueryHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.sun.tools.javac.code.Symbol
-import kaufland.com.coachbasebinderapi.query.Query
 
 import java.util.ArrayList
 
@@ -26,17 +25,17 @@ abstract class BaseEntityHolder {
 
     var sourceElement: Element? = null
 
-    val queries : MutableList<CblQueryHolder> = ArrayList()
+    val queries: MutableList<CblQueryHolder> = ArrayList()
 
-    var comment : Array<String> = arrayOf()
+    var comment: Array<String> = arrayOf()
 
-    val generateAccessors : MutableList<CblGenerateAccessorHolder> = ArrayList()
+    val generateAccessors: MutableList<CblGenerateAccessorHolder> = ArrayList()
 
-    var deprecated : DeprecatedModel? = null
+    var deprecated: DeprecatedModel? = null
 
-    val basedOn : MutableList<BaseModelHolder> = ArrayList()
+    val basedOn: MutableList<BaseModelHolder> = ArrayList()
 
-    var docId : DocIdHolder? = null
+    var docId: DocIdHolder? = null
 
     val allFields: List<CblBaseFieldHolder>
         get() {
@@ -62,8 +61,8 @@ abstract class BaseEntityHolder {
         get() = ClassName(`package`, entitySimpleName)
 
     val interfaceSimpleName: String
-        get() = "I${sourceClazzSimpleName}"
+        get() = "I$sourceClazzSimpleName"
 
     val interfaceTypeName: TypeName
-    get()= ClassName(`package`, interfaceSimpleName)
+        get() = ClassName(`package`, interfaceSimpleName)
 }

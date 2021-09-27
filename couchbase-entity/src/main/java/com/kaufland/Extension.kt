@@ -3,19 +3,17 @@ package com.kaufland
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
-import javax.lang.model.element.Element
 import kotlin.reflect.jvm.internal.impl.builtins.jvm.JavaToKotlinClassMap
 import kotlin.reflect.jvm.internal.impl.name.FqName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
 fun TypeName.javaToKotlinType(): TypeName = if (this is ParameterizedTypeName) {
     (rawType.javaToKotlinType() as ClassName).parameterizedBy(
-            *typeArguments.map { it.javaToKotlinType() }.toTypedArray()
+        *typeArguments.map { it.javaToKotlinType() }.toTypedArray()
     )
 } else {
     val className = JavaToKotlinClassMap.INSTANCE
-            .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
+        .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
     if (className == null) this
     else ClassName.bestGuess(className)
 }

@@ -7,11 +7,11 @@ import java.util.*
 
 @MapWrapper
 @Fields(
-        Field(name = "country", type = String::class),
-        Field(name = "type", type = String::class, defaultValue = GtinLink.TYPE, readonly = true),
-        Field(name = "gtin_no", type = String::class),
-        Field(name = "article_no", type = String::class),
-        Field(name = "main_gtin", type = Boolean::class)
+    Field(name = "country", type = String::class),
+    Field(name = "type", type = String::class, defaultValue = GtinLink.TYPE, readonly = true),
+    Field(name = "gtin_no", type = String::class),
+    Field(name = "article_no", type = String::class),
+    Field(name = "main_gtin", type = Boolean::class)
 )
 open class GtinLink {
     companion object {

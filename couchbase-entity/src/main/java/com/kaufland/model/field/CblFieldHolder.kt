@@ -20,10 +20,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
     override var isIterable: Boolean = false
 
-
     val subEntityTypeName: TypeName
         get() = ClassName(subEntityPackage!!, subEntitySimpleName!!)
-
 
     val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
@@ -36,7 +34,6 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             subEntitySimpleName = TypeUtil.getSimpleName(typeMirror) + "Wrapper"
             subEntityPackage = TypeUtil.getPackage(typeMirror)
             isSubEntityIsTypeParam = field.list
-
         }
         if (field.list) {
             isIterable = true
@@ -45,13 +42,13 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
     override fun interfaceProperty(): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
-        return PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC).mutable(true).build()
+        return PropertySpec.builder(accessorSuffix(), returnType.copy(true), KModifier.PUBLIC).mutable(true).build()
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
 
-        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true),  KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
+        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true), KModifier.PUBLIC, KModifier.OVERRIDE).mutable(true)
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
@@ -64,14 +61,18 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             val castType = if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringAnyNullable() else TypeUtil.mutableMapStringAnyNullable()
 
             if (useMDocChanges) {
-                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
+                getter.addCode(
+                    CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
                         .addStatement("return·%T.fromMap(mDocChanges.get(%N) as %T)", subEntityTypeName, constantName, castType)
-                        .endControlFlow().build())
+                        .endControlFlow().build()
+                )
             }
-            getter.addCode(CodeBlock.builder()
+            getter.addCode(
+                CodeBlock.builder()
                     .beginControlFlow("if(mDoc.containsKey(%N))", constantName)
                     .addStatement("return·%T.fromMap(mDoc.get(%N) as %T)", subEntityTypeName, constantName, castType)
-                    .endControlFlow().build())
+                    .endControlFlow().build()
+            )
 
             getter.addStatement("return null")
 
@@ -80,9 +81,11 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
             val forTypeConversion = evaluateClazzForTypeConversion()
             if (useMDocChanges) {
-                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
+                getter.addCode(
+                    CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
                         .addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %T::class)", constantName, forTypeConversion)
-                        .endControlFlow().build())
+                        .endControlFlow().build()
+                )
             }
 
             getter.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
@@ -107,15 +110,15 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec {
         val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
         val builder = FunSpec.builder("set" + accessorSuffix().capitalize())
-                .addModifiers(KModifier.PUBLIC)
-                .addParameter("value", fieldType)
-                .returns(ClassName(packageName, "${entitySimpleName}.Builder"))
+            .addModifiers(KModifier.PUBLIC)
+            .addParameter("value", fieldType)
+            .returns(ClassName(packageName, "$entitySimpleName.Builder"))
 
         if (this.comment.isNotEmpty()) {
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        if (deprecated?.evaluateFieldDeprecationLevel(dbField) == DeprecationLevel.ERROR && deprecated?.addDeprecated(dbField, builder)){
+        if (deprecated?.evaluateFieldDeprecationLevel(dbField) == DeprecationLevel.ERROR && deprecated?.addDeprecated(dbField, builder)) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement("obj.${accessorSuffix()} = value")

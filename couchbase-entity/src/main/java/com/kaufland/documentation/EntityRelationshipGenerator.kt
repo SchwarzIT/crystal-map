@@ -32,21 +32,21 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
         file.writeText(documentBuilder.toString())
     }
 
-    private fun renderRelationshipDiamonds() : String {
+    private fun renderRelationshipDiamonds(): String {
         return docuEntityEdges
-                .toSortedMap()
-                .filter { it.value.isNotEmpty() }
-                .map { "  ${it.key}_has  [label=\"has\"];\n" }
-                .joinToString("")
+            .toSortedMap()
+            .filter { it.value.isNotEmpty() }
+            .map { "  ${it.key}_has  [label=\"has\"];\n" }
+            .joinToString("")
     }
 
-    private fun renderEntityNodes() : String {
+    private fun renderEntityNodes(): String {
         return docuEntityNodes
             .toSortedMap()
             .map { renderEntityNode(it) }.joinToString("\n\n")
     }
 
-    private fun renderEntityNode(node: Map.Entry<String, DomContent>) : String {
+    private fun renderEntityNode(node: Map.Entry<String, DomContent>): String {
         val nodeBuilder = StringBuilder()
         nodeBuilder.append("node [shape=plain]\n")
         nodeBuilder.append("  rankdir=LR;\n")
@@ -57,42 +57,47 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
     }
 
     fun addEntityNodes(entityHolder: BaseEntityHolder) {
-        if(docuEntityNodes.containsKey(entityHolder.sourceClazzSimpleName) ||
-                docuEntityEdges.containsKey(entityHolder.sourceClazzSimpleName)){
+        if (docuEntityNodes.containsKey(entityHolder.sourceClazzSimpleName) ||
+            docuEntityEdges.containsKey(entityHolder.sourceClazzSimpleName)
+        ) {
             return
         }
 
         docuEntityNodes[entityHolder.sourceClazzSimpleName] =
-                table(
-                        th(td(b(entityHolder.sourceClazzSimpleName))),
-                        tr(td(*entityHolder.fields
-                                .map { text(it.value.dbField + " : " + extractClassName(it.value.fieldType)) }
-                                .zip(generateSequence { rawHtml("<br/>") }.asIterable())
-                                .flatMap { listOf(it.first, it.second) }
-                                .toTypedArray()
-                        ))
-                ).attr("border", "0").attr("cellborder", "1").attr("cellspacing", "1").attr("cellpadding", "5")
+            table(
+                th(td(b(entityHolder.sourceClazzSimpleName))),
+                tr(
+                    td(
+                        *entityHolder.fields
+                            .map { text(it.value.dbField + " : " + extractClassName(it.value.fieldType)) }
+                            .zip(generateSequence { rawHtml("<br/>") }.asIterable())
+                            .flatMap { listOf(it.first, it.second) }
+                            .toTypedArray()
+                    )
+                )
+            ).attr("border", "0").attr("cellborder", "1").attr("cellspacing", "1").attr("cellpadding", "5")
 
         docuEntityEdges[entityHolder.sourceClazzSimpleName] = entityHolder.fields
-                .filter { !it.value.fieldType.toString().startsWith("java") &&
-                          !it.value.fieldType.toString().startsWith("kotlin") &&
-                          !it.value.fieldType.toString().startsWith("org.threeten")}
-                .map { extractClassName(it.value.fieldType) }
+            .filter {
+                !it.value.fieldType.toString().startsWith("java") &&
+                    !it.value.fieldType.toString().startsWith("kotlin") &&
+                    !it.value.fieldType.toString().startsWith("org.threeten")
+            }
+            .map { extractClassName(it.value.fieldType) }
     }
 
-    fun extractClassName(fullClassName: TypeName) : String = fullClassName.toString().split(".").last()
+    fun extractClassName(fullClassName: TypeName): String = fullClassName.toString().split(".").last()
 
-    private fun renderRelationships() : String {
+    private fun renderRelationships(): String {
         return docuEntityEdges
-                .toSortedMap()
+            .toSortedMap()
+            .filter { it.value.isNotEmpty() }
+            .map { edge -> "${edge.key} -- ${edge.key}_has;\n" }
+            .joinToString("") +
+            docuEntityEdges
                 .filter { it.value.isNotEmpty() }
-                .map { edge -> "${edge.key} -- ${edge.key}_has;\n"  }
-                .joinToString("") +
-                docuEntityEdges
-                        .filter { it.value.isNotEmpty() }
-                        .map { edge -> edge.value.map { "${edge.key}_has -- $it;\n" } }
-                        .flatten()
-                        .joinToString("")
+                .map { edge -> edge.value.map { "${edge.key}_has -- $it;\n" } }
+                .flatten()
+                .joinToString("")
     }
-
 }

@@ -12,5 +12,4 @@ object MapSupportGeneration {
 
         return toMapBuilder.build()
     }
-
 }

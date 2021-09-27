@@ -30,7 +30,7 @@ object TypeUtil {
         return WildcardTypeName.producerOf(anyNullable())
     }
 
-    fun map() : ClassName {
+    fun map(): ClassName {
         return ClassName("kotlin.collections", "Map")
     }
 
@@ -98,15 +98,15 @@ object TypeUtil {
         return IMapper::class.asTypeName().parameterizedBy(typename)
     }
 
-    fun iMapifyable(typename: TypeName) : TypeName {
+    fun iMapifyable(typename: TypeName): TypeName {
         return IMapifyable::class.asTypeName().parameterizedBy(typename)
     }
 
-    fun mapifyable() : TypeName {
+    fun mapifyable(): TypeName {
         return Mapifyable::class.asTypeName()
     }
 
-    fun serializableMapifyable(typename: TypeName) : TypeName{
+    fun serializableMapifyable(typename: TypeName): TypeName {
         return SerializableMapifyable::class.asTypeName().parameterizedBy(typename)
     }
 
@@ -114,7 +114,7 @@ object TypeUtil {
         return IEntity::class.asTypeName()
     }
 
-    fun clazz(typename: TypeName) : TypeName{
+    fun clazz(typename: TypeName): TypeName {
         return ClassName("java.lang", "Class").parameterizedBy(typename)
     }
 
@@ -152,7 +152,7 @@ object TypeUtil {
             }
         }
 
-        if(convertMap && baseType!!.javaToKotlinType() == map()){
+        if (convertMap && baseType!!.javaToKotlinType() == map()) {
             baseType = mapStringAnyNullable()
         }
 

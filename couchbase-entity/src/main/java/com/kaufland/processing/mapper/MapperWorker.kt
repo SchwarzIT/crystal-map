@@ -10,10 +10,9 @@ import javax.annotation.processing.RoundEnvironment
 
 class MapperWorker(override val logger: Logger, override val codeGenerator: CodeGenerator, override val processingEnv: ProcessingEnvironment) : Worker<MapperWorkSet> {
 
-    val mapperGeneration : MapperGeneration = MapperGeneration()
+    val mapperGeneration: MapperGeneration = MapperGeneration()
 
     override fun init() {
-
     }
 
     override fun doWork(workSet: MapperWorkSet, useSuspend: Boolean) {
@@ -24,8 +23,7 @@ class MapperWorker(override val logger: Logger, override val codeGenerator: Code
         }
     }
 
-
     override fun evaluateWorkSet(roundEnv: RoundEnvironment): MapperWorkSet = MapperWorkSet(
-            allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)
+        allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)
     )
 }

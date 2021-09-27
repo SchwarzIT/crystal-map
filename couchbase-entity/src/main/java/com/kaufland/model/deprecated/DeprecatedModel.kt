@@ -31,9 +31,9 @@ class DeprecatedModel(deprecated: Deprecated) {
         }
     }
 
-    fun evaluateFieldDeprecationLevel(field: String) : DeprecationLevel? = deprecatedFields[field]?.let { evaluateDeprecationLevel(it.inUse) }
+    fun evaluateFieldDeprecationLevel(field: String): DeprecationLevel? = deprecatedFields[field]?.let { evaluateDeprecationLevel(it.inUse) }
 
-    fun addDeprecated(field: String, spec: FunSpec.Builder) : Boolean {
+    fun addDeprecated(field: String, spec: FunSpec.Builder): Boolean {
 
         return deprecatedFields[field]?.let {
             print("field ${it.field} inUse ${it.inUse}")
@@ -67,8 +67,5 @@ class DeprecatedModel(deprecated: Deprecated) {
                 spec.addAnnotation(buildDeprecatedAnnotation(inUse, it.toString()))
             }
         }
-
     }
-
-
 }

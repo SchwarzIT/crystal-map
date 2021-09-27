@@ -6,7 +6,6 @@ import kaufland.com.coachbasebinderapi.DocIdSegment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ExecutableElement
 
-
 class DocIdSegmentHolder(docIdSegment: DocIdSegment, element: Element) {
 
     val name = element.simpleName.toString()
@@ -14,5 +13,4 @@ class DocIdSegmentHolder(docIdSegment: DocIdSegment, element: Element) {
     val type = (element as? ExecutableElement)?.returnType?.asTypeName()?.javaToKotlinType()
 
     val paramsElements = (element as? ExecutableElement)?.parameters
-
 }

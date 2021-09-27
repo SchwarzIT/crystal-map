@@ -9,8 +9,8 @@ import java.io.Serializable
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 
-class MapifyHolder(val mapifyElement : MapifyElementType, env: ProcessingEnvironment)
-    : MapifyElementType by mapifyElement{
+class MapifyHolder(val mapifyElement: MapifyElementType, env: ProcessingEnvironment) :
+    MapifyElementType by mapifyElement {
 
     val typeHandleMode: TypeHandleMode = when {
         declaringName.isPlainType() -> TypeHandleMode.PLAIN
