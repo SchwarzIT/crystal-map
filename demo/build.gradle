@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         //TODO enable to localy test plugin
 //        classpath "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
@@ -31,13 +31,12 @@ apply plugin: 'kotlin-kapt'
 //}
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
-
     defaultConfig {
         applicationId "kaufland.com.demo"
-        minSdkVersion 21
-        targetSdkVersion 28
+        buildToolsVersion = "30.0.2"
+        compileSdkVersion = 30
+        minSdkVersion = 24
+        targetSdkVersion = 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'

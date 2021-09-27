@@ -139,15 +139,16 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String) {
+    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String) : Map<String, Any> {
         if (upsert["_id"] == null && docId != null) {
             upsert["_id"] = docId
         }
         val unsavedDoc = MutableDocument(docId, upsert)
-        try {
+        return try {
             upsert["_id"] = unsavedDoc.id
             unsavedDoc.setString("_id", unsavedDoc.id)
             getDatabase(name).save(unsavedDoc)
+            upsert
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }

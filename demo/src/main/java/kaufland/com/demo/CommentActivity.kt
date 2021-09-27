@@ -67,7 +67,7 @@ class CommentActivity : AppCompatActivity() {
     }
 
     private val parentEntity: ProductEntity
-        private get() = create(intent.getStringExtra("id"))
+        private get() = create(intent.getStringExtra("id")!!)
 
     companion object {
         private val TAG = CommentActivity::class.java.name

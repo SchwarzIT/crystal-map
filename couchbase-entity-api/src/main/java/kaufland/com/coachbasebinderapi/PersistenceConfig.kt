@@ -16,7 +16,7 @@ object PersistenceConfig {
         fun deleteDocument(id: String, dbName: String)
 
         @Throws(PersistenceException::class)
-        fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String)
+        fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String) : Map<String, Any>
     }
 
     interface SuspendingConnector{
@@ -33,7 +33,7 @@ object PersistenceConfig {
         suspend fun deleteDocument(id: String, dbName: String)
 
         @Throws(PersistenceException::class)
-        suspend fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String)
+        suspend fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String) : Map<String, Any>
     }
 
     val connector: Connector
