@@ -241,14 +241,11 @@ class EntityGeneration {
 
         saveBuilder.addStatement("val docId = $idResolve")
         saveBuilder.addStatement(
-            "%T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
+            "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
             PersistenceConfig::class,
             holder.dbName
         )
-        saveBuilder.beginControlFlow("docId?.let")
-        saveBuilder.addStatement("doc[%N]=docId", "_ID")
-        saveBuilder.endControlFlow()
-        saveBuilder.addStatement("rebind(doc)")
+        saveBuilder.addStatement("rebind(upsertedDoc)")
 
         return saveBuilder.build()
     }
