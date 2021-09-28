@@ -16,7 +16,6 @@ class SchemaValidationLoggerImpl : SchemaValidationLogger {
 
     private val map: MutableMap<EntitySchema, MutableList<Message>> = HashMap()
 
-
     override fun info(entitySchema: EntitySchema, message: String) {
         add(entitySchema, message, Level.INFO)
     }
@@ -39,8 +38,8 @@ class SchemaValidationLoggerImpl : SchemaValidationLogger {
     fun print(printer: StyledTextOutput) {
         for (entry in map) {
             printer.withStyle(StyledTextOutput.Style.Header)
-                    .println("")
-                    .println("Validating [${entry.key.name}]")
+                .println("")
+                .println("Validating [${entry.key.name}]")
 
             for (message in entry.value) {
                 printer.style(StyledTextOutput.Style.Normal).text("--  ${message.message} ").printSuffixLn(message.level)
@@ -57,6 +56,4 @@ class SchemaValidationLoggerImpl : SchemaValidationLogger {
     fun hasErrors(): Boolean {
         return map.values.flatMap { it }.any { it.level == Level.ERROR }
     }
-
-
 }

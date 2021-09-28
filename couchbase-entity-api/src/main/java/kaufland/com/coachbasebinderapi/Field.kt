@@ -1,6 +1,5 @@
 package kaufland.com.coachbasebinderapi
 
-
 import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.BINARY)

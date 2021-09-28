@@ -23,12 +23,16 @@ class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyE
     override val declaringName: ProcessingContext.DeclaringName = element.asDeclaringName(mapify.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
-        return listOf(PropertySpec.builder(reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
-                .initializer(CodeBlock.builder()
+        return listOf(
+            PropertySpec.builder(reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
+                .initializer(
+                    CodeBlock.builder()
                         .addStatement("%T::class.java.getDeclaredField(%S)", sourceClazzTypeName, fieldName)
                         .beginControlFlow(".apply")
                         .addStatement("isAccessible·=·true")
-                        .endControlFlow().build()).build())
+                        .endControlFlow().build()
+                ).build()
+        )
     }
 
     override fun getterFunSpec(): FunSpec {

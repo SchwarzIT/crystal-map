@@ -8,7 +8,6 @@ import com.kaufland.util.ConversionUtil
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.*
 
-
 import java.util.Arrays
 
 import kaufland.com.coachbasebinderapi.Field
@@ -23,9 +22,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     val constantValueAccessorName = "DOC_$constantName"
 
-
     override val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, null)
-
 
     override fun interfaceProperty(): PropertySpec {
 
@@ -35,7 +32,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
 
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
-                .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, fieldType).build())
+            .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, fieldType).build())
 
         if (comment.isNotEmpty()) {
             builder.addKdoc(KDocGeneration.generate(comment))
@@ -48,8 +45,10 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
         val fieldAccessorConstant = PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", dbField).addAnnotation(JvmField::class).build()
 
-        return Arrays.asList(fieldAccessorConstant,
-                PropertySpec.builder(constantValueAccessorName, typeMirror.asTypeName().javaToKotlinType(), KModifier.FINAL, KModifier.PUBLIC).initializer(ConversionUtil.convertStringToDesiredFormat(typeMirror, constantValue)).addAnnotation(JvmField::class).build())
+        return Arrays.asList(
+            fieldAccessorConstant,
+            PropertySpec.builder(constantValueAccessorName, typeMirror.asTypeName().javaToKotlinType(), KModifier.FINAL, KModifier.PUBLIC).initializer(ConversionUtil.convertStringToDesiredFormat(typeMirror, constantValue)).addAnnotation(JvmField::class).build()
+        )
     }
 
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec? {

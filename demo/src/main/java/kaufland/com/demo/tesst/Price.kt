@@ -1,25 +1,22 @@
 package schwarz.fwws.shared.model
 
-
-import com.couchbase.lite.Blob
 import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.coachbasebinderapi.MapWrapper
 import kaufland.com.coachbasebinderapi.deprecated.Deprecated
 import kaufland.com.coachbasebinderapi.deprecated.DeprecatedField
-import kaufland.com.demo.entity.UserComment
 import java.util.*
 
 @MapWrapper
 @Fields(
-        Field(name = "storeId", type = String::class),
-        Field(name = "article_no", type = String::class),
-        Field(name = "type", type = String::class, defaultValue = Price.TYPE, readonly = true),
-        Field(name = "condition_no", type = String::class),
-        Field(name = "start_date", type = Date::class),
-        Field(name = "end_date", type = Date::class),
-        Field(name = "sales_price", type = String::class),
-        Field(name = "currency_unit", type = String::class)
+    Field(name = "storeId", type = String::class),
+    Field(name = "article_no", type = String::class),
+    Field(name = "type", type = String::class, defaultValue = Price.TYPE, readonly = true),
+    Field(name = "condition_no", type = String::class),
+    Field(name = "start_date", type = Date::class),
+    Field(name = "end_date", type = Date::class),
+    Field(name = "sales_price", type = String::class),
+    Field(name = "currency_unit", type = String::class)
 )
 @Deprecated(fields = [DeprecatedField("sales_price", inUse = false)])
 open class Price {

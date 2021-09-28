@@ -22,35 +22,34 @@ class MapperGeneration {
         val mapperTypeParam = holder.declaringName.asFullTypeName() ?: holder.sourceClazzTypeName
 
         val typeSpec = TypeSpec.classBuilder(holder.targetMapperSimpleName)
-                .addSuperinterface(TypeUtil.iMapper(mapperTypeParam))
-
+            .addSuperinterface(TypeUtil.iMapper(mapperTypeParam))
 
         if (holder.typeParams.isNotEmpty()) {
             val constructorBuilder = FunSpec.constructorBuilder()
 
             holder.typeParams.forEachIndexed { index, typeVariableSymbol ->
                 typeSpec.addTypeVariable(TypeVariableName(typeVariableSymbol.name))
-                typeSpec.addProperty(PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
+                typeSpec.addProperty(
+                    PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
                         .initializer("typeParam$index")
                         .addModifiers(KModifier.PRIVATE)
-                        .build())
+                        .build()
+                )
                 constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
             }
             typeSpec.primaryConstructor(constructorBuilder.build())
         }
 
-
         val fromMap = FunSpec.builder("fromMap")
-                .addModifiers(KModifier.OVERRIDE)
-                .addParameter("obj", mapperTypeParam)
-                .addParameter("map", TypeUtil.mapStringAny())
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("obj", mapperTypeParam)
+            .addParameter("map", TypeUtil.mapStringAny())
 
         val toMap = FunSpec.builder("toMap")
-                .addModifiers(KModifier.OVERRIDE)
-                .addParameter("obj", mapperTypeParam)
-                .returns(TypeUtil.mapStringAny())
-                .addStatement("val map = %T()", TypeUtil.hashMapStringAny())
-
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("obj", mapperTypeParam)
+            .returns(TypeUtil.mapStringAny())
+            .addStatement("val map = %T()", TypeUtil.hashMapStringAny())
 
         val addedHelpers = mutableSetOf<String>()
         for (fieldWithTypeParam in holder.fields.values.filter { it.typeHandleMode == MapifyHolder.TypeHandleMode.MAPPER && it.declaringName.typeParams.isNotEmpty() }) {
@@ -64,7 +63,6 @@ class MapperGeneration {
                 }
                 addedHelpers.add(helperClazzName)
 
-
                 val param = ResolverParam()
                 try {
                     param.fromMapBuilder.beginControlFlow("return map[%S].let", "value")
@@ -77,35 +75,39 @@ class MapperGeneration {
                     param.toMapBuilder.addStatement("map[%S] = this", "value")
                     param.toMapBuilder.endControlFlow()
                     param.toMapBuilder.addStatement("return map")
-
-
                 } catch (e: Exception) {
                     throw PostValidationException(e, *fieldWithTypeParam.elements)
                 }
 
-                typeSpec.addType(MapifyableImplGeneration.typeSpec(MapifyableImplGeneration.Config(
-                        modifiers = arrayOf(KModifier.PRIVATE),
-                        clazzName = helperClazzName,
-                        typeParam = mapifyHelper.asFullTypeName()!!.copy(nullable = true),
-                        fromMap = { it.addCode(param.fromMapBuilder.build()).build() },
-                        toMap = { it.addCode(param.toMapBuilder.build()).build() })))
-
+                typeSpec.addType(
+                    MapifyableImplGeneration.typeSpec(
+                        MapifyableImplGeneration.Config(
+                            modifiers = arrayOf(KModifier.PRIVATE),
+                            clazzName = helperClazzName,
+                            typeParam = mapifyHelper.asFullTypeName()!!.copy(nullable = true),
+                            fromMap = { it.addCode(param.fromMapBuilder.build()).build() },
+                            toMap = { it.addCode(param.toMapBuilder.build()).build() }
+                        )
+                    )
+                )
             }
         }
-
 
         for (field in holder.fields.values) {
 
             typeSpec.addProperties(field.reflectionProperties(holder.sourceClazzTypeName))
 
-            typeSpec.addProperty(PropertySpec.builder(field.accessorName, field.declaringName.asFullTypeName()?.copy(nullable = true)
-                    ?: field.typeName.copy(nullable = true), KModifier.PRIVATE).receiver(mapperTypeParam).mutable(true)
+            typeSpec.addProperty(
+                PropertySpec.builder(
+                    field.accessorName,
+                    field.declaringName.asFullTypeName()?.copy(nullable = true)
+                        ?: field.typeName.copy(nullable = true),
+                    KModifier.PRIVATE
+                ).receiver(mapperTypeParam).mutable(true)
                     .getter(field.getterFunSpec())
                     .setter(field.setterFunSpec())
-                    .build())
-
-
-
+                    .build()
+            )
 
             try {
                 val resolverParam = ResolverParam()
@@ -169,7 +171,6 @@ class MapperGeneration {
                 resolverParam.fromMapBuilder.addStatement("typeParam$it.fromMap(it as %T)", TypeUtil.mapStringAny())
                 resolverParam.toMapBuilder.addStatement("typeParam$it.toMap(it)")
             }
-
         }
 
         if (name.asTypeElement()?.getAnnotation(Mapper::class.java) != null) {
@@ -211,7 +212,7 @@ class MapperGeneration {
                 }
                 isAssignable(List::class.java) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")
-                    val mapFun = if(name.typeParams[0].isNullable()) "map" else "mapNotNull"
+                    val mapFun = if (name.typeParams[0].isNullable()) "map" else "mapNotNull"
                     resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.$mapFun", TypeUtil.list(TypeUtil.any()))
                     resolveDeclaringName(name.typeParams[0], resolverParam, accessorName, typeParams)
                     resolverParam.toMapBuilder.endControlFlow()

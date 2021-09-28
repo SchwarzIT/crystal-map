@@ -18,9 +18,8 @@ import kotlin.reflect.KClass
 class TypeConversionTest {
 
     @Before
-    fun init(){
-        PersistenceConfig.configure(object : PersistenceConfig.Connector{
-
+    fun init() {
+        PersistenceConfig.configure(object : PersistenceConfig.Connector {
 
             override val typeConversions: Map<KClass<*>, TypeConversion>
                 get() {

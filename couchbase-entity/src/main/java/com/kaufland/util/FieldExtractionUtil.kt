@@ -1,6 +1,5 @@
 package com.kaufland.util
 
-import kaufland.com.coachbasebinderapi.BaseModel
 import kaufland.com.coachbasebinderapi.BasedOn
 import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
@@ -9,7 +8,6 @@ import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.deprecated.Deprecated
 import kaufland.com.coachbasebinderapi.mapify.Mapifyable
 import javax.lang.model.type.MirroredTypesException
-import javax.management.Query
 
 object FieldExtractionUtil {
 

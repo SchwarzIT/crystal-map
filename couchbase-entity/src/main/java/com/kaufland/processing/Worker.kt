@@ -11,15 +11,15 @@ interface Worker<T : WorkSet> {
 
     val codeGenerator: CodeGenerator
 
-    val processingEnv : ProcessingEnvironment
+    val processingEnv: ProcessingEnvironment
 
     fun init()
 
-    fun evaluateWorkSet(roundEnv: RoundEnvironment) : T
+    fun evaluateWorkSet(roundEnv: RoundEnvironment): T
 
     fun doWork(workSet: T, useSuspend: Boolean)
 
-    fun invoke(roundEnv: RoundEnvironment, useSuspend: Boolean) : Boolean{
+    fun invoke(roundEnv: RoundEnvironment, useSuspend: Boolean): Boolean {
         val workSet = evaluateWorkSet(roundEnv)
 
         workSet.preValidate(logger)
@@ -36,5 +36,4 @@ interface Worker<T : WorkSet> {
         doWork(workSet, useSuspend)
         return true
     }
-
 }

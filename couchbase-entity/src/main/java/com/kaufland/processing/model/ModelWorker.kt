@@ -27,7 +27,6 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
     override fun init() {
         processingEnv.options[CoachBaseBinderProcessor.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME]?.let {
             documentationGenerator = DocumentationGenerator(it, processingEnv.options.getOrDefault(CoachBaseBinderProcessor.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, "default.html"))
-
         }
         processingEnv.options[CoachBaseBinderProcessor.FRAMEWORK_SCHEMA_PATH_OPTION_NAME]?.let {
             schemaGenerator = SchemaGenerator(it, processingEnv.options.getOrDefault(CoachBaseBinderProcessor.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME, "schema.json"))
@@ -71,7 +70,6 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         }
     }
 
-
     private fun generateInterface(generatedInterfaces: MutableSet<String>, holder: BaseEntityHolder) {
         if (generatedInterfaces.contains(holder.sourceClazzSimpleName).not()) {
             codeGenerator.generate(CommonInterfaceGeneration().generateModel(holder), processingEnv)
@@ -80,8 +78,8 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
     }
 
     override fun evaluateWorkSet(roundEnv: RoundEnvironment): ModelWorkSet = ModelWorkSet(
-            allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java),
-            allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java),
-            allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
+        allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java),
+        allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java),
+        allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
     )
 }

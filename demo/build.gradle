@@ -8,6 +8,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
         //TODO enable to localy test plugin
 //        classpath "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
 //        classpath fileTree(dir:'../couchbase-entity-versioning-plugin/build/libs', include: ['*.jar'])

@@ -59,8 +59,8 @@ class CblGenerateAccessorHolder(private val typeName: TypeName, val element: Ele
                 element.simpleName.toString(),
                 evaluateTypeName(element.asType(), element.getAnnotation(Nullable::class.java) != null)
             ).addAnnotation(JvmField::class)
-             .initializer("%T.%N", typeName, element.simpleName.toString())
-             .build()
+                .initializer("%T.%N", typeName, element.simpleName.toString())
+                .build()
         }
         return null
     }

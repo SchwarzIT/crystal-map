@@ -14,7 +14,7 @@ class MapperHolder(val sourceElement: Element) {
     val sourceClazzSimpleName: String
         get() = (sourceElement as Symbol.ClassSymbol).simpleName.toString()
 
-    val typeParams : List<ProcessingContext.DeclaringName> = (sourceElement as Symbol.ClassSymbol).typeParameters.mapNotNull { ProcessingContext.DeclaringName(it.asType()) }
+    val typeParams: List<ProcessingContext.DeclaringName> = (sourceElement as Symbol.ClassSymbol).typeParameters.mapNotNull { ProcessingContext.DeclaringName(it.asType()) }
 
     val sourceClazzTypeName: TypeName = ClassName(`package`, sourceClazzSimpleName)
 
@@ -28,5 +28,4 @@ class MapperHolder(val sourceElement: Element) {
 
     val targetMapperTypeName: TypeName
         get() = ClassName(`package`, targetMapperSimpleName)
-
 }

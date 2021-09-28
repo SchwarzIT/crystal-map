@@ -77,7 +77,6 @@ object EntityFactory {
         content.deprecated =
             cblEntityElement.getAnnotation(Deprecated::class.java)?.let { DeprecatedModel(it) }
 
-
         addBasedOn(cblEntityElement, allBaseModels, content)
 
         parseQueries(cblEntityElement, content)
@@ -106,7 +105,6 @@ object EntityFactory {
         }
 
         return content
-
     }
 
     fun addBasedOn(
@@ -168,7 +166,6 @@ object EntityFactory {
             }
         }
     }
-
 
     private fun parseQueries(cblEntityElement: Element, content: BaseEntityHolder) {
         val queries = cblEntityElement.getAnnotation(Queries::class.java) ?: return

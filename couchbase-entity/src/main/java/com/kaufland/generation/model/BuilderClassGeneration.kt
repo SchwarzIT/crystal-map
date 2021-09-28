@@ -15,7 +15,6 @@ object BuilderClassGeneration {
     }
 
     fun generateBuilderFun(): FunSpec {
-       return FunSpec.builder("builder").addStatement("return Builder(this)").build()
+        return FunSpec.builder("builder").addStatement("return Builder(this)").build()
     }
-
 }

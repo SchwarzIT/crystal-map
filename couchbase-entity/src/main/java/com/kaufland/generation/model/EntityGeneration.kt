@@ -303,5 +303,4 @@ class EntityGeneration {
             return "${if (useSuspend) "suspendingConnector" else "connector"}.upsertDocument"
         }
     }
-
 }

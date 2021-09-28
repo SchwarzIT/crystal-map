@@ -21,7 +21,7 @@ class CommentActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comment)
         val data = parentEntity.comments?.toMutableList()
-        val adapter =  object :ArrayAdapter<String?>(this, R.layout.comment_item_view, R.id.txt_comment, map(data)) {
+        val adapter = object : ArrayAdapter<String?>(this, R.layout.comment_item_view, R.id.txt_comment, map(data)) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent)
                 view.findViewById<View>(R.id.btn_delete).setOnClickListener { v: View? ->
@@ -58,10 +58,12 @@ class CommentActivity : AppCompatActivity() {
     private fun map(userCommentEntities: List<UserCommentWrapper>?): List<String> {
         val result: MutableList<String> = ArrayList()
         for (entity in userCommentEntities!!) {
-            result.add("""
+            result.add(
+                """
     ${entity.comment}
     [${entity.user}(${entity.age})]
-    """.trimIndent())
+                """.trimIndent()
+            )
         }
         return result
     }

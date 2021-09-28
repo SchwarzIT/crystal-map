@@ -5,16 +5,15 @@ import kaufland.com.coachbasebinderapi.Fields
 import kaufland.com.coachbasebinderapi.MapWrapper
 import java.util.*
 
-
 @MapWrapper
 @Fields(
-        Field(name = "country", type = String::class),
-        Field(name = "type", type = String::class, defaultValue = DWG.TYPE, readonly = true),
-        Field(name = "name", type = String::class),
-        Field(name = "color", type = String::class),
-        Field(name = "icon", type = String::class),
-        Field(name = "item_type", type = String::class),
-        Field(name = "ordinal", type = Int::class)
+    Field(name = "country", type = String::class),
+    Field(name = "type", type = String::class, defaultValue = DWG.TYPE, readonly = true),
+    Field(name = "name", type = String::class),
+    Field(name = "color", type = String::class),
+    Field(name = "icon", type = String::class),
+    Field(name = "item_type", type = String::class),
+    Field(name = "ordinal", type = Int::class)
 )
 open class DWG {
     companion object {
@@ -25,7 +24,6 @@ open class DWG {
             return "$PREFIX:$country:$item_type"
         }
     }
-
 
 //    override fun documentId(): String {
 //        return Companion.documentId(country, item_type)

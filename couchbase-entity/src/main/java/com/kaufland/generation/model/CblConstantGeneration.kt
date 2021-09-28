@@ -25,5 +25,4 @@ object CblConstantGeneration {
     fun addAddCall(nameOfMap: String): CodeBlock {
         return CodeBlock.builder().addStatement("addConstants(%N)", nameOfMap).build()
     }
-
 }

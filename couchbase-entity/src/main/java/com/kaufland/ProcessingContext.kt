@@ -28,7 +28,6 @@ object ProcessingContext {
 
     val createdQualifiedClazzNames: MutableSet<ClassName> = hashSetOf()
 
-
     fun Element.isAssignable(clazz: Class<*>) = ProcessingContext.env.let {
         it.typeUtils.isAssignable(asType(), it.elementUtils.getTypeElement(clazz.canonicalName).asType())
     }
@@ -46,20 +45,19 @@ object ProcessingContext {
             ElementUtil.splitGenericIfNeeded(typeMirror.toString()).apply {
                 name = this[0]
                 val typeArgs: List<TypeMirror> = (typeMirror as? Type.ClassType?)?.let { it.typeArguments }
-                        ?: emptyList()
+                    ?: emptyList()
                 typeParams = typeArgs.mapIndexed { index, typeMirror -> DeclaringName(typeMirror, relevantIndex + index + 1, nullableIndexes) }
             }
         }
 
         fun asTypeName(): TypeName? = createdQualifiedClazzNames.firstOrNull { it.simpleName == name }
-                ?: if (isTypeVar()) TypeVariableName(name).copy(nullable = isNullable()) else asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(nullable = isNullable())
+            ?: if (isTypeVar()) TypeVariableName(name).copy(nullable = isNullable()) else asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(nullable = isNullable())
 
         fun asFullTypeName(): TypeName? = asTypeName()?.let {
             if (it is ClassName && typeParams.isNotEmpty()) {
                 it.parameterizedBy(typeParams.mapNotNull { if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() })
             } else it
         }
-
 
         fun hasEmptyConstructor() = (typeMirror as? Type.ClassType?)?.let {
             it.asElement().enclosedElements.any {
@@ -74,7 +72,7 @@ object ProcessingContext {
         fun isNullable() = nullableIndexes.contains(relevantIndex)
 
         fun asTypeElement(): TypeElement? = (typeMirror as? PrimitiveType?)?.let { env.typeUtils.boxedClass(it) }
-                ?: env.elementUtils.getTypeElement(name)
+            ?: env.elementUtils.getTypeElement(name)
 
         fun isProcessingType(): Boolean {
             return createdQualifiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }

@@ -26,7 +26,7 @@ open class EntityWithGenerateAccessor {
         }
 
         @GenerateAccessor
-        fun someComplexQuery2() {
+        fun someComplexQuery3() {
 
         }
     }

@@ -3,10 +3,8 @@ package kaufland.com.demo.mapper
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
 import kaufland.com.demo.entity.ProductEntity
-import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 import java.math.BigDecimal
 import kotlin.reflect.KClass
@@ -32,13 +30,12 @@ class DummyMapperSourceTest {
             }
 
             override fun deleteDocument(id: String, dbName: String) {
-                //nope
+                // nope
             }
 
             override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String) {
-                //nope
+                // nope
             }
-
         })
     }
 
