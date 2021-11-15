@@ -35,7 +35,7 @@ class TypeConversionTest {
                 TODO("Not yet implemented")
             }
 
-            override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
+            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int): List<Map<String, Any>> {
                 throw Exception("should not called")
             }
 
@@ -43,7 +43,7 @@ class TypeConversionTest {
                 throw Exception("should not called")
             }
 
-            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String) {
+            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
                 throw Exception("should not called")
             }
         })
