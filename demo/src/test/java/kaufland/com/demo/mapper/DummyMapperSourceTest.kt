@@ -25,7 +25,7 @@ class DummyMapperSourceTest {
                 TODO("Not yet implemented")
             }
 
-            override fun queryDoc(dbName: String, queryParams: Map<String, Any>): List<Map<String, Any>> {
+            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int): List<Map<String, Any>> {
                 return emptyList()
             }
 
@@ -33,8 +33,8 @@ class DummyMapperSourceTest {
                 // nope
             }
 
-            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String) {
-                // nope
+            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+                TODO("Not yet implemented")
             }
         })
     }
@@ -68,7 +68,8 @@ class DummyMapperSourceTest {
             assertEquals("oldValue", newObj.innerObject.myString)
             assertEquals("oldValue", newObj.innerObjectList[0].myString)
             assertEquals("oldValue", newObj.innerObjectMap["test"]!!.myString)
-            assertEquals("myLiveVal", newObj.liveData.exposedVal)
+            assertEquals("myLiveVal", newObj.liveData.exposedVal!!.test1)
+            assertEquals(1, newObj.liveData.exposedVal!!.test2)
             assertEquals(2, newObj.nullableList.size)
             assertEquals(null, newObj.nullableList[0])
         }
