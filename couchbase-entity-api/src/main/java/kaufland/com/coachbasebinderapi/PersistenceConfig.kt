@@ -2,7 +2,6 @@ package kaufland.com.coachbasebinderapi
 
 import kotlin.reflect.KClass
 
-
 object PersistenceConfig {
     private var mConnector: Connector? = null
     private var mSuspendingConnector: SuspendingConnector? = null
