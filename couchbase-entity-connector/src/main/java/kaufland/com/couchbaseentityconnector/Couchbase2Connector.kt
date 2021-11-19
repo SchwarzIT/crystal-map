@@ -88,7 +88,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int): List<Map<String, Any>> {
+    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
         try {
 
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
@@ -98,7 +98,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
                 builder.where(it)
             }
 
-            builder.limit(Expression.intValue(limit))
+            limit?.let { builder.limit(Expression.intValue(limit)) }
 
             return queryResultToMap(builder.execute())
         } catch (e: CouchbaseLiteException) {

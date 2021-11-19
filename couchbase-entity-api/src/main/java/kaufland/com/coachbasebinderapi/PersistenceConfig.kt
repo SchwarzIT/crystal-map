@@ -2,7 +2,6 @@ package kaufland.com.coachbasebinderapi
 
 import kotlin.reflect.KClass
 
-private const val DEFAULT_LIMIT = 1000
 
 object PersistenceConfig {
     private var mConnector: Connector? = null
@@ -12,7 +11,7 @@ object PersistenceConfig {
         val typeConversions: Map<KClass<*>, TypeConversion>
         fun getDocument(id: String, dbName: String): Map<String, Any>?
         fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?>
-        fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int = DEFAULT_LIMIT): List<Map<String, Any>>
+        fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         fun deleteDocument(id: String, dbName: String)
@@ -29,7 +28,7 @@ object PersistenceConfig {
 
         suspend fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>>
 
-        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int = DEFAULT_LIMIT): List<Map<String, Any>>
+        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         suspend fun deleteDocument(id: String, dbName: String)

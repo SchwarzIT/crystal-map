@@ -23,7 +23,7 @@ class ProductWrapperTest {
                     TODO("Not yet implemented")
                 }
 
-                override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int): List<Map<String, Any>> {
+                override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
                     TODO("Not yet implemented")
                 }
 
