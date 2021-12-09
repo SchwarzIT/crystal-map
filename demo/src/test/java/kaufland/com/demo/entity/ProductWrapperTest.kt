@@ -2,6 +2,7 @@ package kaufland.com.demo.entity
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kaufland.com.demo.UnitTestConnector
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
@@ -9,32 +10,14 @@ import kotlin.reflect.KClass
 
 class ProductWrapperTest {
     companion object {
+        private val typeConversions: Map<KClass<*>, TypeConversion> = mapOf(
+            ProductCategory::class to ProductCategoryTypeConversion
+        )
+
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            PersistenceConfig.configure(object : PersistenceConfig.Connector {
-                override val typeConversions: Map<KClass<*>, TypeConversion> = mapOf()
-
-                override fun getDocument(id: String, dbName: String): Map<String, Any>? {
-                    TODO("Not yet implemented")
-                }
-
-                override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?> {
-                    TODO("Not yet implemented")
-                }
-
-                override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
-                    TODO("Not yet implemented")
-                }
-
-                override fun deleteDocument(id: String, dbName: String) {
-                    TODO("Not yet implemented")
-                }
-
-                override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
-                    TODO("Not yet implemented")
-                }
-            })
+            PersistenceConfig.configure(UnitTestConnector(typeConversions))
         }
     }
 
