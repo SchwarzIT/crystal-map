@@ -1,8 +1,8 @@
-package kaufland.com.coachbasebinderapi;
+package kaufland.com.coachbasebinderapi
 
-public class PersistenceException extends Exception {
+import java.lang.Exception
 
-    public PersistenceException(Throwable var1) {
-        super(var1);
-    }
+class PersistenceException : Exception {
+    constructor(var1: Throwable?) : super(var1)
+    constructor(message: String?) : super(message)
 }

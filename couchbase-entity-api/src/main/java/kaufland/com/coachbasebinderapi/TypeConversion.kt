@@ -1,9 +1,6 @@
-package kaufland.com.coachbasebinderapi;
+package kaufland.com.coachbasebinderapi
 
-public interface TypeConversion {
-
-    Object write(Object value);
-
-    Object read(Object value);
-
+interface TypeConversion {
+    fun read(value: Any?): Any?
+    fun write(value: Any?): Any?
 }
