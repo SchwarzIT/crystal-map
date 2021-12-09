@@ -1,6 +1,7 @@
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.Field
 import kaufland.com.coachbasebinderapi.Fields
+import kaufland.com.coachbasebinderapi.MapWrapper
 import kaufland.com.coachbasebinderapi.query.Queries
 import kaufland.com.coachbasebinderapi.query.Query
 
@@ -10,6 +11,7 @@ enum class TestEnum {
 }
 
 @Entity(database = "mydb_db")
+@MapWrapper
 @Fields(
         Field(name = "type", type = String::class, defaultValue = "entityWithQueries", readonly = true),
         Field(name = "enumField", type = TestEnum::class)
