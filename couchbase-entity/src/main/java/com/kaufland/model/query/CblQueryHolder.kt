@@ -51,7 +51,7 @@ class CblQueryHolder(private val mQuery: Query) {
     private fun FunSpec.Builder.addQueryParamComparisonStatement(fieldHolder: CblFieldHolder, value: String) {
         val classForTypeConversion = fieldHolder.evaluateClazzForTypeConversion()
         addStatement(
-            "queryParams[%N] = ${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}(%N, %T::class) ?: throw PersistenceException(\"Invalid type-conversion: value must not be null\")",
+            "queryParams[%N] = ${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}(%N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
             fieldHolder.constantName,
             value,
             classForTypeConversion
