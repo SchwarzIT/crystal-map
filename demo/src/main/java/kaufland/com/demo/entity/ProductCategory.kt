@@ -7,14 +7,14 @@ enum class ProductCategory {
     AMAZING_PRODUCT
 }
 
-object ProductCategoryTypeConversion: TypeConversion {
+object ProductCategoryTypeConversion : TypeConversion {
     override fun write(value: Any?): Any? = value?.let {
-            when (it) {
-                is String -> it
-                is ProductCategory -> it.name
-                else -> null
-            }
+        when (it) {
+            is String -> it
+            is ProductCategory -> it.name
+            else -> null
         }
+    }
 
     override fun read(value: Any?): Any? = value.let {
         when (it) {
