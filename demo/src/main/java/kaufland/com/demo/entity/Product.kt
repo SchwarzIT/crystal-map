@@ -13,10 +13,12 @@ import kaufland.com.coachbasebinderapi.query.Query
     Field(name = "name", type = String::class, comment = ["contains the product name.", "and other infos"]),
     Field(name = "comments", type = UserComment::class, list = true, comment = ["I'm also comfortable with pseudo %2D placeholders"]),
     Field(name = "image", type = Blob::class),
-    Field(name = "identifiers", type = String::class, list = true)
+    Field(name = "identifiers", type = String::class, list = true),
+    Field(name = "category", type = ProductCategory::class)
 )
 @Queries(
-    Query(fields = ["type"])
+    Query(fields = ["type"]),
+    Query(fields = ["type", "category"])
 )
 @DocId("myProduct:%type%:%name%:%custom(name)%")
 open class Product {

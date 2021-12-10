@@ -12,74 +12,81 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     fun testSucessSimpleMapper() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("SimpleMapperTest"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessMapperWithGetterAndSetter() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithGetterAndSetter"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessMapperWithTypeParam() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithTypeParam"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessMapperWithNullable() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithNullable"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessWithQueries() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
+    fun testSucessWithQueriesAndEnums() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueriesAndEnums"))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessWithGenerateAccessor() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"))
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessWithQueriesAndSuspendFunctions() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"), useSuspend = true)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSucessWithGenerateAccessorAndSuspendFunctions() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"), useSuspend = true)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDeprecatedGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"), useSuspend = true)
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDocIdGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"), useSuspend = true)
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDocIdSegmentGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"), useSuspend = true)
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -111,7 +118,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -136,7 +143,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.OK)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test

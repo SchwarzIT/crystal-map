@@ -16,11 +16,11 @@ class EntityGeneration {
     private val id: FunSpec
         get() = FunSpec.builder("getId")
             .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-            .returns(TypeUtil.string().copy(nullable = true))
+            .returns(string().copy(nullable = true))
             .addStatement(
                 "return mDoc.get(%N) as %T",
                 "_ID",
-                TypeUtil.string().copy(nullable = true)
+                string().copy(nullable = true)
             )
             .build()
 
@@ -30,9 +30,10 @@ class EntityGeneration {
         companionSpec.addFunctions(create(holder, useSuspend))
         companionSpec.addFunction(findById(holder, useSuspend))
         companionSpec.addFunction(findByIds(holder, useSuspend))
+        companionSpec.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
 
         for (query in holder.queries) {
-            query.queryFun(holder.dbName, holder, useSuspend)?.let {
+            query.queryFun(holder.dbName, holder, useSuspend).let {
                 companionSpec.addFunction(it)
             }
         }
@@ -72,7 +73,6 @@ class EntityGeneration {
             )
             .addFunction(constructor(holder))
             .addFunction(setAll(holder))
-            .addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
             .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
             .addFunction(toMap(holder, useSuspend))
             .addFunction(BuilderClassGeneration.generateBuilderFun())
@@ -148,7 +148,8 @@ class EntityGeneration {
 
     private fun findByIds(holder: EntityHolder, useSuspend: Boolean): FunSpec {
         return FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
-            .addParameter("ids", TypeUtil.list(string())).addAnnotation(JvmStatic::class)
+            .addParameter("ids", TypeUtil.list(string()))
+            .addAnnotation(JvmStatic::class)
             .addStatement(
                 "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S)",
                 PersistenceConfig::class,
@@ -199,7 +200,7 @@ class EntityGeneration {
 
         toMapBuilder.addStatement(
             "var temp = mutableMapOf<%T, %T>()",
-            TypeUtil.string(),
+            string(),
             TypeUtil.any()
         )
         toMapBuilder.addCode(
