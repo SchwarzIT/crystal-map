@@ -41,7 +41,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         var generatedInterfaces = mutableSetOf<String>()
 
         for (baseModelHolder in workSet.bases) {
-            if(baseModelHolder.sourceClazzSimpleName == "AnotherBaseModel"){
+            if (baseModelHolder.sourceClazzSimpleName == "AnotherBaseModel") {
                 print(baseModelHolder.fieldConstants.map { it.key to it.value.constantValue }.joinToString())
             }
             generateInterface(generatedInterfaces, baseModelHolder)

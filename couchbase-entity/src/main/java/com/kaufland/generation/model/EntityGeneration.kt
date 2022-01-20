@@ -168,8 +168,6 @@ class EntityGeneration {
             .initializer("%S", "_id").addAnnotation(JvmField::class).build()
     }
 
-
-
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
         var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
 

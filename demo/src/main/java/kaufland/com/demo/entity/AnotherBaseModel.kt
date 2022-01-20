@@ -8,11 +8,9 @@ import kaufland.com.demo.customtypes.GenerateClassName
 @MapWrapper
 @Entity
 @Fields(
-        Field(name = "someConstant", type = String::class, defaultValue = "blabla", readonly = true),
-        Field(name = "anotherBaseThing", type = String::class),
-        Field(name = "clazzName", type = GenerateClassName::class, defaultValue = "GenerateClassName(this::class.simpleName ?: \"\")")
+    Field(name = "someConstant", type = String::class, defaultValue = "blabla", readonly = true),
+    Field(name = "anotherBaseThing", type = String::class),
+    Field(name = "clazzName", type = GenerateClassName::class, defaultValue = "GenerateClassName(this::class.simpleName ?: \"\")")
 )
 @BasedOn(kaufland.com.demo.entity.BaseModel::class)
-open class AnotherBaseModel{
-
-}
+open class AnotherBaseModel
