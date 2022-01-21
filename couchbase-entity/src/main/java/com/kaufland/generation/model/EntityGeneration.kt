@@ -72,7 +72,7 @@ class EntityGeneration {
                 ).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build()
             )
             .addFunction(constructor(holder))
-            .addFunction(setAll(holder))
+            .addFunction(SetAllMethodGeneration().generate(holder, true))
             .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
             .addFunction(toMap(holder, useSuspend))
             .addFunction(BuilderClassGeneration.generateBuilderFun())
@@ -165,18 +165,6 @@ class EntityGeneration {
     private fun idConstant(): PropertySpec {
         return PropertySpec.builder("_ID", String::class, KModifier.PUBLIC, KModifier.FINAL)
             .initializer("%S", "_id").addAnnotation(JvmField::class).build()
-    }
-
-    private fun setAll(holder: EntityHolder): FunSpec {
-        val setAllBuilder = FunSpec.builder("setAll").addModifiers(KModifier.PUBLIC)
-            .addParameter("map", TypeUtil.mapStringAnyNullable()).addStatement(
-                "mDocChanges.putAll(map)",
-                TypeUtil.mapStringAnyNullable(),
-                PersistenceConfig::class,
-                holder.dbName
-            )
-
-        return setAllBuilder.build()
     }
 
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {

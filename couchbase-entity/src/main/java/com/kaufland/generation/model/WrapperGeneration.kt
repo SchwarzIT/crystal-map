@@ -22,6 +22,7 @@ class WrapperGeneration {
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblDefaultGeneration.addDefaults(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
+            .addFunction(SetAllMethodGeneration().generate(holder, false))
             .addFunction(MapSupportGeneration.toMap(holder))
             .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build())
             .addFunction(constructorMap())

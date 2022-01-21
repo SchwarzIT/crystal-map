@@ -126,8 +126,12 @@ object EntityFactory {
                     }
                 }
                 content.basedOn.add(it)
-                content.fieldConstants.putAll(it.fieldConstants)
-                content.fields.putAll(it.fields)
+                it.fieldConstants.forEach {
+                    content.fieldConstants.putIfAbsent(it.key, it.value)
+                }
+                it.fields.forEach {
+                    content.fields.putIfAbsent(it.key, it.value)
+                }
                 content.generateAccessors.addAll(it.generateAccessors)
                 content.queries.addAll(it.queries)
             }
