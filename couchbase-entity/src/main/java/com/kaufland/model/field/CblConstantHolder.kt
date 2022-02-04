@@ -24,9 +24,9 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     override val fieldType: TypeName = TypeUtil.parseMetaType(typeMirror, isIterable, null)
 
-    override fun interfaceProperty(): PropertySpec {
-
-        return PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC).build()
+    override fun interfaceProperty(isOverride: Boolean): PropertySpec {
+        val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
+        return PropertySpec.builder(accessorSuffix(), fieldType, modifiers).build()
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
