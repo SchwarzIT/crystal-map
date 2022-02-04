@@ -1,5 +1,5 @@
 [![](https://jitpack.io/v/SchwarzIT/andcouchbaseentity.svg)](https://jitpack.io/#SchwarzIT/andcouchbaseentity)
-[![Build Status](https://app.travis-ci.com/SchwarzIT/andcouchbaseentity.svg?branch=master)](https://travis-ci.com/github/SchwarzIT/andcouchbaseentity)
+[![Build Status](https://github.com/SchwarzIT/andcouchbaseentity/actions/workflows/android_pre_hook.yml/badge.svg)
 [![codecov](https://codecov.io/gh/SchwarzIT/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/SchwarzIT/andcouchbaseentity)
 
 

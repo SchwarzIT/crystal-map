@@ -6,6 +6,12 @@ import kaufland.com.coachbasebinderapi.Fields
 
 @BaseModel
 @Fields(
-    Field(name = "someBaseThing", type = String::class, defaultValue = "something", readonly = true)
+    Field(
+        name = "someBaseThing",
+        type = String::class,
+        defaultValue = "something",
+        readonly = true
+    ),
+    Field(name = "someConstant", type = String::class, defaultValue = "invalid", readonly = true),
 )
 class BaseModel
