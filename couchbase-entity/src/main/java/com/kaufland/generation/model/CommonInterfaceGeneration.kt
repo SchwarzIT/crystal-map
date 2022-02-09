@@ -11,7 +11,7 @@ class CommonInterfaceGeneration {
 
         var interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
-        holder.basedOn.map { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
+        holder.basedOn.forEach { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
 
         var companionSpec = TypeSpec.companionObjectBuilder()
 
