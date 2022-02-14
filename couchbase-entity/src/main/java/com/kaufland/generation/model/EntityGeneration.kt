@@ -89,10 +89,6 @@ class EntityGeneration {
             typeBuilder.addKdoc(KDocGeneration.generate(holder.comment))
         }
 
-        for (baseModelHolder in holder.basedOn) {
-            typeBuilder.addSuperinterface(baseModelHolder.interfaceTypeName)
-        }
-
         if (holder.modifierOpen) {
             typeBuilder.addModifiers(KModifier.OPEN)
         }

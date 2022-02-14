@@ -40,9 +40,10 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
         }
     }
 
-    override fun interfaceProperty(): PropertySpec {
+    override fun interfaceProperty(isOverride: Boolean): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName).copy(nullable = true)
-        return PropertySpec.builder(accessorSuffix(), returnType.copy(true), KModifier.PUBLIC).mutable(true).build()
+        val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
+        return PropertySpec.builder(accessorSuffix(), returnType.copy(true), modifiers).mutable(true).build()
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {

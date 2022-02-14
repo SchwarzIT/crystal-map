@@ -11,11 +11,15 @@ class CommonInterfaceGeneration {
 
         var interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
+        holder.basedOn.forEach { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
 
         var companionSpec = TypeSpec.companionObjectBuilder()
 
         for (fieldHolder in holder.allFields) {
-            val propertySpec = fieldHolder.interfaceProperty()
+            val isBaseField = holder.basedOn.any {
+                it.fields.containsKey(fieldHolder.dbField) || it.fieldConstants.containsKey(fieldHolder.dbField)
+            }
+            val propertySpec = fieldHolder.interfaceProperty(isBaseField)
             interfaceSpec.addProperty(propertySpec)
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
