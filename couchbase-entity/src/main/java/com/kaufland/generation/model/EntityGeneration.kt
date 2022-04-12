@@ -73,7 +73,7 @@ class EntityGeneration {
             )
             .addFunction(constructor(holder))
             .addFunction(SetAllMethodGeneration().generate(holder, true))
-            .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
+            .addFunction(id).superclass(holder.sourceElement.typeName)
             .addFunction(toMap(holder, useSuspend))
             .addFunction(BuilderClassGeneration.generateBuilderFun())
 

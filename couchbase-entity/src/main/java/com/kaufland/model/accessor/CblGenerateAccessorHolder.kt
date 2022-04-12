@@ -1,6 +1,8 @@
 package com.kaufland.model.accessor
 
 import com.kaufland.javaToKotlinType
+import com.kaufland.model.source.SourceMemberField
+import com.kaufland.model.source.SourceMemberFunction
 import com.squareup.kotlinpoet.*
 import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Element
@@ -10,38 +12,36 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
 
-class CblGenerateAccessorHolder(private val typeName: TypeName, val element: Element) {
+class CblGenerateAccessorHolder(
+    private val sourceClassTypeName: TypeName,
+    private val memberFunction: SourceMemberFunction?,
+    private val memberProperty: SourceMemberField?
+) {
 
     fun accessorFunSpec(): FunSpec? {
 
-        if (element.kind == ElementKind.METHOD) {
-            val methodBuilder = FunSpec.builder(element.simpleName.toString()).addAnnotation(JvmStatic::class)
+        if (memberFunction != null) {
+            val methodBuilder = FunSpec.builder(memberFunction.name).addAnnotation(JvmStatic::class)
 
-            (element as? ExecutableElement)?.apply {
-                val callParams = arrayListOf<String>()
-                parameters.forEach {
-
-                    if (isSuspendFunction(it)) {
-                        methodBuilder.addModifiers(KModifier.SUSPEND)
-                    } else {
-                        callParams.add(it.simpleName.toString())
-                        methodBuilder.addParameter(
-                            it.simpleName.toString(),
-                            evaluateTypeName(it.asType(), it.getAnnotation(Nullable::class.java) != null)
-                        )
-                    }
-                }
-
-                methodBuilder.addCode(
-                    CodeBlock.of(
-                        "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
-                        typeName,
-                        element.simpleName.toString()
-                    )
-                )
+            if (memberFunction.isSuspend) {
+                methodBuilder.addModifiers(KModifier.SUSPEND)
             }
+            val callParams = arrayListOf<String>()
+            memberFunction.parameters.forEach {
+                callParams.add(it.name)
+                methodBuilder.addParameter(it.name, it.type)
+            }
+
+            methodBuilder.addCode(
+                CodeBlock.of(
+                    "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
+                    sourceClassTypeName,
+                    memberFunction.name
+                )
+            )
             return methodBuilder.build()
         }
+
         return null
     }
 
@@ -54,14 +54,16 @@ class CblGenerateAccessorHolder(private val typeName: TypeName, val element: Ele
     }
 
     fun accessorPropertySpec(): PropertySpec? {
-        if (element.kind == ElementKind.FIELD) {
+
+        if(memberProperty != null){
             return PropertySpec.builder(
-                element.simpleName.toString(),
-                evaluateTypeName(element.asType(), element.getAnnotation(Nullable::class.java) != null)
+                memberProperty.name,
+                memberProperty.type
             ).addAnnotation(JvmField::class)
-                .initializer("%T.%N", typeName, element.simpleName.toString())
+                .initializer("%T.%N", sourceClassTypeName, memberProperty.name)
                 .build()
         }
+
         return null
     }
 }

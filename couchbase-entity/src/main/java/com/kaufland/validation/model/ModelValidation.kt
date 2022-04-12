@@ -5,6 +5,7 @@ import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
+import kaufland.com.coachbasebinderapi.Reduce
 import kaufland.com.coachbasebinderapi.deprecated.DeprecatedField
 
 class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, BaseModelHolder>, val wrapperModels: MutableMap<String, WrapperEntityHolder>, val entityModels: MutableMap<String, EntityHolder>) {
@@ -84,18 +85,31 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
         }
     }
 
+    private fun validateReduces(baseEntityHolder: BaseEntityHolder){
+        val allFieldNames = listOf(baseEntityHolder.fieldConstants.keys, baseEntityHolder.fields.keys).flatten()
+        baseEntityHolder.reducesModels.forEach {
+            it.includedElements.forEach {
+                if(allFieldNames.contains(it).not()){
+                    logger.error("[$it] ${Reduce::class.java.name} can only contains fields which belongs to the root of the parent element", baseEntityHolder.sourceElement)
+                }
+            }
+        }
+    }
+
     fun postValidate(): Boolean {
 
         for (wrapper in wrapperModels) {
             validateQuery(wrapper.value)
             validateDeprecated(wrapper.value)
             validateDocId(wrapper.value)
+            validateReduces(wrapper.value)
         }
 
         for (entity in entityModels) {
             validateQuery(entity.value)
             validateDeprecated(entity.value)
             validateDocId(entity.value)
+            validateReduces(entity.value)
         }
 
         return logger.hasErrors().not()

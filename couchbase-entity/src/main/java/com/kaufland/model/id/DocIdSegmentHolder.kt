@@ -1,16 +1,10 @@
 package com.kaufland.model.id
 
-import com.kaufland.javaToKotlinType
-import com.squareup.kotlinpoet.*
-import kaufland.com.coachbasebinderapi.DocIdSegment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ExecutableElement
+import com.kaufland.model.source.SourceMemberFunction
 
-class DocIdSegmentHolder(docIdSegment: DocIdSegment, element: Element) {
+class DocIdSegmentHolder(private val memberFunction: SourceMemberFunction) {
 
-    val name = element.simpleName.toString()
+    val name = memberFunction.name
 
-    val type = (element as? ExecutableElement)?.returnType?.asTypeName()?.javaToKotlinType()
-
-    val paramsElements = (element as? ExecutableElement)?.parameters
+    val type = memberFunction.returnTypeName
 }

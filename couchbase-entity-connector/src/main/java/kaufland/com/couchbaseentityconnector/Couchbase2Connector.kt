@@ -62,7 +62,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions: Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(id: String, dbName: String): Map<String, Any>? {
+    override fun getDocument(id: String, dbName: String, reduce: List<String>): Map<String, Any>? {
         val document = getDatabase(dbName).getDocument(id) ?: return null
 
         val result = document.toMap()
@@ -70,7 +70,11 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         return result
     }
 
-    override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>> =
+    override fun getDocuments(
+        ids: List<String>,
+        dbName: String,
+        reduce: List<String>
+    ): List<Map<String, Any>?> =
         ids.mapNotNull { docId ->
             getDocument(docId, dbName)
         }
@@ -88,7 +92,12 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
+    override fun queryDoc(
+        dbName: String,
+        queryParams: Map<String, Any>,
+        limit: Int?,
+        reduce: List<String>
+    ): List<Map<String, Any>> {
         try {
 
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
