@@ -96,7 +96,7 @@ class EntityGeneration {
         for (fieldHolder in holder.allFields) {
             fieldHolder.builderSetter(
                 holder.dbName,
-                holder.`package`,
+                holder.sourcePackage,
                 holder.entitySimpleName,
                 true,
                 holder.deprecated
@@ -127,7 +127,7 @@ class EntityGeneration {
         typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
         typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
-        return FileSpec.get(holder.`package`, typeBuilder.build())
+        return FileSpec.get(holder.sourcePackage, typeBuilder.build())
     }
 
     private fun findById(holder: EntityHolder, useSuspend: Boolean): FunSpec {

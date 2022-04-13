@@ -1,6 +1,6 @@
 package com.kaufland.model.source
 
-
+import com.kaufland.Logger
 import com.kaufland.javaToKotlinType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
@@ -34,10 +34,9 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
 
     override val sourceClazzSimpleName: String =
         (sourceElement as Symbol.ClassSymbol).simpleName.toString()
-    override val `package`: String = (sourceElement as Symbol.ClassSymbol).packge().toString()
+    override val sourcePackage: String = (sourceElement as Symbol.ClassSymbol).packge().toString()
 
-    override val sourceClazzTypeName: TypeName = ClassName(`package`, sourceClazzSimpleName)
-
+    override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)
 
     override val entityAnnotation: Entity? = sourceElement.getAnnotation(Entity::class.java)
     override val typeName: TypeName = sourceElement.asType().asTypeName()
@@ -57,6 +56,10 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
         sourceElement.getAnnotation(Queries::class.java)?.value?.toList() ?: emptyList()
 
     override val abstractParts: Set<String>
+
+    override fun logError(logger: Logger, message: String) {
+        logger.error(message, sourceElement)
+    }
 
     override val relevantStaticFunctions: List<SourceMemberFunction>
 
@@ -81,7 +84,8 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                 evaluateTypeName(
                                     it.asType(),
                                     it.getAnnotation(Nullable::class.java) != null
-                                ), docSegment, accessor
+                                ),
+                                docSegment, accessor
                             )
                         )
                     }
@@ -118,7 +122,6 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                         }
                     }
                 }
-
             }
         }
         relevantStaticFunctions = relevantStaticsFunctions
@@ -163,5 +166,4 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
         }
         return abstractSet
     }
-
 }

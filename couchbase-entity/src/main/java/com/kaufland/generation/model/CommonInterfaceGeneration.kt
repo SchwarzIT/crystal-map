@@ -27,6 +27,6 @@ class CommonInterfaceGeneration {
 
         interfaceSpec.addType(companionSpec.build())
 
-        return FileSpec.get(holder.`package`, interfaceSpec.build())
+        return FileSpec.get(holder.sourcePackage, interfaceSpec.build())
     }
 }

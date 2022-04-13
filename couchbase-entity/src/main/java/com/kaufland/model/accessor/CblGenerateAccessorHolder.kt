@@ -4,10 +4,6 @@ import com.kaufland.javaToKotlinType
 import com.kaufland.model.source.SourceMemberField
 import com.kaufland.model.source.SourceMemberFunction
 import com.squareup.kotlinpoet.*
-import org.jetbrains.annotations.Nullable
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
@@ -55,7 +51,7 @@ class CblGenerateAccessorHolder(
 
     fun accessorPropertySpec(): PropertySpec? {
 
-        if(memberProperty != null){
+        if (memberProperty != null) {
             return PropertySpec.builder(
                 memberProperty.name,
                 memberProperty.type

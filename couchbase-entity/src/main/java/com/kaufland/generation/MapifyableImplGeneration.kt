@@ -43,7 +43,7 @@ object MapifyableImplGeneration {
     }
 
     fun impl(holder: BaseEntityHolder): AnnotationSpec {
-        return AnnotationSpec.builder(Mapifyable::class).addMember("value = %T::class", ClassName(holder.`package`, "${holder.entitySimpleName}.Mapper"))
+        return AnnotationSpec.builder(Mapifyable::class).addMember("value = %T::class", ClassName(holder.sourcePackage, "${holder.entitySimpleName}.Mapper"))
             .build()
     }
 }

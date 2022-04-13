@@ -1,5 +1,6 @@
 package com.kaufland.model.source
 
+import com.kaufland.Logger
 import com.squareup.kotlinpoet.TypeName
 import kaufland.com.coachbasebinderapi.BasedOn
 import kaufland.com.coachbasebinderapi.Comment
@@ -39,4 +40,5 @@ interface ISourceModel : IClassModel {
 
     val abstractParts: Set<String>
 
+    fun logError(logger: Logger, message: String)
 }

@@ -11,11 +11,8 @@ import com.kaufland.model.source.IClassModel
 import com.kaufland.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
-import com.sun.tools.javac.code.Symbol
 
 import java.util.ArrayList
-
-import javax.lang.model.element.Element
 
 abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel by sourceElement {
 
@@ -48,7 +45,7 @@ abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel b
         }
 
     val entityTypeName: TypeName
-        get() = ClassName(`package`, entitySimpleName)
+        get() = ClassName(sourcePackage, entitySimpleName)
 
     open val entitySimpleName: String
         get() = sourceClazzSimpleName + "Entity"
@@ -57,5 +54,5 @@ abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel b
         get() = "I$sourceClazzSimpleName"
 
     val interfaceTypeName: TypeName
-        get() = ClassName(`package`, interfaceSimpleName)
+        get() = ClassName(sourcePackage, interfaceSimpleName)
 }

@@ -14,15 +14,6 @@ import com.kaufland.model.id.DocIdSegmentHolder
 import com.kaufland.model.query.CblQueryHolder
 import com.kaufland.model.source.ISourceModel
 import com.kaufland.util.FieldExtractionUtil
-import kaufland.com.coachbasebinderapi.*
-import kaufland.com.coachbasebinderapi.deprecated.Deprecated
-
-import javax.lang.model.element.Element
-
-import kaufland.com.coachbasebinderapi.query.Queries
-import org.apache.commons.lang3.text.WordUtils
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.Modifier
 
 object EntityFactory {
 
@@ -34,7 +25,12 @@ object EntityFactory {
         val annotation = sourceModel.entityAnnotation!!
         return create(
             sourceModel,
-            EntityHolder(annotation.database, annotation.modifierOpen, annotation.type, sourceModel),
+            EntityHolder(
+                annotation.database,
+                annotation.modifierOpen,
+                annotation.type,
+                sourceModel
+            ),
             allWrappers,
             allBaseModels
         ) as EntityHolder
@@ -46,7 +42,7 @@ object EntityFactory {
     ): BaseModelHolder {
         return create(
             sourceModel,
-            BaseModelHolder(),
+            BaseModelHolder(sourceModel),
             allWrappers,
             emptyMap()
         ) as BaseModelHolder
@@ -88,17 +84,29 @@ object EntityFactory {
         val docIdSegments: MutableList<DocIdSegmentHolder> = mutableListOf()
 
         sourceModel.relevantStaticFunctions.forEach {
-            if(it.docIdSegment != null){
+            if (it.docIdSegment != null) {
                 docIdSegments.add(DocIdSegmentHolder(it))
             }
-            if(it.generateAccessor != null){
-                content.generateAccessors.add(CblGenerateAccessorHolder(content.sourceClazzTypeName, it, null))
+            if (it.generateAccessor != null) {
+                content.generateAccessors.add(
+                    CblGenerateAccessorHolder(
+                        content.sourceClazzTypeName,
+                        it,
+                        null
+                    )
+                )
             }
         }
 
         sourceModel.relevantStaticFields.forEach {
-            if(it.generateAccessor != null){
-                content.generateAccessors.add(CblGenerateAccessorHolder(content.sourceClazzTypeName, null, it))
+            if (it.generateAccessor != null) {
+                content.generateAccessors.add(
+                    CblGenerateAccessorHolder(
+                        content.sourceClazzTypeName,
+                        null,
+                        it
+                    )
+                )
             }
         }
 
@@ -118,7 +126,17 @@ object EntityFactory {
     ): List<ReducedModelHolder> {
 
         return sourceModel.reduceAnnotations?.let {
-            return it.map { ReducedModelHolder(it.name, it.include.asList(), content) }
+            return it.map {
+                ReducedModelHolder(
+                    it.namePrefix,
+                    it.include.asList(),
+                    it.includeQueries,
+                    it.includeAccessors,
+                    it.includeDocId,
+                    it.includeBasedOn,
+                    content
+                )
+            }
         }
     }
 

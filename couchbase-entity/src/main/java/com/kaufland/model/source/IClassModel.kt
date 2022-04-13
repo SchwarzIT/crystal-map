@@ -6,5 +6,5 @@ interface IClassModel {
 
     val sourceClazzSimpleName: String
     val sourceClazzTypeName: TypeName
-    val `package`: String
+    val sourcePackage: String
 }

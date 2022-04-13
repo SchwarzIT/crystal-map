@@ -11,7 +11,15 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface Reduce {
 
-    String name();
+    String namePrefix();
 
     String[] include();
+
+    boolean includeQueries() default true;
+
+    boolean includeAccessors() default true;
+
+    boolean includeDocId() default true;
+
+    boolean includeBasedOn() default true;
 }

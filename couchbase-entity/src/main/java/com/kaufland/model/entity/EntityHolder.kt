@@ -6,7 +6,6 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import kaufland.com.coachbasebinderapi.Entity
-import kotlin.reflect.jvm.internal.impl.load.java.sources.JavaSourceElement
 
 class EntityHolder(val dbName: String, val modifierOpen: Boolean, val entityType: Entity.Type, sourceModel: ISourceModel) :
     BaseEntityHolder(sourceModel) {
