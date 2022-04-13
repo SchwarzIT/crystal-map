@@ -18,6 +18,8 @@ abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel b
 
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()
 
+    var isReduced: Boolean = false
+
     var abstractParts: Set<String> = mutableSetOf()
 
     val fieldConstants: MutableMap<String, CblConstantHolder> = mutableMapOf()

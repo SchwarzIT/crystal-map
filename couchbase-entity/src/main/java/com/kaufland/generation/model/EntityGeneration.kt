@@ -27,6 +27,7 @@ class EntityGeneration {
     fun generateModel(holder: EntityHolder, useSuspend: Boolean): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addProperty(idConstant())
+        companionSpec.addProperty(CblReduceGeneration.onlyIncludeProperty(holder))
         companionSpec.addFunctions(create(holder, useSuspend))
         companionSpec.addFunction(findById(holder, useSuspend))
         companionSpec.addFunction(findByIds(holder, useSuspend))
@@ -134,9 +135,10 @@ class EntityGeneration {
         return FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
             .addParameter("id", String::class).addAnnotation(JvmStatic::class)
             .addStatement(
-                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S)",
+                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             .addStatement("return if(result != null) %N(result) else null", holder.entitySimpleName)
             .returns(holder.entityTypeName.copy(true)).build()
@@ -147,9 +149,10 @@ class EntityGeneration {
             .addParameter("ids", TypeUtil.list(string()))
             .addAnnotation(JvmStatic::class)
             .addStatement(
-                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S)",
+                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             .addStatement(
                 "return result.filterNotNull().mapNotNull { %N(it) }",

@@ -47,6 +47,7 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
 
             entityModel.reducesModels.forEach {
                 val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(entityModel.sourceElement, it), allWrapperStrings, baseModels)
+                reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
@@ -57,6 +58,7 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
 
             wrapperModel.reducesModels.forEach {
                 val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(wrapperModel.sourceElement, it), allWrapperStrings, baseModels)
+                reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }

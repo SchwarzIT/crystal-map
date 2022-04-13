@@ -62,7 +62,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions: Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(id: String, dbName: String, reduce: List<String>): Map<String, Any>? {
+    override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
         val document = getDatabase(dbName).getDocument(id) ?: return null
 
         val result = document.toMap()
@@ -73,7 +73,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     override fun getDocuments(
         ids: List<String>,
         dbName: String,
-        reduce: List<String>
+        onlyInclude: List<String>?
     ): List<Map<String, Any>?> =
         ids.mapNotNull { docId ->
             getDocument(docId, dbName)
@@ -96,7 +96,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         dbName: String,
         queryParams: Map<String, Any>,
         limit: Int?,
-        reduce: List<String>
+        onlyInclude: List<String>?
     ): List<Map<String, Any>> {
         try {
 

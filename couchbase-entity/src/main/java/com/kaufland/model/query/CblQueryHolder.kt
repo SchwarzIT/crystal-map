@@ -1,5 +1,6 @@
 package com.kaufland.model.query
 
+import com.kaufland.generation.model.CblReduceGeneration
 import com.kaufland.generation.model.TypeConversionMethodsGeneration
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.field.CblFieldHolder
@@ -43,8 +44,9 @@ class CblQueryHolder(private val mQuery: Query) {
             }
         }
 
-        builder.addStatement("return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams).map { %T(it) }", PersistenceConfig::class, dbName, entityHolder.entityTypeName)
-
+        builder.beginControlFlow("return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map", PersistenceConfig::class, dbName, CblReduceGeneration.PROPERTY_ONLY_INCLUDES)
+        builder.addStatement("%T(it)", entityHolder.entityTypeName)
+        builder.endControlFlow()
         return builder.build()
     }
 
