@@ -8,9 +8,9 @@ object PersistenceConfig {
 
     interface Connector {
         val typeConversions: Map<KClass<*>, TypeConversion>
-        fun getDocument(id: String, dbName: String): Map<String, Any>?
-        fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?>
-        fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null): List<Map<String, Any>>
+        fun getDocument(id: String, dbName: String, onlyInclude: List<String>? = null): Map<String, Any>?
+        fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>? = null): List<Map<String, Any>?>
+        fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null, onlyInclude: List<String>? = null): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         fun deleteDocument(id: String, dbName: String)
@@ -23,11 +23,11 @@ object PersistenceConfig {
 
         val typeConversions: Map<KClass<*>, TypeConversion>
 
-        suspend fun getDocument(id: String, dbName: String): Map<String, Any>?
+        suspend fun getDocument(id: String, dbName: String, onlyInclude: List<String>? = null): Map<String, Any>?
 
-        suspend fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>>
+        suspend fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>? = null): List<Map<String, Any>>
 
-        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null): List<Map<String, Any>>
+        suspend fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int? = null, onlyInclude: List<String>? = null): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
         suspend fun deleteDocument(id: String, dbName: String)

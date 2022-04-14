@@ -5,6 +5,8 @@ import com.kaufland.model.EntityFactory
 import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
+import com.kaufland.model.source.ReducedSourceModel
+import com.kaufland.model.source.SourceModel
 import com.kaufland.processing.WorkSet
 import com.kaufland.validation.model.ModelValidation
 import com.kaufland.validation.model.PreModelValidation
@@ -30,7 +32,7 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
         val allWrapperStrings = allWrapperElements.map { element -> element.toString() }
 
         for (element in allBaseModelElements) {
-            val baseModel = EntityFactory.createBaseModelHolder(element, allWrapperStrings)
+            val baseModel = EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperStrings)
             baseModels[element.toString()] = baseModel
         }
 
@@ -40,13 +42,25 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
         }
 
         for (element in allEntityElements) {
-            val entityModel = EntityFactory.createEntityHolder(element, allWrapperStrings, baseModels)
+            val entityModel = EntityFactory.createEntityHolder(SourceModel(element), allWrapperStrings, baseModels)
             entityModels[element.toString()] = entityModel
+
+            entityModel.reducesModels.forEach {
+                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(entityModel.sourceElement, it), allWrapperStrings, baseModels)
+                reduced.isReduced = true
+                entityModels[reduced.entitySimpleName] = reduced
+            }
         }
 
         for (element in allWrapperElements) {
-            val wrapperModel = EntityFactory.createChildEntityHolder(element, allWrapperStrings, baseModels)
+            val wrapperModel = EntityFactory.createChildEntityHolder(SourceModel(element), allWrapperStrings, baseModels)
             wrapperModels[element.toString()] = wrapperModel
+
+            wrapperModel.reducesModels.forEach {
+                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(wrapperModel.sourceElement, it), allWrapperStrings, baseModels)
+                reduced.isReduced = true
+                entityModels[reduced.entitySimpleName] = reduced
+            }
         }
 
         ModelValidation(logger, baseModels, wrapperModels, entityModels).postValidate()

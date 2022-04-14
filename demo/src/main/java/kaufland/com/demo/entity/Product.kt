@@ -20,6 +20,10 @@ import kaufland.com.coachbasebinderapi.query.Query
     Query(fields = ["type"]),
     Query(fields = ["type", "category"])
 )
+@Reduces(
+    Reduce(namePrefix = "Light", include = ["name", "type", "category", "image"]),
+    Reduce(namePrefix = "Lighter", include = ["name"], includeQueries = false, includeDocId = false)
+)
 @DocId("myProduct:%type%:%name%:%custom(name)%")
 open class Product {
 

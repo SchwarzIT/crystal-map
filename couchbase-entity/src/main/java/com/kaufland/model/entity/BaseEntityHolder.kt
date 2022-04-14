@@ -7,35 +7,36 @@ import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.model.id.DocIdHolder
 import com.kaufland.model.query.CblQueryHolder
+import com.kaufland.model.source.IClassModel
+import com.kaufland.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
-import com.sun.tools.javac.code.Symbol
 
 import java.util.ArrayList
 
-import javax.lang.model.element.Element
-
-abstract class BaseEntityHolder {
+abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel by sourceElement {
 
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()
+
+    var isReduced: Boolean = false
 
     var abstractParts: Set<String> = mutableSetOf()
 
     val fieldConstants: MutableMap<String, CblConstantHolder> = mutableMapOf()
 
-    var sourceElement: Element? = null
-
     val queries: MutableList<CblQueryHolder> = ArrayList()
 
     var comment: Array<String> = arrayOf()
 
-    val generateAccessors: MutableList<CblGenerateAccessorHolder> = ArrayList()
+    var generateAccessors: MutableList<CblGenerateAccessorHolder> = mutableListOf()
 
     var deprecated: DeprecatedModel? = null
 
     val basedOn: MutableList<BaseModelHolder> = ArrayList()
 
     var docId: DocIdHolder? = null
+
+    var reducesModels: List<ReducedModelHolder> = emptyList()
 
     val allFields: List<CblBaseFieldHolder>
         get() {
@@ -45,24 +46,15 @@ abstract class BaseEntityHolder {
             return allField
         }
 
-    val sourceClazzSimpleName: String
-        get() = (sourceElement as Symbol.ClassSymbol).simpleName.toString()
-
-    val sourceClazzTypeName: TypeName
-        get() = ClassName(`package`, sourceClazzSimpleName)
+    val entityTypeName: TypeName
+        get() = ClassName(sourcePackage, entitySimpleName)
 
     open val entitySimpleName: String
         get() = sourceClazzSimpleName + "Entity"
-
-    val `package`: String
-        get() = (sourceElement as Symbol.ClassSymbol).packge().toString()
-
-    val entityTypeName: TypeName
-        get() = ClassName(`package`, entitySimpleName)
 
     val interfaceSimpleName: String
         get() = "I$sourceClazzSimpleName"
 
     val interfaceTypeName: TypeName
-        get() = ClassName(`package`, interfaceSimpleName)
+        get() = ClassName(sourcePackage, interfaceSimpleName)
 }

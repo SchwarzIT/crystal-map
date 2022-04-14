@@ -2,14 +2,12 @@ package com.kaufland.documentation
 
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.field.CblBaseFieldHolder
+import com.kaufland.model.source.ISourceModel
 import com.kaufland.util.TypeUtil
 import j2html.TagCreator.*
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
-import kaufland.com.coachbasebinderapi.Entity
-import kaufland.com.coachbasebinderapi.MapWrapper
 import java.io.File
-import javax.lang.model.element.Element
 import javax.lang.model.type.TypeMirror
 
 class DocumentationGenerator(path: String, fileName: String) {
@@ -93,9 +91,9 @@ class DocumentationGenerator(path: String, fileName: String) {
         )
     }
 
-    private fun evaluateAvailableTypes(sourceElement: Element?): DomContent {
-        val entitySymbol = UnescapedText("<small> Entity: ${if (sourceElement?.getAnnotation(Entity::class.java) != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
-        val wrapperSymbol = UnescapedText("<small> MapWrapper: ${if (sourceElement?.getAnnotation(MapWrapper::class.java) != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
+    private fun evaluateAvailableTypes(sourceElement: ISourceModel?): DomContent {
+        val entitySymbol = UnescapedText("<small> Entity: ${if (sourceElement?.entityAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
+        val wrapperSymbol = UnescapedText("<small> MapWrapper: ${if (sourceElement?.mapWrapperAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
 
         return table(attrs(".card"), tr(td(entitySymbol), td(wrapperSymbol)))
     }

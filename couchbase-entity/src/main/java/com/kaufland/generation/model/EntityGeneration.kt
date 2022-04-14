@@ -27,6 +27,7 @@ class EntityGeneration {
     fun generateModel(holder: EntityHolder, useSuspend: Boolean): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addProperty(idConstant())
+        companionSpec.addProperty(CblReduceGeneration.onlyIncludeProperty(holder))
         companionSpec.addFunctions(create(holder, useSuspend))
         companionSpec.addFunction(findById(holder, useSuspend))
         companionSpec.addFunction(findByIds(holder, useSuspend))
@@ -73,7 +74,7 @@ class EntityGeneration {
             )
             .addFunction(constructor(holder))
             .addFunction(SetAllMethodGeneration().generate(holder, true))
-            .addFunction(id).superclass(holder.sourceElement!!.asType().asTypeName())
+            .addFunction(id).superclass(holder.sourceElement.typeName)
             .addFunction(toMap(holder, useSuspend))
             .addFunction(BuilderClassGeneration.generateBuilderFun())
 
@@ -96,7 +97,7 @@ class EntityGeneration {
         for (fieldHolder in holder.allFields) {
             fieldHolder.builderSetter(
                 holder.dbName,
-                holder.`package`,
+                holder.sourcePackage,
                 holder.entitySimpleName,
                 true,
                 holder.deprecated
@@ -127,16 +128,17 @@ class EntityGeneration {
         typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
         typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
-        return FileSpec.get(holder.`package`, typeBuilder.build())
+        return FileSpec.get(holder.sourcePackage, typeBuilder.build())
     }
 
     private fun findById(holder: EntityHolder, useSuspend: Boolean): FunSpec {
         return FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
             .addParameter("id", String::class).addAnnotation(JvmStatic::class)
             .addStatement(
-                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S)",
+                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             .addStatement("return if(result != null) %N(result) else null", holder.entitySimpleName)
             .returns(holder.entityTypeName.copy(true)).build()
@@ -147,9 +149,10 @@ class EntityGeneration {
             .addParameter("ids", TypeUtil.list(string()))
             .addAnnotation(JvmStatic::class)
             .addStatement(
-                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S)",
+                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             .addStatement(
                 "return result.filterNotNull().mapNotNull { %N(it) }",

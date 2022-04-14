@@ -9,35 +9,42 @@ import org.junit.Test
 class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
-    fun testSucessSimpleMapper() {
+    fun testSuccessSimpleMapper() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("SimpleMapperTest"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessMapperWithGetterAndSetter() {
+    fun testSuccessSimpleReduce() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithSimpleReduce"))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
+    fun testSuccessMapperWithGetterAndSetter() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithGetterAndSetter"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessMapperWithTypeParam() {
+    fun testSuccessMapperWithTypeParam() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithTypeParam"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessMapperWithNullable() {
+    fun testSuccessMapperWithNullable() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithNullable"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessWithQueries() {
+    fun testSuccessWithQueries() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
@@ -51,21 +58,21 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
-    fun testSucessWithGenerateAccessor() {
+    fun testSuccessWithGenerateAccessor() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessWithQueriesAndSuspendFunctions() {
+    fun testSuccessWithQueriesAndSuspendFunctions() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"), useSuspend = true)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
-    fun testSucessWithGenerateAccessorAndSuspendFunctions() {
+    fun testSuccessWithGenerateAccessorAndSuspendFunctions() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"), useSuspend = true)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)

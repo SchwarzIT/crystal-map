@@ -27,7 +27,7 @@ class WrapperGeneration {
             .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build())
             .addFunction(constructorMap())
             .addFunction(constructorDefault())
-            .superclass(holder.sourceElement!!.asType().asTypeName())
+            .superclass(holder.sourceElement!!.typeName)
             .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         holder.deprecated?.addDeprecated(typeBuilder)
@@ -49,7 +49,7 @@ class WrapperGeneration {
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
-            fieldHolder.builderSetter(null, holder.`package`, holder.entitySimpleName, false, holder.deprecated)?.let {
+            fieldHolder.builderSetter(null, holder.sourcePackage, holder.entitySimpleName, false, holder.deprecated)?.let {
                 builderBuilder.addFunction(it)
             }
         }
@@ -64,7 +64,7 @@ class WrapperGeneration {
         typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
         typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
 
-        return FileSpec.get(holder.`package`, typeBuilder.build())
+        return FileSpec.get(holder.sourcePackage, typeBuilder.build())
     }
 
     private fun toMap(holder: BaseEntityHolder): List<FunSpec> {

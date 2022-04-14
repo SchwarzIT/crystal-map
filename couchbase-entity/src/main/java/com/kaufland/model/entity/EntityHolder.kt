@@ -1,13 +1,14 @@
 package com.kaufland.model.entity
 
+import com.kaufland.model.source.ISourceModel
 import com.kaufland.util.TypeUtil
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import kaufland.com.coachbasebinderapi.Entity
 
-class EntityHolder(val dbName: String, val modifierOpen: Boolean, val entityType: Entity.Type) :
-    BaseEntityHolder() {
+class EntityHolder(val dbName: String, val modifierOpen: Boolean, val entityType: Entity.Type, sourceModel: ISourceModel) :
+    BaseEntityHolder(sourceModel) {
 
     fun dbNameProperty(): PropertySpec {
         val builder = PropertySpec.builder("_dbName", TypeUtil.string(), KModifier.PUBLIC)

@@ -5,6 +5,7 @@ import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.entity.BaseModelHolder
 import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.entity.WrapperEntityHolder
+import kaufland.com.coachbasebinderapi.Reduce
 import kaufland.com.coachbasebinderapi.deprecated.DeprecatedField
 
 class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, BaseModelHolder>, val wrapperModels: MutableMap<String, WrapperEntityHolder>, val entityModels: MutableMap<String, EntityHolder>) {
@@ -14,7 +15,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
         for (query in baseEntityHolder.queries) {
             for (field in query.fields) {
                 if (!baseEntityHolder.fields.containsKey(field) && !baseEntityHolder.fieldConstants.containsKey(field)) {
-                    logger.error("query param [$field] is not a part of this entity", baseEntityHolder.sourceElement)
+                    baseEntityHolder.sourceElement.logError(logger, "query param [$field] is not a part of this entity")
                 }
             }
         }
@@ -25,7 +26,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
         baseEntityHolder.deprecated?.let { deprecated ->
             deprecated.replacedByTypeMirror?.toString()?.apply {
                 if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) && !entityModels.containsKey(this)) {
-                    logger.error("replacement [$this] is not an entity/wrapper", baseEntityHolder.sourceElement)
+                    baseEntityHolder.sourceElement.logError(logger, "replacement [$this] is not an entity/wrapper")
                 }
             }
 
@@ -40,7 +41,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
 
         for (field in deprecatedFields) {
             if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key)) {
-                logger.error("replacement field [${field.key}] does not exists", model.sourceElement)
+                model.sourceElement.logError(logger, "replacement field [${field.key}] does not exists")
             }
 
             field.value.replacedBy?.let { replacement ->
@@ -50,7 +51,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
                         ?: false
 
                     if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
-                        logger.error("replacement [$replacement] for field [${field.key}] does not exists", model.sourceElement)
+                        model.sourceElement.logError(logger, "replacement [$replacement] for field [${field.key}] does not exists")
                     }
                 }
             }
@@ -62,23 +63,34 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
 
             // we always need our variables between %
             if (it.pattern.count { it == '%' } % 2 != 0) {
-                logger.error("all variables in a DocId should be wrapped in % e.G. %variable%", baseEntityHolder.sourceElement)
+                baseEntityHolder.sourceElement.logError(logger, "all variables in a DocId should be wrapped in % e.G. %variable%")
             }
 
             for (segment in it.segments) {
                 for (field in segment.fields) {
                     if (!baseEntityHolder.fieldConstants.containsKey(field) && !baseEntityHolder.fields.containsKey(field)) {
-                        logger.error("field [$field] for DocId generation does not exists", baseEntityHolder.sourceElement)
+                        baseEntityHolder.sourceElement.logError(logger, "field [$field] for DocId generation does not exists")
                     }
                 }
                 segment.customSegment?.apply {
                     if (!it.customSegments.containsKey(name)) {
-                        logger.error("DocIdSegment annotated [$name] not found in DocId", baseEntityHolder.sourceElement)
+                        baseEntityHolder.sourceElement.logError(logger, "DocIdSegment annotated [$name] not found in DocId")
                     }
                 }
 
                 if (segment.customSegment == null && (segment.segment.contains('(') || segment.segment.contains(')'))) {
-                    logger.error("It looks like you try to use a DocIdSegment which not exists", baseEntityHolder.sourceElement)
+                    baseEntityHolder.sourceElement.logError(logger, "It looks like you try to use a DocIdSegment which not exists")
+                }
+            }
+        }
+    }
+
+    private fun validateReduces(baseEntityHolder: BaseEntityHolder) {
+        val allFieldNames = listOf(baseEntityHolder.fieldConstants.keys, baseEntityHolder.fields.keys).flatten()
+        baseEntityHolder.reducesModels.forEach {
+            it.includedElements.forEach {
+                if (allFieldNames.contains(it).not()) {
+                    baseEntityHolder.sourceElement.logError(logger, "[$it] ${Reduce::class.java.name} can only contains fields which belongs to the root of the parent element")
                 }
             }
         }
@@ -90,12 +102,14 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
             validateQuery(wrapper.value)
             validateDeprecated(wrapper.value)
             validateDocId(wrapper.value)
+            validateReduces(wrapper.value)
         }
 
         for (entity in entityModels) {
             validateQuery(entity.value)
             validateDeprecated(entity.value)
             validateDocId(entity.value)
+            validateReduces(entity.value)
         }
 
         return logger.hasErrors().not()

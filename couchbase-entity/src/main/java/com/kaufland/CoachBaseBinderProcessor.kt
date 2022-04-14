@@ -81,6 +81,6 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return setOf(Field::class.java.canonicalName, Entity::class.java.canonicalName, MapWrapper::class.java.canonicalName, Queries::class.java.canonicalName, Query::class.java.canonicalName, GenerateAccessor::class.java.canonicalName, Mapper::class.java.canonicalName).toMutableSet()
+        return setOf(Field::class.java.canonicalName, Entity::class.java.canonicalName, MapWrapper::class.java.canonicalName, Queries::class.java.canonicalName, Query::class.java.canonicalName, GenerateAccessor::class.java.canonicalName, Mapper::class.java.canonicalName, Reduces::class.java.canonicalName, Reduce::class.java.canonicalName).toMutableSet()
     }
 }
