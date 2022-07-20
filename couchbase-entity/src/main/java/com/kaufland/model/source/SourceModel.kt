@@ -116,11 +116,12 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                     parameters = parameter,
                                     generateAccessor = accessor,
                                     docIdSegment = docSegment,
-                                    returnTypeName = it.returnType.asTypeName()?.javaToKotlinType()
+                                    returnTypeName = it.returnType.asTypeName().javaToKotlinType()
                                 )
                             )
                         }
                     }
+                    else -> {}
                 }
             }
         }

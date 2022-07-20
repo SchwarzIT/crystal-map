@@ -137,7 +137,7 @@ object EntityFactory {
                     content
                 )
             }
-        }
+        } ?: emptyList()
     }
 
     fun addBasedOn(

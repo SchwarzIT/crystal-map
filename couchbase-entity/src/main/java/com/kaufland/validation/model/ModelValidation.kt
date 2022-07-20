@@ -47,7 +47,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
             field.value.replacedBy?.let { replacement ->
                 if (replacement.isNotEmpty()) {
                     val replacingIncludedInModel = model.fields.containsKey(replacement) || model.fieldConstants.containsKey(replacement)
-                    val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) }
+                    val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) == true }
                         ?: false
 
                     if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
