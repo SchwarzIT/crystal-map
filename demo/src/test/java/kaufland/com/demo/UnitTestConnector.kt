@@ -7,6 +7,10 @@ import kotlin.reflect.KClass
 open class UnitTestConnector(
     override val typeConversions: Map<KClass<*>, TypeConversion> = emptyMap()
 ) : PersistenceConfig.Connector {
+    override fun deleteDocument(id: String, dbName: String) {
+        // Do Nothing
+    }
+
     override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
         return null
     }
@@ -17,10 +21,6 @@ open class UnitTestConnector(
 
     override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
         return emptyList()
-    }
-
-    override fun deleteDocument(id: String, dbName: String) {
-    //  nope?
     }
 
     override fun upsertDocument(
