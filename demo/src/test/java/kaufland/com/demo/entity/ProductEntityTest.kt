@@ -14,8 +14,16 @@ private val typeConversions: Map<KClass<*>, TypeConversion> = mapOf(
 )
 
 object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
-        return listOf(queryParams) // just return the attributes searched for
+    override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
+        return null
+    }
+
+    override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
+        return emptyList()
+    }
+
+    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
+        return listOf(queryParams)
     }
 }
 
