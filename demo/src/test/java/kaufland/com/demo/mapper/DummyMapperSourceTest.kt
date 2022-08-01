@@ -22,7 +22,7 @@ class DummyMapperSourceTest {
             }
 
             override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
-                return emptyList()
+                TODO("Not yet implemented")
             }
 
             override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
