@@ -27,16 +27,16 @@ class TypeConversionTest {
                     return mutableMapOf
                 }
 
-            override fun getDocument(id: String, dbName: String): Map<String, Any>? {
+            override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any> {
                 return emptyMap()
             }
 
-            override fun getDocuments(ids: List<String>, dbName: String): List<Map<String, Any>?> {
+            override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
                 TODO("Not yet implemented")
             }
 
-            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?): List<Map<String, Any>> {
-                throw Exception("should not called")
+            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
+                throw Exception("Should not be called")
             }
 
             override fun deleteDocument(id: String, dbName: String) {
