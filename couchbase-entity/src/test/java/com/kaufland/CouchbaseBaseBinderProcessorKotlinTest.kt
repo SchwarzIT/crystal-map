@@ -85,6 +85,12 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSuccessDeprecatedWithReduceGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFieldsAndReduce"), useSuspend = true)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
     fun testSuccessDocIdGeneration() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"), useSuspend = true)
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
