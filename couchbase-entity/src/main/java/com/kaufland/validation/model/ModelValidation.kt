@@ -40,7 +40,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
         }
 
         for (field in deprecatedFields) {
-            if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key)) {
+            if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key) && model.isReduced.not()) {
                 model.sourceElement.logError(logger, "replacement field [${field.key}] does not exists")
             }
 
@@ -50,7 +50,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
                     val replacementIncludedReplacingModel = replacingModel?.let { it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(replacement) == true }
                         ?: false
 
-                    if (!replacingIncludedInModel && !replacementIncludedReplacingModel) {
+                    if (!replacingIncludedInModel && !replacementIncludedReplacingModel && model.isReduced.not()) {
                         model.sourceElement.logError(logger, "replacement [$replacement] for field [${field.key}] does not exists")
                     }
                 }
