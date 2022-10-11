@@ -62,18 +62,11 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
             val castType = if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringAnyNullable() else TypeUtil.mutableMapStringAnyNullable()
 
             if (useMDocChanges) {
-                getter.addCode(
-                    CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
-                        .addStatement("return·%T.fromMap(mDocChanges.get(%N) as %T)", subEntityTypeName, constantName, castType)
-                        .endControlFlow().build()
-                )
+                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName).addStatement("return·%T.fromMap(mDocChanges.get(%N) as? %T)", subEntityTypeName, constantName, castType).endControlFlow().build())
             }
-            getter.addCode(
-                CodeBlock.builder()
-                    .beginControlFlow("if(mDoc.containsKey(%N))", constantName)
-                    .addStatement("return·%T.fromMap(mDoc.get(%N) as %T)", subEntityTypeName, constantName, castType)
-                    .endControlFlow().build()
-            )
+            getter.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName)
+                    /** In case the key for the subentity is set but the value is null it would result in a classcastexception since null can't be cast to any type*/
+                    .addStatement("return·%T.fromMap(mDoc.get(%N) as? %T)", subEntityTypeName, constantName, castType).endControlFlow().build())
 
             getter.addStatement("return null")
 
@@ -82,11 +75,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
             val forTypeConversion = evaluateClazzForTypeConversion()
             if (useMDocChanges) {
-                getter.addCode(
-                    CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
-                        .addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %T::class)", constantName, forTypeConversion)
-                        .endControlFlow().build()
-                )
+                getter.addCode(CodeBlock.builder().beginControlFlow("if(mDocChanges.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
             }
 
             getter.addCode(CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName).addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)", constantName, forTypeConversion).endControlFlow().build())
@@ -110,10 +99,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) : CblBaseFieldHold
 
     override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec {
         val fieldType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
-        val builder = FunSpec.builder("set" + accessorSuffix().capitalize())
-            .addModifiers(KModifier.PUBLIC)
-            .addParameter("value", fieldType)
-            .returns(ClassName(packageName, "$entitySimpleName.Builder"))
+        val builder = FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC).addParameter("value", fieldType).returns(ClassName(packageName, "$entitySimpleName.Builder"))
 
         if (this.comment.isNotEmpty()) {
             builder.addKdoc(KDocGeneration.generate(comment))

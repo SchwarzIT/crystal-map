@@ -30,4 +30,8 @@ open class UnitTestConnector(
     ): Map<String, Any> {
         return document
     }
+
+    override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
+        throw ex
+    }
 }

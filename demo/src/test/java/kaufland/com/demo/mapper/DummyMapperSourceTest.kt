@@ -3,7 +3,7 @@ package kaufland.com.demo.mapper
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
 import kaufland.com.demo.entity.ProductEntity
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
@@ -34,6 +34,10 @@ class DummyMapperSourceTest {
             }
 
             override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+                TODO("Not yet implemented")
+            }
+
+            override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
                 TODO("Not yet implemented")
             }
         })

@@ -51,6 +51,12 @@ class Application : android.app.Application() {
                     mutableMapOf.putAll(super.typeConversions)
                     return mutableMapOf
                 }
+
+            override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
+                if (ex is java.lang.ClassCastException) {
+                    Log.e(TAG, "Data type manipulated: Tried to cast $value into $`class`")
+                } else throw ex
+            }
         })
         createMockArticle()
     }
@@ -73,16 +79,14 @@ class Application : android.app.Application() {
             ProductEntity.create().builder().setName("Gin").setComments(listOf(UserCommentWrapper.create().builder().setComment("hipster drink but great").exit(), UserCommentWrapper.create().builder().setComment("tasty!!!").exit())).setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder))).exit().save()
             ProductEntity.create().builder().setName("Apple").setComments(listOf(UserCommentWrapper.create().builder().setComment("mhmhmh tasty!").exit(), UserCommentWrapper.create().builder().setComment("dont like it").exit())).setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder))).exit().save()
             ProductEntity.create().builder().setName("Tomatoes").setComments(listOf(UserCommentWrapper.create().builder().setComment("don't like there color").exit(), UserCommentWrapper.create().builder().setComment("worst experience ever!!").exit())).setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder))).exit().save()
+
         } catch (e: PersistenceException) {
             e.printStackTrace()
         }
     }
 
     companion object {
-
         private val TAG = Application::class.java.name
-
-        @JvmField
-        val DB = "mydb_db"
+        const val DB = "mydb_db"
     }
 }

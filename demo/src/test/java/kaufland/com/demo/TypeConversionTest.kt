@@ -22,10 +22,7 @@ class TypeConversionTest {
         PersistenceConfig.configure(object : PersistenceConfig.Connector {
 
             override val typeConversions: Map<KClass<*>, TypeConversion>
-                get() {
-                    val mutableMapOf = mutableMapOf<KClass<*>, TypeConversion>(GenerateClassName::class to GenerateClassNameConversion())
-                    return mutableMapOf
-                }
+                get() = mutableMapOf<KClass<*>, TypeConversion>(GenerateClassName::class to GenerateClassNameConversion())
 
             override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any> {
                 return emptyMap()
@@ -46,6 +43,10 @@ class TypeConversionTest {
             override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
                 throw Exception("should not called")
             }
+
+            override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
+                TODO("Not yet implemented")
+            }
         })
     }
 
@@ -54,13 +55,8 @@ class TypeConversionTest {
     fun testCustomTypeConversion() {
 
         val test = mapOf<String, Any>(TestClassEntity.CLAZZ_NAME to TypeConversionTest::class.simpleName!!)
-
-        val testWithPreFill = TestClassEntity(test)
-
-        Assert.assertEquals(TypeConversionTest::class.simpleName!!, testWithPreFill.toMap()[TestClassEntity.CLAZZ_NAME])
-
+        Assert.assertEquals(TypeConversionTest::class.simpleName!!, TestClassEntity(test).toMap()[TestClassEntity.CLAZZ_NAME])
         val testClassEntity1 = TestClassEntity.create()
-
         Assert.assertEquals(TestClassEntity::class.simpleName!!, testClassEntity1.toMap()[TestClassEntity.CLAZZ_NAME])
     }
 }
