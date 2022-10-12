@@ -8,9 +8,9 @@ import java.lang.String
 
 @Entity(database = "mydb_db")
 @Fields(
-Field(name = "name", type = String::class),
-        Field(name = "type", type = String::class, defaultValue = "entityWithQueries", readonly = true),
-Field(name = "identifiers", type = String::class, list = true)
+    Field(name = "name", type = String::class),
+    Field(name = "type", type = String::class, defaultValue = "entityWithQueries", readonly = true),
+    Field(name = "identifiers", type = String::class, list = true)
 )
 @Deprecated(fields = [DeprecatedField("name", replacedBy = "identifiers")])
 open class EntityWithDeprecatedFields

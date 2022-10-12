@@ -20,7 +20,7 @@ class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
                 /** use empty space otherwise its recognized as a single-expression*/
                 .addCode(CodeBlock.of(" return ")).addCode(
                     CodeBlock.builder().beginControlFlow("try").addStatement(
-                        "val conversion = %T.${getTypeConversionMethod(useSuspend)}[clazz] ?: return value as T?",
+                        "val conversion = %T.${getTypeConversionMethod(useSuspend)}[clazz] ?:\n return value as T?",
                         PersistenceConfig::class
                     ).addStatement("return conversion.read(value) as T?").endControlFlow()
                         .beginControlFlow("catch(ex: %T)", java.lang.Exception::class).addStatement(
@@ -38,7 +38,7 @@ class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
                 /** use empty space otherwise its recognized as a single-expression*/
                 .addCode(CodeBlock.of(" return ")).addCode(
                     CodeBlock.builder().beginControlFlow("try").addStatement(
-                        "val conversion = %T.${getTypeConversionMethod(useSuspend)}[clazz] ?: return value as T?",
+                        "val conversion = %T.${getTypeConversionMethod(useSuspend)}[clazz] ?:\n return value as T?",
                         PersistenceConfig::class
                     ).addStatement("return conversion.write(value) as T?").endControlFlow()
                         .beginControlFlow("catch(ex: %T)", java.lang.Exception::class).addStatement(

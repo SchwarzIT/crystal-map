@@ -6,6 +6,7 @@ import kaufland.com.demo.UnitTestConnector
 import kaufland.com.demo.entity.ProductCategory.AMAZING_PRODUCT
 import kaufland.com.demo.logger.TestAppender
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.internal.matchers.Null
@@ -81,11 +82,16 @@ class ProductEntityTest {
      * Can happen if combined db data is changed wilfully.
      */
     @Test
-    fun `data types changed at runtime Test suppress exception`() {
+    fun `data type changed at runtime Test suppress exception`() {
         ProductEntity.write<String>(1, String::class)
         assertEquals(
             (logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message,
             dataTypeErrorMsg.invoke(1::class.simpleName, String::class.simpleName)
         )
+    }
+    @Test
+    fun `data type consistent`() {
+        ProductEntity.write<Int>(1, Int::class)
+        assertNull((logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message)
     }
 }
