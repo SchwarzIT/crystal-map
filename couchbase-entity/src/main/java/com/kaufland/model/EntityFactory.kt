@@ -2,7 +2,11 @@ package com.kaufland.model
 
 import com.kaufland.model.accessor.CblGenerateAccessorHolder
 import com.kaufland.model.deprecated.DeprecatedModel
-import com.kaufland.model.entity.*
+import com.kaufland.model.entity.BaseEntityHolder
+import com.kaufland.model.entity.BaseModelHolder
+import com.kaufland.model.entity.EntityHolder
+import com.kaufland.model.entity.ReducedModelHolder
+import com.kaufland.model.entity.WrapperEntityHolder
 import com.kaufland.model.field.CblConstantHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.model.id.DocIdHolder
@@ -14,62 +18,51 @@ import com.kaufland.util.FieldExtractionUtil
 object EntityFactory {
 
     fun createEntityHolder(
-            sourceModel: ISourceModel,
-            allWrappers: List<String>,
-            allBaseModels: Map<String, BaseModelHolder>
+        sourceModel: ISourceModel,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
     ): EntityHolder {
         val annotation = sourceModel.entityAnnotation!!
         return create(
-                sourceModel,
-                EntityHolder(
-                        annotation.database,
-                        annotation.modifierOpen,
-                        annotation.type,
-                        sourceModel
-                ),
-                allWrappers,
-                allBaseModels
+            sourceModel, EntityHolder(
+                annotation.database, annotation.modifierOpen, annotation.type, sourceModel
+            ), allWrappers, allBaseModels
         ) as EntityHolder
     }
 
     fun createBaseModelHolder(
-            sourceModel: ISourceModel,
-            allWrappers: List<String>
+        sourceModel: ISourceModel, allWrappers: List<String>
     ): BaseModelHolder {
         return create(
-                sourceModel,
-                BaseModelHolder(sourceModel),
-                allWrappers,
-                emptyMap()
+            sourceModel, BaseModelHolder(sourceModel), allWrappers, emptyMap()
         ) as BaseModelHolder
     }
 
     fun createChildEntityHolder(
-            sourceModel: ISourceModel,
-            allWrappers: List<String>,
-            allBaseModels: Map<String, BaseModelHolder>
+        sourceModel: ISourceModel,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
     ): WrapperEntityHolder {
         val annotation = sourceModel.mapWrapperAnnotation!!
         return create(
-                sourceModel,
-                WrapperEntityHolder(annotation.modifierOpen, sourceModel),
-                allWrappers,
-                allBaseModels
+            sourceModel,
+            WrapperEntityHolder(annotation.modifierOpen, sourceModel),
+            allWrappers,
+            allBaseModels
         ) as WrapperEntityHolder
     }
 
     private fun create(
-            sourceModel: ISourceModel,
-            content: BaseEntityHolder,
-            allWrappers: List<String>,
-            allBaseModels: Map<String, BaseModelHolder>
+        sourceModel: ISourceModel,
+        content: BaseEntityHolder,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
     ): BaseEntityHolder {
 
         content.reducesModels = createReduceModels(sourceModel, content, allWrappers, allBaseModels)
         content.abstractParts = sourceModel.abstractParts
         content.comment = sourceModel.commentAnnotation?.comment ?: arrayOf()
-        content.deprecated =
-                sourceModel.deprecatedAnnotation?.let { DeprecatedModel(it) }
+        content.deprecated = sourceModel.deprecatedAnnotation?.let { DeprecatedModel(it) }
 
         addBasedOn(sourceModel, allBaseModels, content)
 
@@ -85,22 +78,18 @@ object EntityFactory {
             }
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
-                        CblGenerateAccessorHolder(
-                                content.sourceClazzTypeName,
-                                it,
-                                null
-                        )
+                    CblGenerateAccessorHolder(
+                        content.sourceClazzTypeName, it, null
+                    )
                 )
             }
         }
         sourceModel.relevantStaticFields.forEach {
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
-                        CblGenerateAccessorHolder(
-                                content.sourceClazzTypeName,
-                                null,
-                                it
-                        )
+                    CblGenerateAccessorHolder(
+                        content.sourceClazzTypeName, null, it
+                    )
                 )
             }
         }
@@ -113,33 +102,32 @@ object EntityFactory {
     }
 
     private fun createReduceModels(
-            sourceModel: ISourceModel,
-            content: BaseEntityHolder,
-            allWrappers: List<String>,
-            allBaseModels: Map<String, BaseModelHolder>
+        sourceModel: ISourceModel,
+        content: BaseEntityHolder,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
     ): List<ReducedModelHolder> {
         sourceModel.reduceAnnotations.let { reduce ->
             return reduce.map {
                 ReducedModelHolder(
-                        it.namePrefix,
-                        it.include.asList(),
-                        it.includeQueries,
-                        it.includeAccessors,
-                        it.includeDocId,
-                        it.includeBasedOn,
-                        content
+                    it.namePrefix,
+                    it.include.asList(),
+                    it.includeQueries,
+                    it.includeAccessors,
+                    it.includeDocId,
+                    it.includeBasedOn,
+                    content
                 )
             }
         }
     }
 
     fun addBasedOn(
-            sourceModel: ISourceModel,
-            allBaseModels: Map<String, BaseModelHolder>,
-            content: BaseEntityHolder
+        sourceModel: ISourceModel,
+        allBaseModels: Map<String, BaseModelHolder>,
+        content: BaseEntityHolder
     ) {
-        val basedOnValue = sourceModel.basedOnAnnotation
-                ?.let { FieldExtractionUtil.typeMirror(it) }
+        val basedOnValue = sourceModel.basedOnAnnotation?.let { FieldExtractionUtil.typeMirror(it) }
 
         basedOnValue?.forEach { type ->
             allBaseModels[type.toString()]?.let {
@@ -165,10 +153,10 @@ object EntityFactory {
     }
 
     private fun parseFields(
-            sourceModel: ISourceModel,
-            content: BaseEntityHolder,
-            allWrappers: List<String>,
-            allBaseModels: Map<String, BaseModelHolder>
+        sourceModel: ISourceModel,
+        content: BaseEntityHolder,
+        allWrappers: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
     ) {
 
         for (cblField in sourceModel.fieldAnnotations) {

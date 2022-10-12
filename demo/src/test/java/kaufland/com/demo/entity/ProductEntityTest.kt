@@ -13,8 +13,10 @@ import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 
 
-private val typeConversions: Map<KClass<*>, TypeConversion> = mapOf(ProductCategory::class to ProductCategoryTypeConversion)
-private val logger = LoggerFactory.getLogger(ProductEntityTestConnector::class.java) as ch.qos.logback.classic.Logger
+private val typeConversions: Map<KClass<*>, TypeConversion> =
+    mapOf(ProductCategory::class to ProductCategoryTypeConversion)
+private val logger =
+    LoggerFactory.getLogger(ProductEntityTestConnector::class.java) as ch.qos.logback.classic.Logger
 
 private val dataTypeErrorMsg: (String?, String?) -> String
     get() = { value, `class` ->
@@ -30,18 +32,24 @@ object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
         }
     }
 
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
+    override fun queryDoc(
+        dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?
+    ): List<Map<String, Any>> {
         return listOf(queryParams)
     }
 
     override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
         if (ex is ClassCastException) {
 
-            logger.error(dataTypeErrorMsg.invoke(if (value != null) {
-                value.javaClass.kotlin.simpleName
-            } else {
-                Null.NULL.toString().lowercase()
-            }, `class`.simpleName))
+            logger.error(
+                dataTypeErrorMsg.invoke(
+                    if (value != null) {
+                        value.javaClass.kotlin.simpleName
+                    } else {
+                        Null.NULL.toString().lowercase()
+                    }, `class`.simpleName
+                )
+            )
         }
     }
 }
@@ -72,7 +80,9 @@ class ProductEntityTest {
     @Test
     fun `data types changed at runtime Test suppress exception`() {
         ProductEntity.write<String>(1, String::class)
-        assertEquals((logger.getAppender(TestAppender::class.java.simpleName) as TestAppender)
-                .lastLoggedEvent?.message, dataTypeErrorMsg.invoke(1::class.simpleName, String::class.simpleName))
+        assertEquals(
+            (logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message,
+            dataTypeErrorMsg.invoke(1::class.simpleName, String::class.simpleName)
+        )
     }
 }
