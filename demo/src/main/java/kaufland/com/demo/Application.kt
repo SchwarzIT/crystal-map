@@ -98,7 +98,8 @@ class Application : android.app.Application() {
             ProductEntity.create().builder().setName("Gin").setComments(
                 listOf(
                     UserCommentWrapper.create().builder().setComment("hipster drink but great")
-                        .exit(), UserCommentWrapper.create().builder().setComment("tasty!!!").exit()
+                        .exit(),
+                    UserCommentWrapper.create().builder().setComment("tasty!!!").exit()
                 )
             ).setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder)))
                 .exit().save()
@@ -118,7 +119,6 @@ class Application : android.app.Application() {
                 )
             ).setImage(Blob("image/jpeg", resources.openRawResource(R.raw.ic_kaufland_placeholder)))
                 .exit().save()
-
         } catch (e: PersistenceException) {
             e.printStackTrace()
         }

@@ -1,6 +1,6 @@
 
 buildscript {
-    ext.kotlin_version = '1.7.0'
+    ext.kotlin_version = '1.7.10'
     repositories {
         google()
         mavenCentral()
@@ -102,7 +102,7 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.4'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.1'
     testImplementation 'ch.qos.logback:logback-classic:1.4.4'
-    annotationProcessor 'org.apache.logging.log4j:log4j-api:2.19.0'
+    kapt 'org.apache.logging.log4j:log4j-api:2.19.0'
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

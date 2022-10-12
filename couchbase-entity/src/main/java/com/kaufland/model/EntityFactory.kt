@@ -24,14 +24,18 @@ object EntityFactory {
     ): EntityHolder {
         val annotation = sourceModel.entityAnnotation!!
         return create(
-            sourceModel, EntityHolder(
+            sourceModel,
+            EntityHolder(
                 annotation.database, annotation.modifierOpen, annotation.type, sourceModel
-            ), allWrappers, allBaseModels
+            ),
+            allWrappers,
+            allBaseModels
         ) as EntityHolder
     }
 
     fun createBaseModelHolder(
-        sourceModel: ISourceModel, allWrappers: List<String>
+        sourceModel: ISourceModel,
+        allWrappers: List<String>
     ): BaseModelHolder {
         return create(
             sourceModel, BaseModelHolder(sourceModel), allWrappers, emptyMap()

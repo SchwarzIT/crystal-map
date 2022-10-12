@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.7.0'
+    ext.kotlin_version = '1.7.10'
     repositories {
         google()
         mavenCentral()
@@ -19,7 +19,6 @@ buildscript {
     }
 }
 
-
 subprojects {
     apply plugin: "org.jlleitschuh.gradle.ktlint"
 
@@ -27,8 +26,12 @@ subprojects {
         mavenCentral()
     }
 
-    // Optionally configure plugin
     ktlint {
+
+        filter {
+            exclude { it.file.path.contains("$buildDir/generated/") }
+        }
+
         disabledRules = [
                 "import-ordering",
                 "chain-wrapping",

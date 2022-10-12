@@ -12,7 +12,6 @@ import org.mockito.internal.matchers.Null
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 
-
 private val typeConversions: Map<KClass<*>, TypeConversion> =
     mapOf(ProductCategory::class to ProductCategoryTypeConversion)
 private val logger =
@@ -33,7 +32,10 @@ object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
     }
 
     override fun queryDoc(
-        dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?
+        dbName: String,
+        queryParams: Map<String, Any>,
+        limit: Int?,
+        onlyInclude: List<String>?
     ): List<Map<String, Any>> {
         return listOf(queryParams)
     }
@@ -47,7 +49,8 @@ object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
                         value.javaClass.kotlin.simpleName
                     } else {
                         Null.NULL.toString().lowercase()
-                    }, `class`.simpleName
+                    },
+                    `class`.simpleName
                 )
             )
         }
