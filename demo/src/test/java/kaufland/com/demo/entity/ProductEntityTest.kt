@@ -2,6 +2,7 @@ package kaufland.com.demo.entity
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
 import kaufland.com.demo.UnitTestConnector
 import kaufland.com.demo.entity.ProductCategory.AMAZING_PRODUCT
 import kaufland.com.demo.logger.TestAppender
@@ -18,9 +19,9 @@ private val typeConversions: Map<KClass<*>, TypeConversion> =
 private val logger =
     LoggerFactory.getLogger(ProductEntityTestConnector::class.java) as ch.qos.logback.classic.Logger
 
-private val dataTypeErrorMsg: (String?, String?) -> String
-    get() = { value, `class` ->
-        "Data type manipulated: Tried to cast $value into $`class`"
+private val dataTypeErrorMsg: (String?, String?, String?) -> String
+    get() = { fieldName, value, `class` ->
+        "Field $fieldName manipulated: Tried to cast $value into $`class`"
     }
 
 object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
@@ -41,17 +42,18 @@ object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
         return listOf(queryParams)
     }
 
-    override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
-        if (ex is ClassCastException) {
+    override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+        if (errorWrapper.exception is ClassCastException) {
 
             logger.error(
                 dataTypeErrorMsg.invoke(
-                    if (value != null) {
-                        value.javaClass.kotlin.simpleName
+                    errorWrapper.fieldName,
+                    if (errorWrapper.value != null) {
+                        errorWrapper.value?.javaClass?.kotlin?.simpleName ?: ""
                     } else {
                         Null.NULL.toString().lowercase()
                     },
-                    `class`.simpleName
+                    errorWrapper.`class`.simpleName
                 )
             )
         }
@@ -82,16 +84,19 @@ class ProductEntityTest {
      * Can happen if combined db data is changed wilfully.
      */
     @Test
-    fun `data type changed at runtime Test suppress exception`() {
-        ProductEntity.write<String>(1, String::class)
+    fun `data type changed at runtime test suppress exception`() {
+        ProductEntity.write<String>(1, EXAMPLE_TYPE, String::class)
         assertEquals(
             (logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message,
-            dataTypeErrorMsg.invoke(1::class.simpleName, String::class.simpleName)
+            dataTypeErrorMsg.invoke(EXAMPLE_TYPE, 1::class.simpleName, String::class.simpleName)
         )
     }
+
     @Test
     fun `data type consistent`() {
-        ProductEntity.write<Int>(1, Int::class)
+        ProductEntity.write<Int>(1, EXAMPLE_TYPE, Int::class)
         assertNull((logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message)
     }
 }
+
+private const val EXAMPLE_TYPE = "EXAMPLE_TYPE"

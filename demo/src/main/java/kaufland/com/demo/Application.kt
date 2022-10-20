@@ -8,6 +8,7 @@ import com.couchbase.lite.DatabaseConfiguration
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
 import kaufland.com.couchbaseentityconnector.Couchbase2Connector
 import kaufland.com.demo.customtypes.GenerateClassName
 import kaufland.com.demo.customtypes.GenerateClassNameConversion
@@ -53,10 +54,13 @@ class Application : android.app.Application() {
                     return mutableMapOf
                 }
 
-            override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
-                if (ex is java.lang.ClassCastException) {
-                    Log.e(TAG, "Data type manipulated: Tried to cast $value into $`class`")
-                } else throw ex
+            override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+                if (errorWrapper.exception is java.lang.ClassCastException) {
+                    Log.e(
+                        TAG,
+                        "Data type manipulated: Tried to cast ${errorWrapper.value} into ${errorWrapper.`class`}"
+                    )
+                } else throw errorWrapper.exception
             }
         })
         createMockArticle()

@@ -115,8 +115,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
                     CodeBlock.builder()
                         .beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
                         .addStatement(
-                            "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %T::class)",
-                            constantName,
+                            "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %N, %T::class)",
+                            constantName, constantName,
                             forTypeConversion
                         ).endControlFlow().build()
                 )
@@ -125,8 +125,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             getter.addCode(
                 CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName)
                     .addStatement(
-                        "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)",
-                        constantName,
+                        "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %N, %T::class)",
+                        constantName, constantName,
                         forTypeConversion
                     ).endControlFlow().build()
             )
@@ -134,9 +134,9 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             getter.addStatement("return null")
 
             setter.addStatement(
-                "%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %T::class))",
+                "%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %N, %T::class))",
                 docName,
-                constantName,
+                constantName, constantName,
                 forTypeConversion
             )
         }

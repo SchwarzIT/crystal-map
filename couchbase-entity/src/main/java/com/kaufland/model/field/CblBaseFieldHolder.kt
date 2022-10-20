@@ -39,14 +39,27 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
     abstract val fieldType: TypeName
 
     fun accessorSuffix(): String {
-        return WordUtils.uncapitalize(WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""))
+        return WordUtils.uncapitalize(
+            WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "")
+        )
     }
 
     abstract fun interfaceProperty(isOverride: Boolean = false): PropertySpec
 
-    abstract fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec
+    abstract fun property(
+        dbName: String?,
+        possibleOverrides: Set<String>,
+        useMDocChanges: Boolean,
+        deprecated: DeprecatedModel?
+    ): PropertySpec
 
-    abstract fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec?
+    abstract fun builderSetter(
+        dbName: String?,
+        packageName: String,
+        entitySimpleName: String,
+        useMDocChanges: Boolean,
+        deprecated: DeprecatedModel?
+    ): FunSpec?
 
     abstract fun createFieldConstant(): List<PropertySpec>
 }

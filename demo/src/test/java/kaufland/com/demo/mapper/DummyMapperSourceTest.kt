@@ -2,6 +2,7 @@ package kaufland.com.demo.mapper
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
 import kaufland.com.demo.entity.ProductEntity
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -37,7 +38,7 @@ class DummyMapperSourceTest {
                 TODO("Not yet implemented")
             }
 
-            override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
+            override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
                 TODO("Not yet implemented")
             }
         })

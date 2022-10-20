@@ -2,6 +2,7 @@ package kaufland.com.demo
 
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.TypeConversion
+import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
 import kotlin.reflect.KClass
 
 open class UnitTestConnector(
@@ -11,15 +12,28 @@ open class UnitTestConnector(
         // Do Nothing
     }
 
-    override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
+    override fun getDocument(
+        id: String,
+        dbName: String,
+        onlyInclude: List<String>?
+    ): Map<String, Any>? {
         return null
     }
 
-    override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
+    override fun getDocuments(
+        ids: List<String>,
+        dbName: String,
+        onlyInclude: List<String>?
+    ): List<Map<String, Any>?> {
         return emptyList()
     }
 
-    override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
+    override fun queryDoc(
+        dbName: String,
+        queryParams: Map<String, Any>,
+        limit: Int?,
+        onlyInclude: List<String>?
+    ): List<Map<String, Any>> {
         return emptyList()
     }
 
@@ -31,7 +45,7 @@ open class UnitTestConnector(
         return document
     }
 
-    override fun invokeOnError(ex: Exception, value: Any?, `class`: KClass<*>) {
-        throw ex
+    override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+        throw errorWrapper.exception
     }
 }

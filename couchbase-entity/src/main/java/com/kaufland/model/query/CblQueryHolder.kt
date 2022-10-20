@@ -5,7 +5,8 @@ import com.kaufland.generation.model.TypeConversionMethodsGeneration
 import com.kaufland.model.entity.BaseEntityHolder
 import com.kaufland.model.field.CblFieldHolder
 import com.kaufland.util.TypeUtil
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.jvm.throws
 import kaufland.com.coachbasebinderapi.PersistenceConfig
 import kaufland.com.coachbasebinderapi.PersistenceException
@@ -26,7 +27,11 @@ class CblQueryHolder(private val mQuery: Query) {
             .addModifiers(KModifier.PUBLIC)
             .addAnnotation(JvmStatic::class)
             .throws(PersistenceException::class)
-            .addStatement("val queryParams = mutableMapOf<%T, %T>()", TypeUtil.string(), TypeUtil.any())
+            .addStatement(
+                "val queryParams = mutableMapOf<%T, %T>()",
+                TypeUtil.string(),
+                TypeUtil.any()
+            )
             .returns(TypeUtil.list(entityHolder.entityTypeName))
 
         if (useSuspend) {
@@ -40,27 +45,44 @@ class CblQueryHolder(private val mQuery: Query) {
                 builder.addQueryParamComparisonStatement(this, dbField)
             }
             entityHolder.fieldConstants[it]?.apply {
-                builder.addStatement("queryParams[%N] = %N", constantName, constantValueAccessorName)
+                builder.addStatement(
+                    "queryParams[%N] = %N",
+                    constantName,
+                    constantValueAccessorName
+                )
             }
         }
 
-        builder.beginControlFlow("return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map", PersistenceConfig::class, dbName, CblReduceGeneration.PROPERTY_ONLY_INCLUDES)
+        builder.beginControlFlow(
+            "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
+            PersistenceConfig::class,
+            dbName,
+            CblReduceGeneration.PROPERTY_ONLY_INCLUDES
+        )
         builder.addStatement("%T(it)", entityHolder.entityTypeName)
         builder.endControlFlow()
         return builder.build()
     }
 
-    private fun FunSpec.Builder.addQueryParamComparisonStatement(fieldHolder: CblFieldHolder, value: String) {
+    private fun FunSpec.Builder.addQueryParamComparisonStatement(
+        fieldHolder: CblFieldHolder,
+        value: String
+    ) {
         val classForTypeConversion = fieldHolder.evaluateClazzForTypeConversion()
         addStatement(
-            "queryParams[%N] = ${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}(%N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
+            "queryParams[%N] = ${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}(%N, %N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
             fieldHolder.constantName,
             value,
+            fieldHolder.constantName,
             classForTypeConversion
         )
     }
 
-    private val queryFunName: String = "findBy${fields.joinToString(separator = "And") { WordUtils.capitalize(it.replace("_", " ")).replace(" ", "") }}"
+    private val queryFunName: String = "findBy${
+    fields.joinToString(separator = "And") {
+        WordUtils.capitalize(it.replace("_", " ")).replace(" ", "")
+    }
+    }"
 
     companion object {
 

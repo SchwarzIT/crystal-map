@@ -12,8 +12,6 @@ import com.kaufland.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-import java.util.ArrayList
-
 abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel by sourceElement {
 
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()

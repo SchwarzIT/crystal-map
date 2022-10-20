@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeVariableName
 import kaufland.com.coachbasebinderapi.PersistenceConfig
+import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
 
 class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
 
@@ -13,6 +14,7 @@ class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
         return listOf(
             FunSpec.builder(READ_METHOD_NAME).addAnnotation(JvmStatic::class)
                 .addParameter("value", TypeUtil.any().copy(nullable = true))
+                .addParameter("fieldName", TypeUtil.string())
                 .addParameter("clazz", TypeUtil.classStar())
                 .addTypeVariable(TypeVariableName.invoke("reified T"))
                 /** has to be inlined because the type inference would otherwise happen in the properties and cause there an classcastexception */
@@ -24,13 +26,14 @@ class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
                         PersistenceConfig::class
                     ).addStatement("return conversion.read(value) as T?").endControlFlow()
                         .beginControlFlow("catch(ex: %T)", java.lang.Exception::class).addStatement(
-                            "%T.${getConnector(useSuspend)}.invokeOnError(ex, value, clazz)",
+                            "%T.${getConnector(useSuspend)}.invokeOnError(${TypeConversionErrorWrapper::class.qualifiedName}(ex, fieldName, value, clazz))",
                             PersistenceConfig::class
                         ).addStatement("null").endControlFlow().build()
                 ).build(),
 
             FunSpec.builder(WRITE_METHOD_NAME).addAnnotation(JvmStatic::class)
                 .addParameter("value", TypeUtil.any().copy(nullable = true))
+                .addParameter("fieldName", TypeUtil.string())
                 .addParameter("clazz", TypeUtil.classStar())
                 .addTypeVariable(TypeVariableName.invoke("reified T"))
                 /** has to be inlined because the type inference would otherwise happen in the properties and cause there an classcastexception */
@@ -42,7 +45,7 @@ class TypeConversionMethodsGeneration(private val useSuspend: Boolean) {
                         PersistenceConfig::class
                     ).addStatement("return conversion.write(value) as T?").endControlFlow()
                         .beginControlFlow("catch(ex: %T)", java.lang.Exception::class).addStatement(
-                            "%T.${getConnector(useSuspend)}.invokeOnError(ex, value, clazz)",
+                            "%T.${getConnector(useSuspend)}.invokeOnError(${TypeConversionErrorWrapper::class.qualifiedName}(ex, fieldName, value, clazz))",
                             PersistenceConfig::class
                         ).addStatement("null").endControlFlow().build()
                 ).build()

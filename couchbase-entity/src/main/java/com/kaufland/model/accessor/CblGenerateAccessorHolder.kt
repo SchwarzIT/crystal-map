@@ -1,12 +1,12 @@
 package com.kaufland.model.accessor
 
-import com.kaufland.javaToKotlinType
 import com.kaufland.model.source.SourceMemberField
 import com.kaufland.model.source.SourceMemberFunction
-import com.squareup.kotlinpoet.*
-import javax.lang.model.element.VariableElement
-import javax.lang.model.type.TypeMirror
-import kotlin.coroutines.Continuation
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 
 class CblGenerateAccessorHolder(
     private val sourceClassTypeName: TypeName,
@@ -39,14 +39,6 @@ class CblGenerateAccessorHolder(
         }
 
         return null
-    }
-
-    private fun isSuspendFunction(varElement: VariableElement): Boolean {
-        return varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
-    }
-
-    private fun evaluateTypeName(typeMirror: TypeMirror, nullable: Boolean): TypeName {
-        return typeMirror.asTypeName().javaToKotlinType().copy(nullable = nullable)
     }
 
     fun accessorPropertySpec(): PropertySpec? {
