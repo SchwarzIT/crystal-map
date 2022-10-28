@@ -6,7 +6,7 @@ object PersistenceConfig {
     private var mConnector: Connector? = null
     private var mSuspendingConnector: SuspendingConnector? = null
 
-    interface Connector {
+    interface Connector : TypeConversionErrorCallback {
         val typeConversions: Map<KClass<*>, TypeConversion>
         fun getDocument(id: String, dbName: String, onlyInclude: List<String>? = null): Map<String, Any>?
         fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>? = null): List<Map<String, Any>?>
@@ -19,7 +19,7 @@ object PersistenceConfig {
         fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any>
     }
 
-    interface SuspendingConnector {
+    interface SuspendingConnector : TypeConversionErrorCallback {
 
         val typeConversions: Map<KClass<*>, TypeConversion>
 

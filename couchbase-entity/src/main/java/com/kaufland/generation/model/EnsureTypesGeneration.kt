@@ -8,15 +8,26 @@ object EnsureTypesGeneration {
 
     fun ensureTypes(holder: BaseEntityHolder, useNullableMap: Boolean): FunSpec {
 
-        val explicitType = if (useNullableMap) TypeUtil.hashMapStringAnyNullable() else TypeUtil.hashMapStringAny()
+        val explicitType =
+            if (useNullableMap) TypeUtil.hashMapStringAnyNullable() else TypeUtil.hashMapStringAny()
         val type = if (useNullableMap) TypeUtil.mapStringAnyNullable() else TypeUtil.mapStringAny()
-        val typeConversionReturnType = if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
+        val typeConversionReturnType =
+            if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
         val ensureTypes = FunSpec.builder("ensureTypes").addParameter("doc", type).returns(type)
         ensureTypes.addStatement("val result = %T()", explicitType)
         ensureTypes.addStatement("result.putAll(doc)")
 
         for (field in holder.fields.values) {
-            ensureTypes.beginControlFlow("${field.ensureType(typeConversionReturnType,"doc[%N]", field.constantName)}?.let")
+            ensureTypes.beginControlFlow(
+                "${
+                field.ensureType(
+                    typeConversionReturnType,
+                    "doc[%N], %N",
+                    field.constantName,
+                    field.constantName
+                )
+                }?.let"
+            )
             ensureTypes.addStatement("result[%N] = it", field.constantName)
             ensureTypes.endControlFlow()
         }

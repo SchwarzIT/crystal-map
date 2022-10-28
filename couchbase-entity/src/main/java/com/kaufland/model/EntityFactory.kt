@@ -26,10 +26,7 @@ object EntityFactory {
         return create(
             sourceModel,
             EntityHolder(
-                annotation.database,
-                annotation.modifierOpen,
-                annotation.type,
-                sourceModel
+                annotation.database, annotation.modifierOpen, annotation.type, sourceModel
             ),
             allWrappers,
             allBaseModels
@@ -41,10 +38,7 @@ object EntityFactory {
         allWrappers: List<String>
     ): BaseModelHolder {
         return create(
-            sourceModel,
-            BaseModelHolder(sourceModel),
-            allWrappers,
-            emptyMap()
+            sourceModel, BaseModelHolder(sourceModel), allWrappers, emptyMap()
         ) as BaseModelHolder
     }
 
@@ -72,8 +66,7 @@ object EntityFactory {
         content.reducesModels = createReduceModels(sourceModel, content, allWrappers, allBaseModels)
         content.abstractParts = sourceModel.abstractParts
         content.comment = sourceModel.commentAnnotation?.comment ?: arrayOf()
-        content.deprecated =
-            sourceModel.deprecatedAnnotation?.let { DeprecatedModel(it) }
+        content.deprecated = sourceModel.deprecatedAnnotation?.let { DeprecatedModel(it) }
 
         addBasedOn(sourceModel, allBaseModels, content)
 
@@ -90,26 +83,20 @@ object EntityFactory {
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
                     CblGenerateAccessorHolder(
-                        content.sourceClazzTypeName,
-                        it,
-                        null
+                        content.sourceClazzTypeName, it, null
                     )
                 )
             }
         }
-
         sourceModel.relevantStaticFields.forEach {
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
                     CblGenerateAccessorHolder(
-                        content.sourceClazzTypeName,
-                        null,
-                        it
+                        content.sourceClazzTypeName, null, it
                     )
                 )
             }
         }
-
         content.docId = docId?.let { DocIdHolder(it, docIdSegments) } ?: content.docId?.apply {
             customSegmentSource.addAll(docIdSegments)
             recompile()
@@ -124,9 +111,8 @@ object EntityFactory {
         allWrappers: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
     ): List<ReducedModelHolder> {
-
-        return sourceModel.reduceAnnotations?.let {
-            return it.map {
+        sourceModel.reduceAnnotations.let { reduce ->
+            return reduce.map {
                 ReducedModelHolder(
                     it.namePrefix,
                     it.include.asList(),
@@ -137,7 +123,7 @@ object EntityFactory {
                     content
                 )
             }
-        } ?: emptyList()
+        }
     }
 
     fun addBasedOn(
@@ -145,8 +131,7 @@ object EntityFactory {
         allBaseModels: Map<String, BaseModelHolder>,
         content: BaseEntityHolder
     ) {
-        val basedOnValue = sourceModel.basedOnAnnotation
-            ?.let { FieldExtractionUtil.typeMirror(it) }
+        val basedOnValue = sourceModel.basedOnAnnotation?.let { FieldExtractionUtil.typeMirror(it) }
 
         basedOnValue?.forEach { type ->
             allBaseModels[type.toString()]?.let {
@@ -190,7 +175,7 @@ object EntityFactory {
     }
 
     private fun parseQueries(sourceModel: ISourceModel, content: BaseEntityHolder) {
-        val queries = sourceModel.queryAnnotations ?: return
+        val queries = sourceModel.queryAnnotations
 
         for (cblQuery in queries) {
             content.queries.add(CblQueryHolder(cblQuery))

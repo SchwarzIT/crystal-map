@@ -11,16 +11,29 @@ object CblDefaultGeneration {
 
     fun addDefaults(holder: BaseEntityHolder, useNullableMap: Boolean): FunSpec {
 
-        val type = if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
-        val typeConversionReturnType = if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
+        val type =
+            if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
+        val typeConversionReturnType =
+            if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
 
-        val builder = FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter("map", type)
+        val builder =
+            FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter("map", type)
 
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
                 builder.beginControlFlow("if(map[%N] == null)", fieldHolder.constantName)
-                builder.addStatement("map.put(%N, " + fieldHolder.ensureType(typeConversionReturnType, ConversionUtil.convertStringToDesiredFormat(fieldHolder.typeMirror, fieldHolder.defaultValue)) + "!!)", fieldHolder.constantName)
+                builder.addStatement(
+                    "map.put(%N, " + fieldHolder.ensureType(
+                        typeConversionReturnType,
+                        ConversionUtil.convertStringToDesiredFormat(
+                            fieldHolder.typeMirror,
+                            fieldHolder.defaultValue
+                        ) + ", %N",
+                        fieldHolder.constantName
+                    ) + "!!)",
+                    fieldHolder.constantName
+                )
                 builder.endControlFlow()
             }
         }

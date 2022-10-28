@@ -32,7 +32,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
 
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
-            .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %T::class)!!", constantName, fieldType).build())
+            .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N),%N, %T::class)!!", constantName, constantName, fieldType).build())
 
         if (comment.isNotEmpty()) {
             builder.addKdoc(KDocGeneration.generate(comment))

@@ -5,7 +5,12 @@ import com.kaufland.model.entity.EntityHolder
 import com.kaufland.model.id.DocIdHolder
 import com.kaufland.util.TypeUtil
 import com.kaufland.util.TypeUtil.string
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.jvm.throws
 import kaufland.com.coachbasebinderapi.Entity
 import kaufland.com.coachbasebinderapi.PersistenceConfig

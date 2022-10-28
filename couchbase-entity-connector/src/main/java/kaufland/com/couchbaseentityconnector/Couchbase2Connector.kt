@@ -17,11 +17,11 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     init {
         mTypeConversions[Int::class] = object : TypeConversion {
 
-            override fun write(value: Any): Any {
+            override fun write(value: Any?): Any? {
                 return value
             }
 
-            override fun read(value: Any): Any {
+            override fun read(value: Any?): Any? {
                 if (value is Number) {
                     return value.toInt()
                 }
@@ -29,7 +29,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
                     val result = ArrayList<Any>()
                     for (itValue in value) {
                         itValue?.let {
-                            result.add(read(itValue))
+                            read(itValue)?.let { it1 -> result.add(it1) }
                         }
                     }
                     return result
@@ -38,11 +38,11 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
             }
         }
         mTypeConversions[Double::class] = object : TypeConversion {
-            override fun write(value: Any): Any {
+            override fun write(value: Any?): Any? {
                 return value
             }
 
-            override fun read(value: Any): Any {
+            override fun read(value: Any?): Any? {
                 if (value is Number) {
                     return value.toDouble()
                 }
@@ -50,7 +50,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
                     val result = ArrayList<Any>()
                     for (itValue in value) {
                         itValue?.let {
-                            result.add(read(itValue))
+                            read(itValue)?.let { it1 -> result.add(it1) }
                         }
                     }
                     return result
@@ -150,16 +150,16 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(upsert: MutableMap<String, Any>, docId: String?, name: String): Map<String, Any> {
-        if (upsert["_id"] == null && docId != null) {
-            upsert["_id"] = docId
+    override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+        if (document["_id"] == null && id != null) {
+            document["_id"] = id
         }
-        val unsavedDoc = MutableDocument(docId, upsert)
+        val unsavedDoc = MutableDocument(id, document)
         return try {
-            upsert["_id"] = unsavedDoc.id
+            document["_id"] = unsavedDoc.id
             unsavedDoc.setString("_id", unsavedDoc.id)
-            getDatabase(name).save(unsavedDoc)
-            upsert
+            getDatabase(dbName).save(unsavedDoc)
+            document
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }

@@ -9,11 +9,11 @@ class CommonInterfaceGeneration {
 
     fun generateModel(holder: BaseEntityHolder): FileSpec {
 
-        var interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
+        val interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
         holder.basedOn.forEach { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
 
-        var companionSpec = TypeSpec.companionObjectBuilder()
+        val companionSpec = TypeSpec.companionObjectBuilder()
 
         for (fieldHolder in holder.allFields) {
             val isBaseField = holder.basedOn.any {

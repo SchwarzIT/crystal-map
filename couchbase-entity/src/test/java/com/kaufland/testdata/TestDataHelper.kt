@@ -9,7 +9,7 @@ object TestDataHelper {
 
     fun clazzAsJavaFileObjects(clazz: String): SourceFile {
         val className = "$clazz.kt"
-        val file = javaClass.classLoader.getResource(className).file
-        return SourceFile.kotlin(className, "$PACKAGE_DECLARE${File(file).readText()}")
+        val file = javaClass.classLoader.getResource(className)?.file
+        return SourceFile.kotlin(className, "$PACKAGE_DECLARE${file?.let { File(it).readText() }}")
     }
 }
