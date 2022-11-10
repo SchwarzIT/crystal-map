@@ -76,11 +76,11 @@ android {
 kapt {
     correctErrorTypes = true
     arguments {
-        arg("useSuspend", "false")
-        arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
-        arg("entityframework.documentation.fileName", "demo.html")
-        arg("entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
-        arg("entityframework.schema.fileName", "demo_schema.json")
+        arg("crystal.entityframework.useSuspend", "false")
+        arg("crystal.entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
+        arg("crystal.entityframework.documentation.fileName", "demo.html")
+        arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
+        arg("crystal.entityframework.schema.fileName", "demo_schema.json")
     }
 }
 

@@ -34,13 +34,13 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
-        const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "useSuspend"
-        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME = "entityframework.documentation.generated"
-        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "entityframework.documentation.fileName"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "entityframework.documentation.entityrelationship.generated"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "entityframework.documentation.entityrelationship.fileName"
-        const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "entityframework.schema.generated"
-        const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "entityframework.schema.fileName"
+        const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "crystal.entityframework.useSuspend"
+        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME = "crystal.entityframework.documentation.generated"
+        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.fileName"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.generated"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.fileName"
+        const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
+        const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
     }
 
     @Synchronized
