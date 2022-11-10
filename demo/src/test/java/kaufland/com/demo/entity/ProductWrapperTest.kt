@@ -1,8 +1,8 @@
-package kaufland.com.demo.entity
+package com.schwarz.crystaldemo.entity
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig
-import kaufland.com.coachbasebinderapi.TypeConversion
-import kaufland.com.demo.UnitTestConnector
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.TypeConversion
+import com.schwarz.crystaldemo.UnitTestConnector
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test

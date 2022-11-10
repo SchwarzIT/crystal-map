@@ -1,11 +1,11 @@
-package kaufland.com.demo
+package com.schwarz.crystaldemo
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig
-import kaufland.com.coachbasebinderapi.TypeConversion
-import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
-import kaufland.com.demo.customtypes.GenerateClassName
-import kaufland.com.demo.customtypes.GenerateClassNameConversion
-import kaufland.com.demo.entity.TestClassEntity
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.TypeConversion
+import com.schwarz.crystalapi.TypeConversionErrorWrapper
+import com.schwarz.crystaldemo.customtypes.GenerateClassName
+import com.schwarz.crystaldemo.customtypes.GenerateClassNameConversion
+import com.schwarz.crystaldemo.entity.TestClassEntity
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

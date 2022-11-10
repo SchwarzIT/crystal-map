@@ -1,11 +1,11 @@
-package kaufland.com.demo.entity
+package com.schwarz.crystaldemo.entity
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig
-import kaufland.com.coachbasebinderapi.TypeConversion
-import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
-import kaufland.com.demo.UnitTestConnector
-import kaufland.com.demo.entity.ProductCategory.AMAZING_PRODUCT
-import kaufland.com.demo.logger.TestAppender
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.TypeConversion
+import com.schwarz.crystalapi.TypeConversionErrorWrapper
+import com.schwarz.crystaldemo.UnitTestConnector
+import com.schwarz.crystaldemo.entity.ProductCategory.AMAZING_PRODUCT
+import com.schwarz.crystaldemo.logger.TestAppender
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.BeforeClass

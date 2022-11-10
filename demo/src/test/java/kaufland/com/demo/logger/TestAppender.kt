@@ -1,4 +1,4 @@
-package kaufland.com.demo.logger
+package com.schwarz.crystaldemo.logger
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
