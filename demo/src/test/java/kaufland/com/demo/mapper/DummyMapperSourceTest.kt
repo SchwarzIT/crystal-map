@@ -1,9 +1,9 @@
-package kaufland.com.demo.mapper
+package com.schwarz.crystaldemo.mapper
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig
-import kaufland.com.coachbasebinderapi.TypeConversion
-import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
-import kaufland.com.demo.entity.ProductEntity
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.TypeConversion
+import com.schwarz.crystalapi.TypeConversionErrorWrapper
+import com.schwarz.crystaldemo.entity.ProductEntity
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test

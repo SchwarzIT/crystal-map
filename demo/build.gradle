@@ -6,13 +6,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
 //        classpath "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
-//        classpath fileTree(dir:'../couchbase-entity-versioning-plugin/build/libs', include: ['*.jar'])
-//        classpath fileTree(dir:'../couchbase-entity-api/build/libs', include: ['*.jar'])
+//        classpath fileTree(dir:'../crystal-map-versioning-plugin/build/libs', include: ['*.jar'])
+//        classpath fileTree(dir:'../crystal-map-api/build/libs', include: ['*.jar'])
     }
 }
 
@@ -23,7 +23,7 @@ apply plugin: 'kotlin-kapt'
 //TODO enable to localy test plugin
 //apply plugin: 'andcouchbase-entity-versioning-plugin'
 //
-//import kaufland.com.coachbasebinderapi.schema.DefaultSchemaValidator
+//import com.schwarz.crystalapi.schema.DefaultSchemaValidator
 //
 //couchbaseEntityVersioning{
 //    currentSchema "${buildDir.absolutePath}/entity_schema/demo_schema.json"
@@ -34,10 +34,9 @@ apply plugin: 'kotlin-kapt'
 android {
 
     defaultConfig {
-        applicationId "kaufland.com.demo"
-        buildToolsVersion = "30.0.2"
+        applicationId "com.schwarz.crystaldemo"
         compileSdkVersion 33
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
@@ -77,11 +76,11 @@ android {
 kapt {
     correctErrorTypes = true
     arguments {
-        arg("useSuspend", "false")
-        arg("entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
-        arg("entityframework.documentation.fileName", "demo.html")
-        arg("entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
-        arg("entityframework.schema.fileName", "demo_schema.json")
+        arg("crystal.entityframework.useSuspend", "false")
+        arg("crystal.entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
+        arg("crystal.entityframework.documentation.fileName", "demo.html")
+        arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
+        arg("crystal.entityframework.schema.fileName", "demo_schema.json")
     }
 }
 
@@ -89,10 +88,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation project(path: ':couchbase-entity-api')
-    implementation project(path: ':couchbase-entity-connector')
-    kapt project(path: ':couchbase-entity')
-    compileOnly project(path: ':couchbase-entity')
+    implementation project(path: ':crystal-map-api')
+    implementation project(path: ':crystal-map-couchbase-connector')
+    kapt project(path: ':crystal-map-processor')
+    compileOnly project(path: ':crystal-map-processor')
     implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 

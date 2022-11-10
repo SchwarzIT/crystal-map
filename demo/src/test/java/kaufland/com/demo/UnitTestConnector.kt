@@ -1,8 +1,8 @@
-package kaufland.com.demo
+package com.schwarz.crystaldemo
 
-import kaufland.com.coachbasebinderapi.PersistenceConfig
-import kaufland.com.coachbasebinderapi.TypeConversion
-import kaufland.com.coachbasebinderapi.TypeConversionErrorWrapper
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.TypeConversion
+import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import kotlin.reflect.KClass
 
 open class UnitTestConnector(
