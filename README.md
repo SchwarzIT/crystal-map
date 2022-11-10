@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/SchwarzIT/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/SchwarzIT/andcouchbaseentity)
 
 
-A Framework for all map lovers and all who want to be
+A Framework for all Mapheads out there
 
 ## What is this Framework about?
 
@@ -113,4 +113,6 @@ class MyViewModel : ViewModel() {
 ### [**Mapper**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/%5B3%5D-Mapper)
 
 ### [**Cookbook (more useful features with examples)**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/%5B5%5D-Cookbook)
+
+### [**Migration (from old legacy version of andcouchbasentity)**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/%5B5%5D-Cookbook)
   
