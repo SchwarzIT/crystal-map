@@ -114,5 +114,5 @@ class MyViewModel : ViewModel() {
 
 ### [**Cookbook (more useful features with examples)**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/%5B5%5D-Cookbook)
 
-### [**Migration (from old legacy version of andcouchbasentity)**](https://github.com/SchwarzIT/andcouchbaseentity/wiki/%5B5%5D-Cookbook)
+### [**Migration (from old legacy version of andcouchbasentity)**](https://github.com/SchwarzIT/crystal-map/wiki/Migration)
   
