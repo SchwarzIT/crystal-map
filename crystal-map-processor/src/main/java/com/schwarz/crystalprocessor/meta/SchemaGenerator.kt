@@ -2,6 +2,7 @@ package com.schwarz.crystalprocessor.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.schwarz.crystalapi.deprecated.DeprecationType
 import com.schwarz.crystalprocessor.model.deprecated.DeprecatedModel
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.model.field.CblBaseFieldHolder
@@ -37,7 +38,7 @@ class SchemaGenerator(path: String, val fileName: String) {
         jsonEntitySegments[entityHolder.sourceClazzSimpleName] = entitySchema
     }
 
-    private fun DeprecatedModel.deprecatedToSchema(): DeprecatedSchema = DeprecatedSchema(replacedBy = this.replacedByTypeMirror.toString(), inUse = this.inUse, deprecatedFields = this.deprecatedFields.values.map { DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse) })
+    private fun DeprecatedModel.deprecatedToSchema(): DeprecatedSchema = DeprecatedSchema(replacedBy = this.replacedByTypeMirror.toString(), inUse = this.deprecationType == DeprecationType.FIELD_DEPRECATION || this.deprecationType == DeprecationType.ENTITY_DEPRECATION, deprecatedFields = this.deprecatedFields.values.map { DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse) })
 
     private fun List<CblBaseFieldHolder>.fieldsToSchemaList(): List<Fields> = map { Fields(dbField = it.dbField, fieldType = it.fieldType.toString(), isIterable = it.isIterable, isConstant = it.isConstant, defaultValue = it.defaultValue) }
 

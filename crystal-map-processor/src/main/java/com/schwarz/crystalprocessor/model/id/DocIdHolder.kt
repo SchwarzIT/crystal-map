@@ -72,8 +72,9 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
     // contains all segments placed between %
     lateinit var segments: List<Segment>
 
-    private fun List<Segment>.distinctFieldAccessors(model: BaseEntityHolder) =
-        this.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
+    fun distinctFieldAccessors(model: BaseEntityHolder): List<String> {
+        return segments.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
+    }
 
     fun companionFunction(entity: BaseEntityHolder): FunSpec {
         val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
@@ -115,9 +116,13 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
     fun buildExpectedDocId(entity: BaseEntityHolder): FunSpec {
         val spec = FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string())
             .addModifiers(KModifier.OVERRIDE)
-        val list: List<String> = segments.distinctFieldAccessors(entity)
+        val list: List<String> = distinctFieldAccessors(entity)
 
-        spec.addStatement("return $COMPANION_BUILD_FUNCTION_NAME(${list.joinToString(separator = ",")})")
+        if (entity.deprecated?.addDeprecatedFunctions(*list.toTypedArray(), spec) == true) {
+            spec.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
+            spec.addStatement("return $COMPANION_BUILD_FUNCTION_NAME(${list.joinToString(separator = ",")})")
+        }
         return spec.build()
     }
 

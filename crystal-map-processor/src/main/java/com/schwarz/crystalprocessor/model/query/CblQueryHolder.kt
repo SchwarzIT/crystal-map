@@ -27,40 +27,46 @@ class CblQueryHolder(private val mQuery: Query) {
             .addModifiers(KModifier.PUBLIC)
             .addAnnotation(JvmStatic::class)
             .throws(PersistenceException::class)
-            .addStatement(
-                "val queryParams = mutableMapOf<%T, %T>()",
-                TypeUtil.string(),
-                TypeUtil.any()
-            )
             .returns(TypeUtil.list(entityHolder.entityTypeName))
 
         if (useSuspend) {
             builder.addModifiers(KModifier.SUSPEND)
         }
 
-        fields.forEach {
-            entityHolder.fields[it]?.apply {
-                builder.addParameter(dbField, fieldType)
+        if (entityHolder.deprecated?.addDeprecatedFunctions(fields, builder) == true) {
+            builder.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
 
-                builder.addQueryParamComparisonStatement(this, dbField)
+            builder.addStatement(
+                "val queryParams = mutableMapOf<%T, %T>()",
+                TypeUtil.string(),
+                TypeUtil.any()
+            )
+
+            fields.forEach {
+                entityHolder.fields[it]?.apply {
+                    builder.addParameter(dbField, fieldType)
+
+                    builder.addQueryParamComparisonStatement(this, dbField)
+                }
+                entityHolder.fieldConstants[it]?.apply {
+                    builder.addStatement(
+                        "queryParams[%N] = %N",
+                        constantName,
+                        constantValueAccessorName
+                    )
+                }
             }
-            entityHolder.fieldConstants[it]?.apply {
-                builder.addStatement(
-                    "queryParams[%N] = %N",
-                    constantName,
-                    constantValueAccessorName
-                )
-            }
+
+            builder.beginControlFlow(
+                "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
+                PersistenceConfig::class,
+                dbName,
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
+            )
+            builder.addStatement("%T(it)", entityHolder.entityTypeName)
+            builder.endControlFlow()
         }
-
-        builder.beginControlFlow(
-            "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
-            PersistenceConfig::class,
-            dbName,
-            CblReduceGeneration.PROPERTY_ONLY_INCLUDES
-        )
-        builder.addStatement("%T(it)", entityHolder.entityTypeName)
-        builder.endControlFlow()
         return builder.build()
     }
 

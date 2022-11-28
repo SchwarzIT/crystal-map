@@ -34,6 +34,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
             .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N),%N, %T::class)!!", constantName, constantName, fieldType).build())
 
+        deprecated?.addDeprecated(dbField, builder)
         if (comment.isNotEmpty()) {
             builder.addKdoc(KDocGeneration.generate(comment))
         }
