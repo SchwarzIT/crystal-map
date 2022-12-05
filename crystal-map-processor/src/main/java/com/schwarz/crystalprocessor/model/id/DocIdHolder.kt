@@ -23,7 +23,7 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
         }
     }
 
-    val pattern = docId.value.replace(":null:", "::").replace(":null",":")
+    val pattern = docId.value.replace(":null:", "::").replace(":null", ":")
 
     init {
         recompile()
