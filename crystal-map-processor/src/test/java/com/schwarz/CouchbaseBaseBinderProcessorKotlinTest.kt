@@ -111,6 +111,12 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSuccessDeprecatedClassGeneration() {
+        val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedClass"), useSuspend = true)
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
     fun testKotlinAbstractGeneration() {
 
         val subEntity = SourceFile.kotlin(

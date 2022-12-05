@@ -11,7 +11,7 @@ public @interface Deprecated {
 
     Class<?> replacedBy() default Void.class;
 
-    boolean inUse() default true;
+    DeprecationType type() default DeprecationType.FIELD_DEPRECATION;
 
     DeprecatedField[] fields() default {};
 

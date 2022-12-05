@@ -137,33 +137,48 @@ class EntityGeneration {
     }
 
     private fun findById(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-        return FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
+        val builder = FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
             .addParameter("id", String::class).addAnnotation(JvmStatic::class)
-            .addStatement(
+
+        val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
+        if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
+            builder.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
+            builder.addStatement(
                 "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
                 PersistenceConfig::class,
                 holder.dbName,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
-            .addStatement("return if(result != null) %N(result) else null", holder.entitySimpleName)
-            .returns(holder.entityTypeName.copy(true)).build()
+                .addStatement(
+                    "return if(result != null) %N(result) else null",
+                    holder.entitySimpleName
+                )
+        }
+        return builder.returns(holder.entityTypeName.copy(true)).build()
     }
 
     private fun findByIds(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-        return FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
+        val builder = FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
             .addParameter("ids", TypeUtil.list(string()))
             .addAnnotation(JvmStatic::class)
-            .addStatement(
+
+        val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
+        if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
+            builder.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
+            builder.addStatement(
                 "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
                 PersistenceConfig::class,
                 holder.dbName,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
-            .addStatement(
-                "return result.filterNotNull().mapNotNull { %N(it) }",
-                holder.entitySimpleName
-            )
-            .returns(TypeUtil.list(holder.entityTypeName.copy(true))).build()
+                .addStatement(
+                    "return result.filterNotNull().mapNotNull { %N(it) }",
+                    holder.entitySimpleName
+                )
+        }
+        return builder.returns(TypeUtil.list(holder.entityTypeName.copy(true))).build()
     }
 
     private fun idConstant(): PropertySpec {
@@ -214,31 +229,47 @@ class EntityGeneration {
     }
 
     private fun delete(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-        return FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend))
-            .throws(PersistenceException::class).addStatement(
+        val builder = FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend))
+            .throws(PersistenceException::class)
+
+        val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
+        if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
+            builder.addStatement("// workaround for kotlin poet to create brackets")
+            builder.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
+            builder.addStatement(
                 "getId()?.let{%T.${deleteDocumentMethod(useSuspend)}(it, %S)}",
                 PersistenceConfig::class,
                 holder.dbName
-            ).build()
+            )
+        }
+        return builder.build()
     }
 
     private fun save(holder: EntityHolder, useSuspend: Boolean): FunSpec {
         val saveBuilder = FunSpec.builder("save").addModifiers(evaluateModifiers(useSuspend))
-            .throws(PersistenceException::class).addStatement("val doc = toMap()")
+            .throws(PersistenceException::class)
 
-        var idResolve = "getId()"
+        val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
+        if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), saveBuilder) == true) {
+            saveBuilder.addStatement("// workaround for kotlin poet to create brackets")
+            saveBuilder.addStatement("throw %T()", UnsupportedOperationException::class)
+        } else {
+            saveBuilder.addStatement("val doc = toMap()")
+            var idResolve = "getId()"
 
-        holder.docId?.let {
-            idResolve += "?: ${DocIdHolder.BUILD_FUNCTION_NAME}()"
+            holder.docId?.let {
+                idResolve += "?: ${DocIdHolder.BUILD_FUNCTION_NAME}()"
+            }
+
+            saveBuilder.addStatement("val docId = $idResolve")
+            saveBuilder.addStatement(
+                "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
+                PersistenceConfig::class,
+                holder.dbName
+            )
+            saveBuilder.addStatement("rebind(upsertedDoc)")
         }
-
-        saveBuilder.addStatement("val docId = $idResolve")
-        saveBuilder.addStatement(
-            "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
-            PersistenceConfig::class,
-            holder.dbName
-        )
-        saveBuilder.addStatement("rebind(upsertedDoc)")
 
         return saveBuilder.build()
     }

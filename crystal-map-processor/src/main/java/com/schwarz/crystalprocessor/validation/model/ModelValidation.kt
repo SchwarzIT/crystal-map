@@ -39,6 +39,7 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
             wrapperModels[it] ?: entityModels[it]
         }
 
+        val fieldsAccessorsDocId: List<String> = model.docId?.distinctFieldAccessors(model) ?: emptyList()
         for (field in deprecatedFields) {
             if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key) && model.isReduced.not()) {
                 model.sourceElement.logError(logger, "replacement field [${field.key}] does not exists")
@@ -54,6 +55,10 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
                         model.sourceElement.logError(logger, "replacement [$replacement] for field [${field.key}] does not exists")
                     }
                 }
+            }
+
+            if (fieldsAccessorsDocId.contains(field.key)) {
+                model.sourceElement.logError(logger, "deprecated field is a part of DocId which is not possible since DocId is a final value. Use Deprecation on Entity/Wrapper level instead")
             }
         }
     }

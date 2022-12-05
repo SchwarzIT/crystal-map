@@ -175,9 +175,9 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             builder.addKdoc(KDocGeneration.generate(comment))
         }
 
-        if (deprecated?.evaluateFieldDeprecationLevel(dbField) == DeprecationLevel.ERROR && deprecated.addDeprecated(
+        if (deprecated?.addDeprecatedBuilderSetter(
                 dbField, builder
-            )
+            ) == true
         ) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
