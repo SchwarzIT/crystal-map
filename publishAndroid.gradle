@@ -1,0 +1,42 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'io.github.schwarzit'
+            version = "$artefactVersion"
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = "${project.group}:${project.name}"
+                description = 'A Framework for all Mapheads out there.'
+                url = 'https://schwarzit.github.io/crystal-map/'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'android_development'
+                        name = 'SchwarzIT'
+                        email = 'android_development@mail.schwarz'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/SchwarzIT/crystal-map.git'
+                    developerConnection = 'scm:git:ssh://github.com/SchwarzIT/crystal-map.git'
+                    url = 'https://github.com/SchwarzIT/crystal-map.git'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications
+}

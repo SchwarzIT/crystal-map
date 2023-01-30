@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.7.20'
     repositories {
         google()
         mavenCentral()
@@ -10,14 +10,19 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath "com.android.tools.build:gradle:7.3.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.2.0"
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:11.0.0"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:2.1"
+        classpath "io.github.gradle-nexus:publish-plugin:1.1.0"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+    ext.artefactVersion = "0.1"
 }
+
+apply plugin: 'kotlin'
+apply plugin: 'io.github.gradle-nexus.publish-plugin'
 
 subprojects {
     apply plugin: "org.jlleitschuh.gradle.ktlint"
@@ -27,7 +32,6 @@ subprojects {
     }
 
     ktlint {
-
         filter {
             exclude { it.file.path.contains("$buildDir/generated/") }
         }
@@ -47,6 +51,19 @@ allprojects {
         maven { url 'https://maven.google.com' }
         maven {
             url "https://mobile.maven.couchbase.com/maven2/dev/"
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            stagingProfileId = "$ossrhStagingProfileId"
+            username = "$ossrhUsername"
+            password = "$ossrhPassword"
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            repositoryDescription = "Crystal-Map $artefactVersion"
         }
     }
 }
