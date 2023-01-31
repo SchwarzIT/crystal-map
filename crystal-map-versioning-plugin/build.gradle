@@ -7,11 +7,15 @@ plugins {
 apply from: "${rootProject.projectDir}/javadoc.gradle"
 apply from: "${rootProject.projectDir}/publish.gradle"
 
+group = 'io.github.schwarzit'
+version = "$artefactVersion"
+
 gradlePlugin {
     plugins {
         andcouchbaseentityversioning {
-            id = 'andcouchbase-entity-versioning-plugin'
-            version = "$artefactVersion"
+            id = 'io.github.schwarzit'
+            displayName = 'Plugin for versioning with Couchbase'
+            description = 'A plugin that helps you version with couchbase'
             implementationClass = 'kaufland.com.couchbaseentityversioningplugin.VersioningPlugin'
         }
     }
