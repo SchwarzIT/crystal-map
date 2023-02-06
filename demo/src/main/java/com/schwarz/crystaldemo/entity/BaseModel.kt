@@ -13,4 +13,4 @@ import com.schwarz.crystalapi.Fields
     ),
     Field(name = "someConstant", type = String::class, defaultValue = "invalid", readonly = true),
 )
-class BaseModel
+open class BaseModel
