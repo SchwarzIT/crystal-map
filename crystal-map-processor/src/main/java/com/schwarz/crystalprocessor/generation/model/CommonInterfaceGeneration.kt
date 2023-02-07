@@ -61,8 +61,6 @@ class CommonInterfaceGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-
-            // companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
         }
 
@@ -103,7 +101,7 @@ class CommonInterfaceGeneration {
                         .beginControlFlow("for(entry in obj)")
                         .addStatement("var temp = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
                         .addStatement("temp.putAll(%N.toMap(entry)!!)", GENERATED_REPRESENT_NAME)
-                        .addStatement("result.add(temp)", GENERATED_REPRESENT_NAME).endControlFlow().build()
+                        .addStatement("result.add(temp)").endControlFlow().build()
                 )
                 .addStatement("return result").build()
         )
