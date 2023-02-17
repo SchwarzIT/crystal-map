@@ -5,6 +5,7 @@ import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.deprecated.DeprecatedField
+import com.schwarz.crystalapi.deprecated.DeprecationType
 
 @MapWrapper(modifierOpen = true)
 @Fields(
@@ -33,7 +34,7 @@ import com.schwarz.crystalapi.deprecated.DeprecatedField
     Field(name = "kolli_qty", type = Int::class),
     Field(name = "dwg", type = String::class)
 )
-@Deprecated(replacedBy = StoreArticle::class, fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")])
+@Deprecated(type = DeprecationType.ENTITY_DEPRECATION, replacedBy = StoreArticle::class, fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")])
 open class BaseArticle {
     companion object {
         const val PREFIX: String = "basearticle"
