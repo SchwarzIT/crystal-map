@@ -20,9 +20,19 @@ jobs:
         distribution: 'adopt'
         cache: gradle
 
+    - name: Prepare GPG key
+      run: mkdir build && echo '${{secrets.SIGNING_KEY_FILE_BASE64}}' | base64 -d > build/kokain_signing_key.gpg
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew ktlintCheck jacocoTestReport
+      run: ./gradlew ktlintCheck jacocoTestReport  -PossrhUsername='${{ secrets.OSSRH_USERNAME }}' -PossrhPassword='${{ secrets.OSSRH_PASSWORD }}' -PossrhStagingProfileId='${{ secrets.OSSRH_STAGING_PROFILE_ID }}'
     - name: Upload Test Report
       run:  bash <(curl -s https://codecov.io/bash)
+
+    - name: Upload
+      run: ./gradlew -S -i publishReleasePublicationToSonatypeRepository -Psigning.keyId=${{ secrets.SIGNING_KEY_ID }} -Psigning.password='${{ secrets.SIGNING_PASSWORD }}' -Psigning.secretKeyRingFile=../build/kokain_signing_key.gpg -PossrhUsername='${{ secrets.OSSRH_USERNAME }}' -PossrhPassword='${{ secrets.OSSRH_PASSWORD }}' -PossrhStagingProfileId='${{ secrets.OSSRH_STAGING_PROFILE_ID }}'
+
+    - name: Cleanup
+      if: always()
+      run: rm build/kokain_signing_key.gpg
