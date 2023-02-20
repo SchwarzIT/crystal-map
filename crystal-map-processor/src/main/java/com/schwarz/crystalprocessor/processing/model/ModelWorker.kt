@@ -47,14 +47,14 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         var generatedInterfaces = mutableSetOf<String>()
 
         for (baseModelHolder in workSet.bases) {
-            generateInterface(generatedInterfaces, baseModelHolder)
+            generateInterface(generatedInterfaces, baseModelHolder, useSuspend)
         }
 
-        process(workSet.entities, generatedInterfaces) {
+        process(workSet.entities, generatedInterfaces, useSuspend) {
             EntityGeneration().generateModel(it, useSuspend)
         }
 
-        process(workSet.wrappers, generatedInterfaces) {
+        process(workSet.wrappers, generatedInterfaces, useSuspend) {
             WrapperGeneration().generateModel(it, useSuspend)
         }
 
@@ -63,10 +63,10 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         schemaGenerator?.generate()
     }
 
-    private fun <T : BaseEntityHolder> process(models: List<T>, generatedInterfaces: MutableSet<String>, generate: (T) -> FileSpec) {
+    private fun <T : BaseEntityHolder> process(models: List<T>, generatedInterfaces: MutableSet<String>, useSuspend: Boolean, generate: (T) -> FileSpec) {
 
         for (model in models) {
-            generateInterface(generatedInterfaces, model)
+            generateInterface(generatedInterfaces, model, useSuspend)
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
@@ -76,9 +76,13 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         }
     }
 
-    private fun generateInterface(generatedInterfaces: MutableSet<String>, holder: BaseEntityHolder) {
+    private fun generateInterface(
+        generatedInterfaces: MutableSet<String>,
+        holder: BaseEntityHolder,
+        useSuspend: Boolean
+    ) {
         if (generatedInterfaces.contains(holder.sourceClazzSimpleName).not()) {
-            codeGenerator.generate(CommonInterfaceGeneration().generateModel(holder), processingEnv)
+            codeGenerator.generate(CommonInterfaceGeneration().generateModel(holder, useSuspend), processingEnv)
             generatedInterfaces.add(holder.sourceClazzSimpleName)
         }
     }

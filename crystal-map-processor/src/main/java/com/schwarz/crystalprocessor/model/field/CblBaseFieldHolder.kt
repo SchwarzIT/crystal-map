@@ -44,7 +44,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         )
     }
 
-    abstract fun interfaceProperty(isOverride: Boolean = false): PropertySpec
+    abstract fun interfaceProperty(isOverride: Boolean = false, deprecated: DeprecatedModel?): PropertySpec
 
     abstract fun property(
         dbName: String?,

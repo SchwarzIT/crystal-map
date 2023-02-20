@@ -47,12 +47,14 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         }
     }
 
-    override fun interfaceProperty(isOverride: Boolean): PropertySpec {
+    override fun interfaceProperty(isOverride: Boolean, deprecated: DeprecatedModel?): PropertySpec {
         val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
             .copy(nullable = true)
         val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
-        return PropertySpec.builder(accessorSuffix(), returnType.copy(true), modifiers)
-            .mutable(true).build()
+        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true), modifiers)
+            .mutable(true)
+        deprecated?.addDeprecated(dbField, propertyBuilder)
+        return propertyBuilder.build()
     }
 
     override fun property(
