@@ -152,6 +152,7 @@ object EntityFactory {
                 }
                 content.generateAccessors.addAll(it.generateAccessors)
                 content.queries.addAll(it.queries)
+                addBasedOn(it.sourceElement, allBaseModels, content)
             }
         }
     }
