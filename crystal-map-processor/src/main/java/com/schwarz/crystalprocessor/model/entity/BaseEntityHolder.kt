@@ -55,4 +55,10 @@ abstract class BaseEntityHolder(val sourceElement: ISourceModel) : IClassModel b
 
     val interfaceTypeName: TypeName
         get() = ClassName(sourcePackage, interfaceSimpleName)
+
+    fun collectAllChildInterfaces(): List<TypeName> {
+        val basedOnInterfaceTypeNames = basedOn.map { it.interfaceTypeName }
+        val reducesModelsInterfaceTypeNames = reducesModels.map { ClassName(sourcePackage, "I${it.namePrefix}$sourceClazzSimpleName") }
+        return listOf(*basedOnInterfaceTypeNames.toTypedArray(), *reducesModelsInterfaceTypeNames.toTypedArray())
+    }
 }
