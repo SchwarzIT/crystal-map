@@ -45,7 +45,6 @@ class CommonInterfaceGeneration {
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PRIVATE)
             .addSuperinterface(holder.interfaceTypeName)
-            .addSuperinterfaces(holder.collectAllSuperInterfaceNames())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
