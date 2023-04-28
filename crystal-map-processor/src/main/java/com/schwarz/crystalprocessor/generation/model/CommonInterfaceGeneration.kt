@@ -16,7 +16,7 @@ class CommonInterfaceGeneration {
 
         holder.deprecated?.addDeprecated(interfaceSpec)
 
-        holder.basedOn.forEach { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
+        holder.collectAllChildInterfaces().forEach { interfaceSpec.addSuperinterface(it) }
 
         val companionSpec = TypeSpec.companionObjectBuilder()
 
