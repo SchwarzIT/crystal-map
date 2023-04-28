@@ -19,7 +19,6 @@ class WrapperGeneration {
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PUBLIC)
             .addSuperinterface(holder.interfaceTypeName)
-            .addSuperinterfaces(holder.collectAllSuperInterfaceNames())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblDefaultGeneration.addDefaults(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
