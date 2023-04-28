@@ -16,13 +16,13 @@ class CommonInterfaceGeneration {
 
         holder.deprecated?.addDeprecated(interfaceSpec)
 
-        holder.collectAllChildInterfaces().forEach { interfaceSpec.addSuperinterface(it) }
+        holder.collectAllSuperInterfaceNames().forEach { interfaceSpec.addSuperinterface(it) }
 
         val companionSpec = TypeSpec.companionObjectBuilder()
 
         for (fieldHolder in holder.allFields) {
-            val isBaseField = holder.basedOn.any {
-                it.fields.containsKey(fieldHolder.dbField) || it.fieldConstants.containsKey(fieldHolder.dbField)
+            val isBaseField = holder.collectAllSuperInterfaceFields().any {
+                it.hasFieldWithName(fieldHolder.dbField) || it.hasFieldConstantWithName(fieldHolder.dbField)
             }
             val propertySpec = fieldHolder.interfaceProperty(isBaseField, holder.deprecated)
             interfaceSpec.addProperty(propertySpec)
@@ -45,7 +45,7 @@ class CommonInterfaceGeneration {
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PRIVATE)
             .addSuperinterface(holder.interfaceTypeName)
-            .addSuperinterfaces(holder.collectAllChildInterfaces())
+            .addSuperinterfaces(holder.collectAllSuperInterfaceNames())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
@@ -56,7 +56,7 @@ class CommonInterfaceGeneration {
                 ).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
             )
             .addFunction(constructorMap())
-            .superclass(holder.sourceElement!!.typeName)
+            .superclass(holder.sourceElement.typeName)
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
