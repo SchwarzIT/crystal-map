@@ -16,13 +16,13 @@ class CommonInterfaceGeneration {
 
         holder.deprecated?.addDeprecated(interfaceSpec)
 
-        holder.basedOn.forEach { interfaceSpec.addSuperinterface(it.interfaceTypeName) }
+        holder.collectAllSuperInterfaceNames().forEach { interfaceSpec.addSuperinterface(it) }
 
         val companionSpec = TypeSpec.companionObjectBuilder()
 
         for (fieldHolder in holder.allFields) {
-            val isBaseField = holder.basedOn.any {
-                it.fields.containsKey(fieldHolder.dbField) || it.fieldConstants.containsKey(fieldHolder.dbField)
+            val isBaseField = holder.collectAllSuperInterfaceFields().any {
+                it.hasFieldWithName(fieldHolder.dbField) || it.hasFieldConstantWithName(fieldHolder.dbField)
             }
             val propertySpec = fieldHolder.interfaceProperty(isBaseField, holder.deprecated)
             interfaceSpec.addProperty(propertySpec)
@@ -55,7 +55,7 @@ class CommonInterfaceGeneration {
                 ).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
             )
             .addFunction(constructorMap())
-            .superclass(holder.sourceElement!!.typeName)
+            .superclass(holder.sourceElement.typeName)
 
         holder.deprecated?.addDeprecated(typeBuilder)
 

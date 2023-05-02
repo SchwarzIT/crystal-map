@@ -19,7 +19,6 @@ class WrapperGeneration {
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PUBLIC)
             .addSuperinterface(holder.interfaceTypeName)
-            .addSuperinterfaces(holder.collectAllChildInterfaces())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblDefaultGeneration.addDefaults(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
@@ -28,7 +27,7 @@ class WrapperGeneration {
             .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build())
             .addFunction(constructorMap())
             .addFunction(constructorDefault())
-            .superclass(holder.sourceElement!!.typeName)
+            .superclass(holder.sourceElement.typeName)
             .addFunction(BuilderClassGeneration.generateBuilderFun())
 
         holder.deprecated?.addDeprecated(typeBuilder)
