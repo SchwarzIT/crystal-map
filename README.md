@@ -2,6 +2,7 @@
 [![Build Status](https://github.com/SchwarzIT/andcouchbaseentity/actions/workflows/android_pre_hook.yml/badge.svg)
 [![codecov](https://codecov.io/gh/SchwarzIT/andcouchbaseentity/branch/master/graph/badge.svg)](https://codecov.io/gh/SchwarzIT/andcouchbaseentity)
 
+![CrystalMap Logo](./crystal-map-logo-303x253.png)
 
 A Framework for all Mapheads out there
 
