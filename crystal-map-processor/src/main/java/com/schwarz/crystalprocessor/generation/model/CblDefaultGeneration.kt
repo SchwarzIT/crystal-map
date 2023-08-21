@@ -1,5 +1,6 @@
 package com.schwarz.crystalprocessor.generation.model
 
+import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.util.ConversionUtil
 import com.schwarz.crystalprocessor.util.TypeUtil
@@ -13,30 +14,42 @@ object CblDefaultGeneration {
 
         val type =
             if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
+        val valueType =
+            if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
+
         val typeConversionReturnType =
             if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
 
         val builder =
             FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter("map", type)
 
+        builder.addStatement("%T.addDefaults<%T, %T>(listOf(", CrystalWrap::class, typeConversionReturnType, valueType)
         for (fieldHolder in holder.fields.values) {
 
             if (fieldHolder.isDefault) {
-                builder.beginControlFlow("if(map[%N] == null)", fieldHolder.constantName)
                 builder.addStatement(
-                    "map.put(%N, " + fieldHolder.ensureType(
-                        typeConversionReturnType,
-                        ConversionUtil.convertStringToDesiredFormat(
-                            fieldHolder.typeMirror,
-                            fieldHolder.defaultValue
-                        ) + ", %N",
-                        fieldHolder.constantName
-                    ) + "!!)",
-                    fieldHolder.constantName
+                    "arrayOf(%N, %T::class, ${ConversionUtil.convertStringToDesiredFormat(
+                        fieldHolder.typeMirror,
+                        fieldHolder.defaultValue
+                    )}),",
+                    fieldHolder.constantName, fieldHolder.fieldType
                 )
-                builder.endControlFlow()
+//                builder.beginControlFlow("if(map[%N] == null)", fieldHolder.constantName)
+//                builder.addStatement(
+//                    "map.put(%N, " + fieldHolder.ensureType(
+//                        typeConversionReturnType,
+//                        ConversionUtil.convertStringToDesiredFormat(
+//                            fieldHolder.typeMirror,
+//                            fieldHolder.defaultValue
+//                        ) + ", %N",
+//                        fieldHolder.constantName
+//                    ) + "!!)",
+//                    fieldHolder.constantName
+//                )
+//                builder.endControlFlow()
             }
         }
+        builder.addStatement("), map)")
         return builder.build()
     }
 

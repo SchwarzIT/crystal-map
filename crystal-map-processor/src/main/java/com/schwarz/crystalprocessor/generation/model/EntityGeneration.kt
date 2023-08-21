@@ -36,7 +36,6 @@ class EntityGeneration {
         companionSpec.addFunctions(create(holder, useSuspend))
         companionSpec.addFunction(findById(holder, useSuspend))
         companionSpec.addFunction(findByIds(holder, useSuspend))
-        companionSpec.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
 
         for (query in holder.queries) {
             query.queryFun(holder.dbName, holder, useSuspend).let {
@@ -81,7 +80,7 @@ class EntityGeneration {
             .addFunction(SetAllMethodGeneration().generate(holder, true))
             .addFunction(id).superclass(holder.sourceElement.typeName)
             .addFunction(toMap(holder, useSuspend))
-            .addFunction(BuilderClassGeneration.generateBuilderFun())
+            .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
