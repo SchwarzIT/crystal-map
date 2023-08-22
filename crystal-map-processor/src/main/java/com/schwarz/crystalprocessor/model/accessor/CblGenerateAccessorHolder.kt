@@ -2,7 +2,6 @@ package com.schwarz.crystalprocessor.model.accessor
 
 import com.schwarz.crystalprocessor.model.source.SourceMemberField
 import com.schwarz.crystalprocessor.model.source.SourceMemberFunction
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
@@ -11,7 +10,7 @@ import com.squareup.kotlinpoet.TypeName
 class CblGenerateAccessorHolder(
     private val sourceClassTypeName: TypeName,
     private val memberFunction: SourceMemberFunction?,
-    private val memberProperty: SourceMemberField?
+    private val memberProperty: SourceMemberField?,
 ) {
 
     fun accessorFunSpec(): FunSpec? {
@@ -28,14 +27,12 @@ class CblGenerateAccessorHolder(
                 methodBuilder.addParameter(it.name, it.type)
             }
 
-            methodBuilder.addCode(
-                CodeBlock.of(
-                    "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
-                    sourceClassTypeName,
-                    memberFunction.name
-                )
+            methodBuilder.addStatement(
+                "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
+                sourceClassTypeName,
+                memberFunction.name
             )
-            methodBuilder.returns(memberFunction.returnTypeName)
+            
             return methodBuilder.build()
         }
 
