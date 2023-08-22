@@ -52,7 +52,12 @@ object CrystalWrap {
         clazz: KClass<*>,
         noinline mapper: ((List<T>) -> List<MutableMap<String, Any>>)? = null
     ) {
-        val valueToSet = mapper?.let { if (value != null) it.invoke(value) else emptyList() } ?: write<T>(value, fieldName, clazz)
+        val valueToSet =
+            mapper?.let { if (value != null) it.invoke(value) else emptyList() } ?: write<T>(
+                value,
+                fieldName,
+                clazz
+            )
         changes[fieldName] = valueToSet
     }
 
@@ -86,10 +91,10 @@ object CrystalWrap {
     ): T? {
         return try {
             val conversion =
-                PersistenceConfig.connector.typeConversions[clazz] ?: return value as T?
+                PersistenceConfig.getTypeConversion(clazz) ?: return value as T?
             return conversion.read(value) as T?
         } catch (ex: Exception) {
-            PersistenceConfig.connector.invokeOnError(
+            PersistenceConfig.onTypeConversionError(
                 com.schwarz.crystalapi.TypeConversionErrorWrapper(
                     ex,
                     fieldName, value, clazz
@@ -106,10 +111,10 @@ object CrystalWrap {
     ): T? {
         return try {
             val conversion =
-                PersistenceConfig.connector.typeConversions[clazz] ?: return value as T?
+                PersistenceConfig.getTypeConversion(clazz) ?: return value as T?
             return conversion.write(value) as T?
         } catch (ex: Exception) {
-            PersistenceConfig.connector.invokeOnError(
+            PersistenceConfig.onTypeConversionError(
                 com.schwarz.crystalapi.TypeConversionErrorWrapper(
                     ex,
                     fieldName, value, clazz

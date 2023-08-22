@@ -32,7 +32,7 @@ class CblGenerateAccessorHolder(
                 sourceClassTypeName,
                 memberFunction.name
             )
-            
+
             return methodBuilder.build()
         }
 
