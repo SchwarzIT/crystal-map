@@ -88,7 +88,7 @@ object PersistenceConfig {
             return mSuspendingConnector!!
         }
 
-    fun getTypeConversion(type: KClass<*>): TypeConversion? = if (connector != null) {
+    fun getTypeConversion(type: KClass<*>): TypeConversion? = if (mConnector != null) {
         connector.typeConversions[type]
     } else {
         mSuspendingConnector?.let {
