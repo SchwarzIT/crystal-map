@@ -88,13 +88,13 @@ object PersistenceConfig {
             return mSuspendingConnector!!
         }
 
-    fun getTypeConversion(type: KClass<*>): TypeConversion? = if (mConnector != null) {
-        connector.typeConversions[type]
-    } else {
-        mSuspendingConnector?.let {
-            it.typeConversions[type]
+    fun getTypeConversion(type: KClass<*>): TypeConversion? {
+        if (mConnector != null) {
+            return connector.typeConversions[type]
+        } else if (mSuspendingConnector != null) {
+            return suspendingConnector.typeConversions[type]
         }
-            ?: throw RuntimeException("no database connector configured.. call PersistenceConfig.configure")
+        throw RuntimeException("no database connector configured.. call PersistenceConfig.configure")
     }
 
     fun onTypeConversionError(errorWrapper: TypeConversionErrorWrapper) {
