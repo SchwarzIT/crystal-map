@@ -34,19 +34,6 @@ object CblDefaultGeneration {
                     )}),",
                     fieldHolder.constantName, fieldHolder.fieldType
                 )
-//                builder.beginControlFlow("if(map[%N] == null)", fieldHolder.constantName)
-//                builder.addStatement(
-//                    "map.put(%N, " + fieldHolder.ensureType(
-//                        typeConversionReturnType,
-//                        ConversionUtil.convertStringToDesiredFormat(
-//                            fieldHolder.typeMirror,
-//                            fieldHolder.defaultValue
-//                        ) + ", %N",
-//                        fieldHolder.constantName
-//                    ) + "!!)",
-//                    fieldHolder.constantName
-//                )
-//                builder.endControlFlow()
             }
         }
         builder.addStatement("), map)")
