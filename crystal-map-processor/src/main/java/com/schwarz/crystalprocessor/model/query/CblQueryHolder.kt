@@ -1,7 +1,6 @@
 package com.schwarz.crystalprocessor.model.query
 
 import com.schwarz.crystalprocessor.generation.model.CblReduceGeneration
-import com.schwarz.crystalprocessor.generation.model.TypeConversionMethodsGeneration
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.model.field.CblFieldHolder
 import com.schwarz.crystalprocessor.util.TypeUtil
@@ -11,6 +10,7 @@ import com.squareup.kotlinpoet.jvm.throws
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystalapi.query.Query
+import com.schwarz.crystalapi.util.CrystalWrap
 import org.apache.commons.lang3.text.WordUtils
 
 /**
@@ -76,8 +76,9 @@ class CblQueryHolder(private val mQuery: Query) {
     ) {
         val classForTypeConversion = fieldHolder.evaluateClazzForTypeConversion()
         addStatement(
-            "queryParams[%N] = ${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}(%N, %N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
+            "queryParams[%N] = %T.write(%N, %N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
             fieldHolder.constantName,
+            CrystalWrap::class,
             value,
             fieldHolder.constantName,
             classForTypeConversion

@@ -70,7 +70,6 @@ class CommonInterfaceGeneration {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.addFunctions(fromMapRepresent(holder))
         companionSpec.addFunctions(toMapRepresent(holder))
-        companionSpec.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
 
         typeBuilder.addType(companionSpec.build())
 

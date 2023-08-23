@@ -1,16 +1,15 @@
 package com.schwarz.crystalprocessor.model.field
 
 import com.schwarz.crystalprocessor.generation.model.KDocGeneration
-import com.schwarz.crystalprocessor.generation.model.TypeConversionMethodsGeneration
 import com.schwarz.crystalprocessor.model.deprecated.DeprecatedModel
 import com.schwarz.crystalprocessor.util.TypeUtil
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.util.CrystalWrap
 import org.apache.commons.lang3.StringUtils
 
 class CblFieldHolder(field: Field, allWrappers: List<String>) :
@@ -75,71 +74,38 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
 
         deprecated?.addDeprecated(dbField, propertyBuilder)
 
-        val docName = if (useMDocChanges) "mDocChanges" else "mDoc"
+        val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
 
         if (isTypeOfSubEntity) {
-            val castType =
-                if (isSubEntityIsTypeParam) TypeUtil.listWithMutableMapStringAnyNullable() else TypeUtil.mutableMapStringAnyNullable()
-
-            if (useMDocChanges) {
-                getter.addCode(
-                    CodeBlock.builder()
-                        .beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
-                        .addStatement(
-                            "return·%T.fromMap(mDocChanges.get(%N) as? %T)",
-                            subEntityTypeName,
-                            constantName,
-                            castType
-                        ).endControlFlow().build()
+            if (isIterable) {
+                getter.addStatement(
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})", CrystalWrap::class, subEntityTypeName, constantName, subEntityTypeName, subEntityTypeName
+                )
+                setter.addStatement(
+                    "%T.setList(%N, %N, value, %T::class, {%T.toMap(it)})", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, subEntityTypeName, subEntityTypeName
+                )
+            } else {
+                getter.addStatement(
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})", CrystalWrap::class, subEntityTypeName, constantName, subEntityTypeName, subEntityTypeName
+                )
+                setter.addStatement(
+                    "%T.set(%N, %N, value, %T::class, {%T.toMap(it)})", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, subEntityTypeName, subEntityTypeName
                 )
             }
-            getter.addCode(
-                CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName)
-                    /** In case the key for the subentity is set but the value is null it would result in a classcastexception since null can't be cast to any type*/
-                    .addStatement(
-                        "return·%T.fromMap(mDoc.get(%N) as? %T)",
-                        subEntityTypeName,
-                        constantName,
-                        castType
-                    ).endControlFlow().build()
-            )
-
-            getter.addStatement("return null")
-
-            setter.addStatement(
-                "%N.put(%N, %T.toMap(value))", docName, constantName, subEntityTypeName
-            )
         } else {
-
             val forTypeConversion = evaluateClazzForTypeConversion()
-            if (useMDocChanges) {
-                getter.addCode(
-                    CodeBlock.builder()
-                        .beginControlFlow("if(mDocChanges.containsKey(%N))", constantName)
-                        .addStatement(
-                            "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDocChanges.get(%N), %N, %T::class)",
-                            constantName, constantName,
-                            forTypeConversion
-                        ).endControlFlow().build()
+            if (isIterable) {
+                getter.addStatement(
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)", CrystalWrap::class, fieldType, constantName, forTypeConversion
+                )
+            } else {
+                getter.addStatement(
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class)", CrystalWrap::class, fieldType, constantName, forTypeConversion
                 )
             }
 
-            getter.addCode(
-                CodeBlock.builder().beginControlFlow("if(mDoc.containsKey(%N))", constantName)
-                    .addStatement(
-                        "return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N), %N, %T::class)",
-                        constantName, constantName,
-                        forTypeConversion
-                    ).endControlFlow().build()
-            )
-
-            getter.addStatement("return null")
-
             setter.addStatement(
-                "%N.put(%N, " + TypeConversionMethodsGeneration.WRITE_METHOD_NAME + "(value, %N, %T::class))",
-                docName,
-                constantName, constantName,
-                forTypeConversion
+                "%T.set(%N, %N, value, %T::class)", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, forTypeConversion
             )
         }
 
@@ -148,16 +114,6 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         }
 
         return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
-    }
-
-    fun ensureType(resultType: TypeName, format: String, vararg args: Any?): CodeBlock {
-        val forTypeConversion = evaluateClazzForTypeConversion()
-        return CodeBlock.of(
-            "${TypeConversionMethodsGeneration.WRITE_METHOD_NAME}<%T>($format, %T::class)",
-            resultType,
-            *args,
-            forTypeConversion
-        )
     }
 
     override fun builderSetter(

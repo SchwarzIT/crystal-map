@@ -3,6 +3,7 @@ package com.schwarz.crystaldemo.entity
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversion
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
+import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystaldemo.UnitTestConnector
 import com.schwarz.crystaldemo.entity.ProductCategory.AMAZING_PRODUCT
 import com.schwarz.crystaldemo.logger.TestAppender
@@ -85,7 +86,7 @@ class ProductEntityTest {
      */
     @Test
     fun `data type changed at runtime test suppress exception`() {
-        ProductEntity.write<String>(1, EXAMPLE_TYPE, String::class)
+        CrystalWrap.write<String>(1, EXAMPLE_TYPE, String::class)
         assertEquals(
             (logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message,
             dataTypeErrorMsg.invoke(EXAMPLE_TYPE, 1::class.simpleName, String::class.simpleName)
@@ -94,7 +95,7 @@ class ProductEntityTest {
 
     @Test
     fun `data type consistent`() {
-        ProductEntity.write<Int>(1, EXAMPLE_TYPE, Int::class)
+        CrystalWrap.write<Int>(1, EXAMPLE_TYPE, Int::class)
         assertNull((logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message)
     }
 }

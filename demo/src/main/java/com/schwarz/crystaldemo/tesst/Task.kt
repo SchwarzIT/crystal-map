@@ -31,7 +31,8 @@ open class Task {
         }
 
         @GenerateAccessor
-        fun ultraComplexQuery(storeId: String) {
+        fun ultraComplexQuery(storeId: String): String {
+            return ""
         }
     }
 //

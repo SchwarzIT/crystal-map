@@ -1,7 +1,6 @@
 package com.schwarz.crystalprocessor.model.field
 
 import com.schwarz.crystalprocessor.generation.model.KDocGeneration
-import com.schwarz.crystalprocessor.generation.model.TypeConversionMethodsGeneration
 import com.schwarz.crystalprocessor.javaToKotlinType
 import com.schwarz.crystalprocessor.model.deprecated.DeprecatedModel
 import com.schwarz.crystalprocessor.util.ConversionUtil
@@ -11,6 +10,7 @@ import com.squareup.kotlinpoet.*
 import java.util.Arrays
 
 import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.util.CrystalWrap
 
 /**
  * Created by sbra0902 on 21.06.17.
@@ -36,8 +36,10 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
 
+        val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
+
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
-            .getter(FunSpec.getterBuilder().addStatement("return " + TypeConversionMethodsGeneration.READ_METHOD_NAME + "(mDoc.get(%N),%N, %T::class)!!", constantName, constantName, fieldType).build())
+            .getter(FunSpec.getterBuilder().addStatement("return %T.get<%T>($mDocPhrase, %N, %T::class)!!", CrystalWrap::class, fieldType, constantName, fieldType).build())
 
         deprecated?.addDeprecated(dbField, builder)
         if (comment.isNotEmpty()) {

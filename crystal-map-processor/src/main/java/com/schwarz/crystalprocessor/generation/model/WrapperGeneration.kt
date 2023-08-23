@@ -28,7 +28,7 @@ class WrapperGeneration {
             .addFunction(constructorMap())
             .addFunction(constructorDefault())
             .superclass(holder.sourceElement.typeName)
-            .addFunction(BuilderClassGeneration.generateBuilderFun())
+            .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
@@ -57,7 +57,6 @@ class WrapperGeneration {
         companionSpec.addFunctions(fromMap(holder))
         companionSpec.addFunctions(toMap(holder))
         companionSpec.addFunctions(create(holder))
-        companionSpec.addFunctions(TypeConversionMethodsGeneration(useSuspend).generate())
         typeBuilder.addType(companionSpec.build())
         typeBuilder.addFunction(RebindMethodGeneration().generate(false))
         typeBuilder.addType(builderBuilder.build())
