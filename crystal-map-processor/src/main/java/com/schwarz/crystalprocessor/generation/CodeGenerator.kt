@@ -21,7 +21,7 @@ class CodeGenerator(private val filer: Filer) {
         }
 
         val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]
-        val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
+        val fileWithHeader = entityToGenerate.toBuilder().addComment(HEADER).build()
 
         // used for kapt returns null for legacy annotationprocessor declarations
         if (codePath != null) {
