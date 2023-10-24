@@ -24,7 +24,8 @@ class CommentActivity : AppCompatActivity() {
         val adapter = object : ArrayAdapter<String?>(
             this,
             R.layout.comment_item_view,
-            R.id.txt_comment, map(data)
+            R.id.txt_comment,
+            map(data)
         ) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent)
@@ -77,6 +78,7 @@ class CommentActivity : AppCompatActivity() {
 
     companion object {
         private val TAG = CommentActivity::class.java.name
+
         @JvmStatic
         fun buildIntent(activity: MainActivity?, id: String?): Intent {
             val intent = Intent(activity, CommentActivity::class.java)

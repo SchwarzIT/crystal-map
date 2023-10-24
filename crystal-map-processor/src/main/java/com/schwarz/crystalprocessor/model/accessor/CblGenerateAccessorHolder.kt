@@ -10,7 +10,7 @@ import com.squareup.kotlinpoet.TypeName
 class CblGenerateAccessorHolder(
     private val sourceClassTypeName: TypeName,
     private val memberFunction: SourceMemberFunction?,
-    private val memberProperty: SourceMemberField?,
+    private val memberProperty: SourceMemberField?
 ) {
 
     fun accessorFunSpec(): FunSpec? {
@@ -42,7 +42,6 @@ class CblGenerateAccessorHolder(
     }
 
     fun accessorPropertySpec(): PropertySpec? {
-
         if (memberProperty != null) {
             return PropertySpec.builder(
                 memberProperty.name,

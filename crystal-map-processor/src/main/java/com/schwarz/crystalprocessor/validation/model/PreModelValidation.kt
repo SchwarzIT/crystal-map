@@ -14,9 +14,7 @@ object PreModelValidation {
 
     @Throws(ClassNotFoundException::class)
     fun validate(entityElement: Element, logger: Logger) {
-
         if (entityElement.getAnnotation(Entity::class.java) != null || entityElement.getAnnotation(MapWrapper::class.java) != null) {
-
             if (entityElement.modifiers.contains(Modifier.PRIVATE)) {
                 logger.error(Entity::class.java.simpleName + " can not be private", entityElement)
             }
@@ -30,7 +28,6 @@ object PreModelValidation {
         val names = ArrayList<String>()
 
         for (fieldAnnotation in fields.value) {
-
             if (names.contains(fieldAnnotation.name)) {
                 logger.warn("duplicated field name", entityElement)
             }
@@ -42,9 +39,7 @@ object PreModelValidation {
         }
 
         for (member in entityElement.enclosedElements) {
-
             if (member.kind == ElementKind.CONSTRUCTOR) {
-
                 val constructor = member as Symbol.MethodSymbol
 
                 if (constructor.parameters.size != 0) {

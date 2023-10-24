@@ -66,7 +66,10 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             .copy(nullable = true)
 
         val propertyBuilder = PropertySpec.builder(
-            accessorSuffix(), returnType.copy(true), KModifier.PUBLIC, KModifier.OVERRIDE
+            accessorSuffix(),
+            returnType.copy(true),
+            KModifier.PUBLIC,
+            KModifier.OVERRIDE
         ).mutable(true)
 
         val getter = FunSpec.getterBuilder()
@@ -79,33 +82,65 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         if (isTypeOfSubEntity) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})", CrystalWrap::class, subEntityTypeName, constantName, subEntityTypeName, subEntityTypeName
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})",
+                    CrystalWrap::class,
+                    subEntityTypeName,
+                    constantName,
+                    subEntityTypeName,
+                    subEntityTypeName
                 )
                 setter.addStatement(
-                    "%T.setList(%N, %N, value, %T::class, {%T.toMap(it)})", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, subEntityTypeName, subEntityTypeName
+                    "%T.setList(%N, %N, value, %T::class, {%T.toMap(it)})",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName,
+                    subEntityTypeName,
+                    subEntityTypeName
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})", CrystalWrap::class, subEntityTypeName, constantName, subEntityTypeName, subEntityTypeName
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})",
+                    CrystalWrap::class,
+                    subEntityTypeName,
+                    constantName,
+                    subEntityTypeName,
+                    subEntityTypeName
                 )
                 setter.addStatement(
-                    "%T.set(%N, %N, value, %T::class, {%T.toMap(it)})", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, subEntityTypeName, subEntityTypeName
+                    "%T.set(%N, %N, value, %T::class, {%T.toMap(it)})",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName,
+                    subEntityTypeName,
+                    subEntityTypeName
                 )
             }
         } else {
             val forTypeConversion = evaluateClazzForTypeConversion()
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)", CrystalWrap::class, fieldType, constantName, forTypeConversion
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)",
+                    CrystalWrap::class,
+                    fieldType,
+                    constantName,
+                    forTypeConversion
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class)", CrystalWrap::class, fieldType, constantName, forTypeConversion
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class)",
+                    CrystalWrap::class,
+                    fieldType,
+                    constantName,
+                    forTypeConversion
                 )
             }
 
             setter.addStatement(
-                "%T.set(%N, %N, value, %T::class)", CrystalWrap::class, if (useMDocChanges) "mDocChanges" else "mDoc", constantName, forTypeConversion
+                "%T.set(%N, %N, value, %T::class)",
+                CrystalWrap::class,
+                if (useMDocChanges) "mDocChanges" else "mDoc",
+                constantName,
+                forTypeConversion
             )
         }
 
@@ -134,7 +169,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         }
 
         if (deprecated?.addDeprecatedBuilderSetter(
-                dbField, builder
+                dbField,
+                builder
             ) == true
         ) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
@@ -160,6 +196,8 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             } else {
                 fieldType
             }
-        } else TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
+        } else {
+            TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
+        }
     }
 }

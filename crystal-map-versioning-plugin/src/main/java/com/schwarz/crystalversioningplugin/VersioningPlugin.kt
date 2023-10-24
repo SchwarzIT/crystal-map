@@ -35,7 +35,6 @@ class VersioningPlugin : Plugin<Project> {
 
     private fun markCurrentSchemaAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
         task.dependsOn("build").doLast {
-
             val version: String = when {
                 project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
                 else -> System.console().readLine("insert version of release")

@@ -26,7 +26,6 @@ class DeprecatedModel(deprecated: Deprecated) {
     }
 
     fun addDeprecated(field: String, spec: PropertySpec.Builder) {
-
         if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             spec.addAnnotation(buildDeprecatedAnnotation(inUse, ""))
@@ -39,7 +38,6 @@ class DeprecatedModel(deprecated: Deprecated) {
     }
 
     fun evaluateFieldDeprecationLevel(field: String): DeprecationLevel? {
-
         if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             return evaluateDeprecationLevel(inUse)
@@ -53,7 +51,6 @@ class DeprecatedModel(deprecated: Deprecated) {
     }
 
     fun addDeprecatedFunctions(fields: Array<String>, spec: FunSpec.Builder): Boolean {
-
         return if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             spec.addAnnotation(
@@ -78,7 +75,6 @@ class DeprecatedModel(deprecated: Deprecated) {
     }
 
     fun addDeprecatedBuilderSetter(field: String, spec: FunSpec.Builder): Boolean {
-
         return if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             spec.addAnnotation(buildDeprecatedAnnotation(inUse, ""))
@@ -114,12 +110,13 @@ class DeprecatedModel(deprecated: Deprecated) {
     }
 
     fun addDeprecated(spec: TypeSpec.Builder) {
-
         if (deprecationType == DeprecationType.ENTITY_DEPRECATION || deprecationType == DeprecationType.ENTITY_DEPRECATION_NOT_IN_USE) {
             val replacedBy = replacedByTypeMirror?.let {
                 if (it.toString() != Void::class.java.canonicalName) {
                     it.toString()
-                } else ""
+                } else {
+                    ""
+                }
             } ?: ""
 
             spec.addAnnotation(buildDeprecatedAnnotation(true, replacedBy))

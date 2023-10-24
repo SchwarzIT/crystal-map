@@ -10,7 +10,6 @@ import java.util.*
 class WrapperGeneration {
 
     fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
-
         val companionSpec = TypeSpec.companionObjectBuilder()
 
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
@@ -46,7 +45,6 @@ class WrapperGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-
             companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
             fieldHolder.builderSetter(null, holder.sourcePackage, holder.entitySimpleName, false, holder.deprecated)?.let {
@@ -126,7 +124,6 @@ class WrapperGeneration {
     }
 
     private fun create(holder: WrapperEntityHolder): List<FunSpec> {
-
         return Arrays.asList(
             FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement(
                 "return %N(doc)",
@@ -134,7 +131,8 @@ class WrapperGeneration {
             ).returns(holder.entityTypeName).build(),
             FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement(
                 "return %N(%T())",
-                holder.entitySimpleName, TypeUtil.hashMapStringAnyNullable()
+                holder.entitySimpleName,
+                TypeUtil.hashMapStringAnyNullable()
             ).returns(holder.entityTypeName).build()
         )
     }

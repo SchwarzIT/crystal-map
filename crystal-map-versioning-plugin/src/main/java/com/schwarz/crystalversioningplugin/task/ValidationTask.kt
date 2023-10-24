@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule.*
-import com.fasterxml.jackson.module.kotlin.SingletonSupport
 import com.schwarz.crystalapi.schema.EntitySchema
 import kaufland.com.couchbaseentityversioningplugin.SchemaValidationLoggerImpl
 import kaufland.com.couchbaseentityversioningplugin.VersioningPluginExtension
@@ -23,7 +21,6 @@ open class ValidationTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-
         extension.validationClazz?.let {
             val currentVersionFile = parseVersionSchema(File(extension.currentSchema))
             val prettyPrinter = services.get(StyledTextOutputFactory::class.java)
@@ -32,7 +29,6 @@ open class ValidationTask : DefaultTask() {
             var result = true
             for (versionFile in File(extension.versionedSchemaPath).listFiles()) {
                 if (versionFile.extension == "json") {
-
                     val logger = SchemaValidationLoggerImpl()
                     validator.validate(currentVersionFile, parseVersionSchema(versionFile), logger)
                     logger.print(prettyPrinter.create("model"))

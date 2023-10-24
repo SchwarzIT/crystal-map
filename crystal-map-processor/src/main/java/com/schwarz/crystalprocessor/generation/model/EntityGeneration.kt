@@ -280,24 +280,30 @@ class EntityGeneration {
     }
 
     private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> {
-        return if (useSuspend) listOf(
-            KModifier.PUBLIC,
-            KModifier.SUSPEND
-        ) else listOf(KModifier.PUBLIC)
+        return if (useSuspend) {
+            listOf(
+                KModifier.PUBLIC,
+                KModifier.SUSPEND
+            )
+        } else {
+            listOf(KModifier.PUBLIC)
+        }
     }
 
     private fun create(holder: EntityHolder, useSuspend: Boolean): List<FunSpec> {
-
         return listOf(
             FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
                 .addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement(
                     "return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
-                    holder.entitySimpleName, PersistenceConfig::class, holder.dbName
+                    holder.entitySimpleName,
+                    PersistenceConfig::class,
+                    holder.dbName
                 ).returns(holder.entityTypeName).build(),
             FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
                 .addAnnotation(JvmStatic::class).addStatement(
                     "return %N(%T())",
-                    holder.entitySimpleName, TypeUtil.hashMapStringAny()
+                    holder.entitySimpleName,
+                    TypeUtil.hashMapStringAny()
                 ).returns(holder.entityTypeName).build(),
             FunSpec.builder("create").addModifiers(KModifier.PUBLIC)
                 .addParameter("map", TypeUtil.mutableMapStringAny()).addAnnotation(JvmStatic::class)

@@ -35,7 +35,6 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     }
 
     override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
-
         val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
 
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
@@ -50,7 +49,6 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
     }
 
     override fun createFieldConstant(): List<PropertySpec> {
-
         val fieldAccessorConstant = PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC).initializer("%S", dbField).addAnnotation(JvmField::class).build()
 
         return Arrays.asList(

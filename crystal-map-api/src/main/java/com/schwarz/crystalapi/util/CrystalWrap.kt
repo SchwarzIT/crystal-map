@@ -99,7 +99,9 @@ object CrystalWrap {
             PersistenceConfig.onTypeConversionError(
                 com.schwarz.crystalapi.TypeConversionErrorWrapper(
                     ex,
-                    fieldName, value, clazz
+                    fieldName,
+                    value,
+                    clazz
                 )
             )
             null
@@ -119,7 +121,9 @@ object CrystalWrap {
             PersistenceConfig.onTypeConversionError(
                 com.schwarz.crystalapi.TypeConversionErrorWrapper(
                     ex,
-                    fieldName, value, clazz
+                    fieldName,
+                    value,
+                    clazz
                 )
             )
             null

@@ -15,7 +15,6 @@ class CodeGenerator(private val filer: Filer) {
 
     @Throws(IOException::class)
     fun generate(entityToGenerate: FileSpec, processingEnvironment: ProcessingEnvironment) {
-
         ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
             ProcessingContext.createdQualifiedClazzNames.add(this)
         }

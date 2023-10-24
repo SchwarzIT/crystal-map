@@ -99,7 +99,6 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         onlyInclude: List<String>?
     ): List<Map<String, Any>> {
         try {
-
             val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
                 .from(DataSource.database(getDatabase(dbName)))
 
@@ -131,11 +130,9 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     private fun parseExpressions(queryParams: Map<String, Any?>): Expression? {
-
         var result: Expression? = null
 
         for (queryParam in queryParams) {
-
             val equalTo = Expression.property(queryParam.key).equalTo(
                 Expression.value(queryParam.value)
             )

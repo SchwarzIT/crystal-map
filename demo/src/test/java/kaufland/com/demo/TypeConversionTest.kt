@@ -71,7 +71,6 @@ class TypeConversionTest {
     @Test
     @Throws(Exception::class)
     fun testCustomTypeConversion() {
-
         val test =
             mapOf<String, Any>(TestClassEntity.CLAZZ_NAME to TypeConversionTest::class.simpleName!!)
         Assert.assertEquals(
