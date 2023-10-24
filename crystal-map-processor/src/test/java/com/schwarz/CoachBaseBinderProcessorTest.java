@@ -20,6 +20,7 @@ public class CoachBaseBinderProcessorTest {
     @Test
     public void testSuccessProcessing() {
 
+        @SuppressWarnings("PMD.AvoidDuplicateLiterals")
         Compilation compilation =
                 javac()
                         .withProcessors(new CoachBaseBinderProcessor())

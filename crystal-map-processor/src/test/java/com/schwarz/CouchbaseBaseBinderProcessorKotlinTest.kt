@@ -4,6 +4,7 @@ import com.schwarz.crystalprocessor.CoachBaseBinderProcessor
 import com.schwarz.testdata.TestDataHelper
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import org.jetbrains.kotlin.config.JvmTarget
 import org.junit.Assert
 import org.junit.Test
 
@@ -118,7 +119,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinAbstractGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -143,7 +143,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinAbstractGenerationWithLongFields() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -168,7 +167,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinPrivateGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -193,7 +191,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinConstructorFailGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -218,6 +215,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     private fun compileKotlin(vararg sourceFiles: SourceFile, useSuspend: Boolean = false): KotlinCompilation.Result {
         return KotlinCompilation().apply {
+            jvmTarget = JvmTarget.JVM_11.toString()
             sources = sourceFiles.toList()
 
             // pass your own instance of an annotation processor
