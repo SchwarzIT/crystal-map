@@ -3,7 +3,10 @@ package kaufland.com.couchbaseentityversioningplugin.task
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule.*
+import com.fasterxml.jackson.module.kotlin.SingletonSupport
 import com.schwarz.crystalapi.schema.EntitySchema
 import kaufland.com.couchbaseentityversioningplugin.SchemaValidationLoggerImpl
 import kaufland.com.couchbaseentityversioningplugin.VersioningPluginExtension
@@ -25,7 +28,7 @@ open class ValidationTask : DefaultTask() {
             val currentVersionFile = parseVersionSchema(File(extension.currentSchema))
             val prettyPrinter = services.get(StyledTextOutputFactory::class.java)
 
-            val validator = it.newInstance()
+            val validator = it.getDeclaredConstructor().newInstance()
             var result = true
             for (versionFile in File(extension.versionedSchemaPath).listFiles()) {
                 if (versionFile.extension == "json") {
@@ -46,7 +49,16 @@ open class ValidationTask : DefaultTask() {
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
-        val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(KotlinModule())
+        val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(
+            Builder()
+                .withReflectionCacheSize(512)
+                .configure(KotlinFeature.NullToEmptyCollection, false)
+                .configure(KotlinFeature.NullToEmptyMap, false)
+                .configure(KotlinFeature.NullIsSameAsDefault, false)
+                .configure(KotlinFeature.SingletonSupport, false)
+                .configure(KotlinFeature.StrictNullChecks, false)
+                .build()
+        )
         return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
     }
 }

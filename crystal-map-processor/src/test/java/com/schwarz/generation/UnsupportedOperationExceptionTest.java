@@ -16,6 +16,7 @@ public class UnsupportedOperationExceptionTest {
     @Test
     public void testInUse() {
 
+        @SuppressWarnings("PMD.AvoidDuplicateLiterals")
         Compilation compilation =
                 javac()
                         .withProcessors(new CoachBaseBinderProcessor())

@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:8.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -32,12 +32,12 @@ apply plugin: 'kotlin-kapt'
 //}
 
 android {
+    namespace = "com.schwarz.crystaldemo"
 
     defaultConfig {
         applicationId "com.schwarz.crystaldemo"
-        compileSdkVersion 33
-        minSdkVersion 26
-        targetSdkVersion 33
+        compileSdk 33
+        minSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -49,8 +49,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
 
     // workaround for "duplicate files during packaging of APK" issue:
@@ -74,6 +78,11 @@ android {
 }
 
 kapt {
+    javacOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     correctErrorTypes = true
     arguments {
         arg("crystal.entityframework.useSuspend", "false")
@@ -86,23 +95,22 @@ kapt {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
     kapt project(path: ':crystal-map-processor')
     compileOnly project(path: ':crystal-map-processor')
-    implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'com.couchbase.lite:couchbase-lite-android:2.5.3'
 
     // Test dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:3.10.0'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.4'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.1'
-    testImplementation 'ch.qos.logback:logback-classic:1.4.4'
-    kapt 'org.apache.logging.log4j:log4j-api:2.19.0'
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.11'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.7'
+    testImplementation 'ch.qos.logback:logback-classic:1.4.11'
+    kapt 'org.apache.logging.log4j:log4j-api:2.21.0'
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.5.1', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 }

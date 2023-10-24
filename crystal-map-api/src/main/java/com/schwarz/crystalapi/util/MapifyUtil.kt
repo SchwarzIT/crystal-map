@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.schwarz.crystalapi.util
 
 import com.schwarz.crystalapi.mapify.IMapifyable

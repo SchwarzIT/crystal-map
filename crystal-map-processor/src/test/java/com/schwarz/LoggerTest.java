@@ -12,9 +12,10 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 
 public class LoggerTest {
+    private final transient String messageLiteral = "message";
 
-    private ProcessingEnvironment mMock;
-    private Messager mMessagerMock;
+    private transient ProcessingEnvironment mMock;
+    private transient Messager mMessagerMock;
 
     @Before
     public void init() {
@@ -27,38 +28,36 @@ public class LoggerTest {
     @Test
     public void testWarn() {
 
-        new Logger(mMock).warn("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.WARNING, "message", null);
+        new Logger(mMock).warn(messageLiteral, null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.WARNING, messageLiteral, null);
     }
 
     @Test
     public void testError() {
 
-        new Logger(mMock).error("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "message", null);
+        new Logger(mMock).error(messageLiteral, null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, messageLiteral, null);
     }
 
     @Test
     public void testErrorAbort() {
 
         try {
-            new Logger(mMock).abortWithError("message", null, null);
+            new Logger(mMock).abortWithError(messageLiteral, null, null);
             Assert.fail("Should throw Exception");
-        } catch (RuntimeException e) {
+        } catch (RuntimeException ignored) {}
 
-        }
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "message", null);
-
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, messageLiteral, null);
     }
 
     @Test
     public void testInfo() {
 
-        new Logger(mMock).info("message");
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "message");
+        new Logger(mMock).info(messageLiteral);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, messageLiteral);
 
-        new Logger(mMock).info("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "message", null);
+        new Logger(mMock).info(messageLiteral, null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, messageLiteral, null);
     }
 
 }

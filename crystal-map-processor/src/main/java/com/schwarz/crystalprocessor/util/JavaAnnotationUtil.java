@@ -8,7 +8,8 @@ public class JavaAnnotationUtil {
 
     public static Entity createReadOnlyCopyOfEntityAnnotation(final Entity source)
     {
-        Entity annotation = new Entity()
+
+        return new Entity()
         {
 
             @Override
@@ -36,8 +37,6 @@ public class JavaAnnotationUtil {
                 return source.database();
             }
         };
-
-        return annotation;
     }
 
 }

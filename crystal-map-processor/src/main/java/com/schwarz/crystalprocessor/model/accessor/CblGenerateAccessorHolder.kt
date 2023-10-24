@@ -14,7 +14,6 @@ class CblGenerateAccessorHolder(
 ) {
 
     fun accessorFunSpec(): FunSpec? {
-
         if (memberFunction != null) {
             val methodBuilder = FunSpec.builder(memberFunction.name).addAnnotation(JvmStatic::class)
 
@@ -22,16 +21,19 @@ class CblGenerateAccessorHolder(
                 methodBuilder.addModifiers(KModifier.SUSPEND)
             }
             val callParams = arrayListOf<String>()
+
             memberFunction.parameters.forEach {
                 callParams.add(it.name)
                 methodBuilder.addParameter(it.name, it.type)
             }
 
-            methodBuilder.addStatement(
-                "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
-                sourceClassTypeName,
-                memberFunction.name
-            )
+            methodBuilder
+                .returns(memberFunction.returnTypeName)
+                .addStatement(
+                    "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
+                    sourceClassTypeName,
+                    memberFunction.name
+                )
 
             return methodBuilder.build()
         }
