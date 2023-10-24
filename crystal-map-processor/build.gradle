@@ -71,6 +71,7 @@ compileKotlin {
         jvmTarget = "11"
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "11"
