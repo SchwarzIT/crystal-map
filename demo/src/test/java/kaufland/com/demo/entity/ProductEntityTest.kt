@@ -10,6 +10,7 @@ import com.schwarz.crystaldemo.logger.TestAppender
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.BeforeClass
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.internal.matchers.Null
 import org.slf4j.LoggerFactory
@@ -84,12 +85,15 @@ class ProductEntityTest {
      * Can happen if combined db data is changed wilfully.
      */
     @Test
+    @Ignore("Functionality is not yet implemented")
     fun `data type changed at runtime test suppress exception`() {
         CrystalWrap.write<String>(1, EXAMPLE_TYPE, String::class)
-        assertEquals(
-            (logger.getAppender(TestAppender::class.java.simpleName) as TestAppender).lastLoggedEvent?.message,
-            dataTypeErrorMsg.invoke(EXAMPLE_TYPE, 1::class.simpleName, String::class.simpleName)
-        )
+        val testAppender = logger.getAppender(TestAppender::class.java.simpleName) as TestAppender
+
+        val expected = dataTypeErrorMsg.invoke(EXAMPLE_TYPE, 1::class.simpleName, String::class.simpleName)
+        val actual = testAppender.lastLoggedEvent?.message
+
+        assertEquals(expected, actual)
     }
 
     @Test

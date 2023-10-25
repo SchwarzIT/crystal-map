@@ -98,9 +98,7 @@ object PersistenceConfig {
     }
 
     fun onTypeConversionError(errorWrapper: TypeConversionErrorWrapper) {
-        (mConnector ?: mSuspendingConnector)?.let {
-            it.invokeOnError(errorWrapper)
-        }
+        (mConnector ?: mSuspendingConnector)?.invokeOnError(errorWrapper)
     }
 
     fun configure(connector: Connector) {
