@@ -20,6 +20,7 @@ import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
+import com.squareup.kotlinpoet.DelicateKotlinPoetApi
 import org.apache.commons.lang3.text.WordUtils
 import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Element
@@ -30,6 +31,7 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
 
+@OptIn(DelicateKotlinPoetApi::class)
 data class SourceModel(private val sourceElement: Element) : ISourceModel, IClassModel {
 
     override val sourceClazzSimpleName: String =

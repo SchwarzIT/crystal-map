@@ -27,14 +27,13 @@ class CblGenerateAccessorHolder(
                 methodBuilder.addParameter(it.name, it.type)
             }
 
+            // Does not specify a return type, newer versions of kotlinpoet use "Unit", see build.gradle
             methodBuilder
-                .returns(memberFunction.returnTypeName)
                 .addStatement(
                     "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
                     sourceClassTypeName,
                     memberFunction.name
                 )
-
             return methodBuilder.build()
         }
 
