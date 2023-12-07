@@ -20,7 +20,6 @@ open class ValidationTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-
         extension.validationClazz?.let {
             val currentVersionFile = parseVersionSchema(File(extension.currentSchema))
             val prettyPrinter = services.get(StyledTextOutputFactory::class.java)
@@ -29,7 +28,6 @@ open class ValidationTask : DefaultTask() {
             var result = true
             for (versionFile in File(extension.versionedSchemaPath).listFiles()) {
                 if (versionFile.extension == "json") {
-
                     val logger = SchemaValidationLoggerImpl()
                     validator.validate(currentVersionFile, parseVersionSchema(versionFile), logger)
                     logger.print(prettyPrinter.create("model"))

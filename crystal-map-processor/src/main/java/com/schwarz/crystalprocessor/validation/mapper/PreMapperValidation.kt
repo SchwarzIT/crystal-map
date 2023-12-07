@@ -10,12 +10,10 @@ object PreMapperValidation {
 
     @Throws(ClassNotFoundException::class)
     fun validate(mapperElement: Element, logger: Logger) {
-
         val getterMap: MutableMap<String, Element> = hashMapOf()
         val setterMap: MutableMap<String, Element> = hashMapOf()
         for (member in mapperElement.enclosedElements) {
             if (member.kind == ElementKind.METHOD && member.getAnnotation(Mapify::class.java) != null) {
-
                 val isGetter: Boolean = member.simpleName.toString().let { it.startsWith("get") }
 
                 val isSetter: Boolean = member.simpleName.toString().let { it.startsWith("set") }
@@ -29,7 +27,6 @@ object PreMapperValidation {
         }
 
         hashSetOf(*getterMap.keys.minus(setterMap.keys).toTypedArray(), *setterMap.keys.minus(getterMap.keys).toTypedArray()).forEach {
-
             println(it)
 
             val element = getterMap[it] ?: setterMap[it] ?: mapperElement

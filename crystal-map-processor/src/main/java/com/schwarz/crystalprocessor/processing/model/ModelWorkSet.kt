@@ -29,7 +29,6 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
     }
 
     override fun loadModels(logger: Logger, env: ProcessingEnvironment) {
-
         val allWrapperStrings = allWrapperElements.map { element -> element.toString() }
 
         for (element in allBaseModelElements) {

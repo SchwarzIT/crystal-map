@@ -118,7 +118,7 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
             .addModifiers(KModifier.OVERRIDE)
         val list: List<String> = distinctFieldAccessors(entity)
 
-        if (entity.deprecated?.addDeprecatedFunctions(*list.toTypedArray(), spec) == true) {
+        if (entity.deprecated?.addDeprecatedFunctions(list.toTypedArray(), spec) == true) {
             spec.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             spec.addStatement("return $COMPANION_BUILD_FUNCTION_NAME(${list.joinToString(separator = ",")})")

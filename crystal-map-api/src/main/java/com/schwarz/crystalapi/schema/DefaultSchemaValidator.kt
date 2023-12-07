@@ -16,9 +16,7 @@ open class DefaultSchemaValidator : SchemaValidator {
     }
 
     protected open fun validateModelLevel(current: EntitySchema?, released: EntitySchema, logger: SchemaValidationLogger): Boolean {
-
         current?.let {
-
             released.docId?.let {
                 if (current.docId?.scheme != it.scheme) {
                     logger.error(released, "forbidden DocId Schema change")

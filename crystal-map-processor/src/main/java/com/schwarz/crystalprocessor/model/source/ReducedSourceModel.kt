@@ -36,7 +36,9 @@ data class ReducedSourceModel(
         sourceModel.fieldAnnotations.toMutableList().mapNotNull {
             if (reducedModelHolder.includedElements.contains(it.name).not()) {
                 null
-            } else it
+            } else {
+                it
+            }
         }
 
     override val docIdAnnotation: DocId? =
@@ -52,7 +54,9 @@ data class ReducedSourceModel(
                 if (reducedModelHolder.includeAccessor) it.generateAccessor else null
             if (docIdSegment != null || generateAccessor != null) {
                 SourceMemberField(it.name, it.type, docIdSegment, generateAccessor)
-            } else null
+            } else {
+                null
+            }
         }
 
     override val relevantStaticFunctions: List<SourceMemberFunction> =
@@ -62,6 +66,8 @@ data class ReducedSourceModel(
                 if (reducedModelHolder.includeAccessor) it.generateAccessor else null
             if (docIdSegment != null || generateAccessor != null) {
                 SourceMemberFunction(it.name, it.isSuspend, it.returnTypeName, it.parameters, docIdSegment, generateAccessor)
-            } else null
+            } else {
+                null
+            }
         }
 }

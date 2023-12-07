@@ -7,7 +7,6 @@ import com.squareup.kotlinpoet.FunSpec
 class RebindMethodGeneration {
 
     fun generate(clearMDocChanges: Boolean): FunSpec {
-
         val explicitType = if (clearMDocChanges) TypeUtil.hashMapStringAny() else TypeUtil.linkedHashMapStringAnyNullable()
         val type = if (clearMDocChanges) TypeUtil.mapStringAny() else TypeUtil.mapStringAnyNullable()
         val rebind = FunSpec.builder("rebind").addParameter("doc", type)

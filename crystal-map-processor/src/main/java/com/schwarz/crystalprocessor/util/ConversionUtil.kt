@@ -24,9 +24,10 @@ object ConversionUtil {
     }
 
     fun convertStringToDesiredFormat(clazz: TypeMirror, value: String): String {
-
         return if (clazz.asTypeName().javaToKotlinType() == TypeUtil.string()) {
             "\"" + value + "\""
-        } else value
+        } else {
+            value
+        }
     }
 }

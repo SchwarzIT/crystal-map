@@ -4,7 +4,7 @@ import com.schwarz.crystalapi.*
 
 @Entity
 @Fields(
-    Field(name = "here_state", type = CaptureState::class, list = true),
+    Field(name = "here_state", type = CaptureState::class, list = true)
 )
 open class CaptureStateItemPosition
 

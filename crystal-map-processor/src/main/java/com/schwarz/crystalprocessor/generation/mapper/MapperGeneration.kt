@@ -18,7 +18,6 @@ import java.util.*
 class MapperGeneration {
 
     fun generate(holder: MapperHolder): FileSpec {
-
         val mapperTypeParam = holder.declaringName.asFullTypeName() ?: holder.sourceClazzTypeName
 
         val typeSpec = TypeSpec.classBuilder(holder.targetMapperSimpleName)
@@ -53,9 +52,7 @@ class MapperGeneration {
 
         val addedHelpers = mutableSetOf<String>()
         for (fieldWithTypeParam in holder.fields.values.filter { it.typeHandleMode == MapifyHolder.TypeHandleMode.MAPPER && it.declaringName.typeParams.isNotEmpty() }) {
-
             for (mapifyHelper in fieldWithTypeParam.declaringName.typeParams) {
-
                 val helperClazzName = buildHelperClazzName(mapifyHelper)
 
                 if (addedHelpers.contains(helperClazzName)) {
@@ -94,7 +91,6 @@ class MapperGeneration {
         }
 
         for (field in holder.fields.values) {
-
             typeSpec.addProperties(field.reflectionProperties(holder.sourceClazzTypeName))
 
             typeSpec.addProperty(
@@ -148,7 +144,6 @@ class MapperGeneration {
 
     @Throws(Exception::class)
     private fun resolveDeclaringName(name: ProcessingContext.DeclaringName, resolverParam: ResolverParam, accessorName: String, typeParams: List<ProcessingContext.DeclaringName>) {
-
         if (name.isProcessingType()) {
             resolverParam.fromMapBuilder.addStatement("%T.Mapper().fromMap(it as %T)", name.asTypeName()!!, TypeUtil.mapStringAny())
 
@@ -166,7 +161,6 @@ class MapperGeneration {
         }
 
         if (name.isTypeVar()) {
-
             typeParams.indexOfFirst { it.name == name.name }?.let {
                 resolverParam.fromMapBuilder.addStatement("typeParam$it.fromMap(it as %T)", TypeUtil.mapStringAny())
                 resolverParam.toMapBuilder.addStatement("typeParam$it.toMap(it)")

@@ -7,7 +7,6 @@ import com.squareup.kotlinpoet.PropertySpec
 object CblReduceGeneration {
 
     fun onlyIncludeProperty(holder: BaseEntityHolder): PropertySpec {
-
         val spec = PropertySpec.builder(PROPERTY_ONLY_INCLUDES, TypeUtil.list(TypeUtil.string()).copy(nullable = true))
 
         if (holder.isReduced) {

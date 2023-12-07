@@ -37,10 +37,11 @@ import com.schwarz.crystalapi.query.Query
     ),
     Field(name = "image", type = Blob::class),
     Field(name = "identifiers", type = String::class, list = true),
-    Field(name = "category", type = ProductCategory::class),
+    Field(name = "category", type = ProductCategory::class)
 )
 @Queries(
-    Query(fields = ["type"]), Query(fields = ["type", "category"])
+    Query(fields = ["type"]),
+    Query(fields = ["type", "category"])
 )
 @Reduces(
     Reduce(namePrefix = "Light", include = ["name", "type", "category", "image"]),

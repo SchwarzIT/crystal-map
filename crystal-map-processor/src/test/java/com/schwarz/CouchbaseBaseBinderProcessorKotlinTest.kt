@@ -2,11 +2,14 @@ package com.schwarz
 
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor
 import com.schwarz.testdata.TestDataHelper
+import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Assert
 import org.junit.Test
 
+@OptIn(ExperimentalCompilerApi::class)
 class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
@@ -118,7 +121,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinAbstractGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -141,9 +143,9 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
+    @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun testKotlinAbstractGenerationWithLongFields() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -168,7 +170,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinPrivateGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -191,9 +192,9 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertTrue(compilation.messages.contains("Entity can not be final"))
     }
 
+    @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun testKotlinConstructorFailGeneration() {
-
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
             ENTITY_HEADER +
@@ -216,13 +217,14 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertTrue(compilation.messages.contains("Entity should not have a contructor"))
     }
 
-    private fun compileKotlin(vararg sourceFiles: SourceFile, useSuspend: Boolean = false): KotlinCompilation.Result {
+    private fun compileKotlin(vararg sourceFiles: SourceFile, useSuspend: Boolean = false): JvmCompilationResult {
         return KotlinCompilation().apply {
             sources = sourceFiles.toList()
 
             // pass your own instance of an annotation processor
             annotationProcessors = listOf(CoachBaseBinderProcessor())
             correctErrorTypes = true
+            jvmTarget = "17"
 
             kaptArgs["useSuspend"] = useSuspend.toString()
             inheritClassPath = true

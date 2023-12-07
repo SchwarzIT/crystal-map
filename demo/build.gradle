@@ -1,12 +1,12 @@
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.9.21'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:8.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -33,6 +33,7 @@ apply plugin: 'kotlin-kapt'
 
 android {
 
+    namespace "com.schwarz.crystaldemo"
     defaultConfig {
         applicationId "com.schwarz.crystaldemo"
         compileSdkVersion 33
@@ -49,8 +50,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     // workaround for "duplicate files during packaging of APK" issue:

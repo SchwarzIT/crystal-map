@@ -60,14 +60,15 @@ class Application : android.app.Application() {
                         TAG,
                         "Data type manipulated: Tried to cast ${errorWrapper.value} into ${errorWrapper.`class`}"
                     )
-                } else throw errorWrapper.exception
+                } else {
+                    throw errorWrapper.exception
+                }
             }
         })
         createMockArticle()
     }
 
     private fun deleteDbIfExists() {
-
         try {
             database!!.delete()
             mDatabase = null
