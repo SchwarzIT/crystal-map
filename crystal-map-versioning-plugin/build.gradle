@@ -14,34 +14,14 @@ gradlePlugin {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
+targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_17
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-repositories {
-    mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
-    }
-}
 
 publishing {
     publications {

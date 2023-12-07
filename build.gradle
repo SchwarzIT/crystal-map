@@ -2,6 +2,7 @@
 
 buildscript {
     ext.kotlin_version = '1.9.21'
+    ext.groupName = 'com.github.SchwarzIT'
     repositories {
         google()
         mavenCentral()
@@ -41,10 +42,21 @@ subprojects {
 
 }
 
+def versionName() {
+
+    if (!hasProperty("version")) {
+        // don't care
+        return "dummy"
+    }
+
+    return property("version")
+}
+
 
 allprojects {
-    version = "dummy"
-    group = 'com.schwarz.crystal-map'
+    version = versionName()
+    group = groupName
+
     repositories {
         google()
         mavenCentral()
