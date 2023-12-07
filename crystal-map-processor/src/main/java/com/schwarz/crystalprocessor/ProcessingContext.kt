@@ -56,7 +56,9 @@ object ProcessingContext {
         fun asFullTypeName(): TypeName? = asTypeName()?.let {
             if (it is ClassName && typeParams.isNotEmpty()) {
                 it.parameterizedBy(typeParams.mapNotNull { if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() })
-            } else it
+            } else {
+                it
+            }
         }
 
         fun hasEmptyConstructor() = (typeMirror as? Type.ClassType?)?.let {

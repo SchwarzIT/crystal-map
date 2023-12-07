@@ -85,7 +85,8 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                     it.asType(),
                                     it.getAnnotation(Nullable::class.java) != null
                                 ),
-                                docSegment, accessor
+                                docSegment,
+                                accessor
                             )
                         )
                     }

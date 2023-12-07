@@ -11,7 +11,6 @@ import com.squareup.kotlinpoet.KModifier
 object CblDefaultGeneration {
 
     fun addDefaults(holder: BaseEntityHolder, useNullableMap: Boolean): FunSpec {
-
         val type =
             if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
         val valueType =
@@ -25,14 +24,14 @@ object CblDefaultGeneration {
 
         builder.addStatement("%T.addDefaults<%T, %T>(listOf(", CrystalWrap::class, typeConversionReturnType, valueType)
         for (fieldHolder in holder.fields.values) {
-
             if (fieldHolder.isDefault) {
                 builder.addStatement(
                     "arrayOf(%N, %T::class, ${ConversionUtil.convertStringToDesiredFormat(
                         fieldHolder.typeMirror,
                         fieldHolder.defaultValue
                     )}),",
-                    fieldHolder.constantName, fieldHolder.fieldType
+                    fieldHolder.constantName,
+                    fieldHolder.fieldType
                 )
             }
         }

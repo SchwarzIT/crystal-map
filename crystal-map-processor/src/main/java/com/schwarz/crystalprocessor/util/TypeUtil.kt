@@ -137,7 +137,6 @@ object TypeUtil {
     }
 
     fun parseMetaType(type: TypeMirror, list: Boolean, convertMap: Boolean, subEntity: String?): TypeName {
-
         val simpleName = if (subEntity != null && subEntity.contains(getSimpleName(type))) subEntity else getSimpleName(type)
 
         var baseType: TypeName?
@@ -158,7 +157,9 @@ object TypeUtil {
 
         return if (list) {
             list(baseType!!.javaToKotlinType())
-        } else baseType!!.javaToKotlinType()
+        } else {
+            baseType!!.javaToKotlinType()
+        }
     }
 
     fun classStar(): ParameterizedTypeName {

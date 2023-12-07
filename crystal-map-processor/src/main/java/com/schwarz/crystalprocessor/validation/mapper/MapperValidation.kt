@@ -12,10 +12,8 @@ import javax.lang.model.element.Element
 class MapperValidation(val logger: Logger, val mappers: MutableMap<String, MapperHolder>) {
 
     fun postValidate(): Boolean {
-
         for (mapper in mappers) {
             for (field in mapper.value.fields) {
-
                 val element: Element = (field.value.mapifyElement as? MapifyElementTypeField)?.let { it.element } ?: (field.value.mapifyElement as? MapifyElementTypeGetterSetter)?.let { it.getterSetter.getterElement } ?: throw Exception("unknown kind")
 
                 if (field.value.typeHandleMode == MapifyHolder.TypeHandleMode.UNKNOWN) {

@@ -20,7 +20,6 @@ class MapperWorkSet(val allMapperElements: Set<Element>) : WorkSet {
     }
 
     override fun loadModels(logger: Logger, env: ProcessingEnvironment) {
-
         for (element in allMapperElements) {
             val baseModel = MapperFactory.create(env, element)
             mapperModels[element.toString()] = baseModel

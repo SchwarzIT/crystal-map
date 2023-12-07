@@ -11,7 +11,6 @@ import com.schwarz.crystalapi.deprecated.DeprecatedField
 class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, BaseModelHolder>, val wrapperModels: MutableMap<String, WrapperEntityHolder>, val entityModels: MutableMap<String, EntityHolder>) {
 
     private fun validateQuery(baseEntityHolder: BaseEntityHolder) {
-
         for (query in baseEntityHolder.queries) {
             for (field in query.fields) {
                 if (!baseEntityHolder.fields.containsKey(field) && !baseEntityHolder.fieldConstants.containsKey(field)) {
@@ -22,7 +21,6 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
     }
 
     private fun validateDeprecated(baseEntityHolder: BaseEntityHolder) {
-
         baseEntityHolder.deprecated?.let { deprecated ->
             deprecated.replacedByTypeMirror?.toString()?.apply {
                 if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) && !entityModels.containsKey(this)) {
@@ -65,7 +63,6 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
 
     private fun validateDocId(baseEntityHolder: BaseEntityHolder) {
         baseEntityHolder.docId?.let {
-
             // we always need our variables between %
             if (it.pattern.count { it == '%' } % 2 != 0) {
                 baseEntityHolder.sourceElement.logError(logger, "all variables in a DocId should be wrapped in % e.G. %variable%")
@@ -102,7 +99,6 @@ class ModelValidation(val logger: Logger, val baseModels: MutableMap<String, Bas
     }
 
     fun postValidate(): Boolean {
-
         for (wrapper in wrapperModels) {
             validateQuery(wrapper.value)
             validateDeprecated(wrapper.value)

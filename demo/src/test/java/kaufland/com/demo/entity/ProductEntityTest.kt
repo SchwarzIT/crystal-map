@@ -45,7 +45,6 @@ object ProductEntityTestConnector : UnitTestConnector(typeConversions) {
 
     override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
         if (errorWrapper.exception is ClassCastException) {
-
             logger.error(
                 dataTypeErrorMsg.invoke(
                     errorWrapper.fieldName,

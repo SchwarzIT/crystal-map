@@ -2,8 +2,11 @@ package com.schwarz.crystalapi.util
 
 import com.schwarz.crystalapi.mapify.IMapifyable
 import org.apache.commons.codec.binary.Base64
-import java.io.*
-import java.util.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
 
 class SerializableMapifyable<T : Serializable> : IMapifyable<T?> {
     override fun fromMap(map: Map<String, Any>): T? = (map.get("serial") as? String)?.let { serializableFromMapValue<T>(it) }

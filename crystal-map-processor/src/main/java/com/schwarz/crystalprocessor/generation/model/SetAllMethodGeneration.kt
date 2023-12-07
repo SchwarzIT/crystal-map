@@ -8,7 +8,6 @@ import com.squareup.kotlinpoet.KModifier
 class SetAllMethodGeneration {
 
     fun generate(holder: BaseEntityHolder, useMDocChanges: Boolean): FunSpec {
-
         val attributeName = if (useMDocChanges) "mDocChanges" else "mDoc"
         val setAllBuilder = FunSpec.builder("setAll").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
             .addParameter("map", TypeUtil.mapStringAnyNullable()).addStatement(

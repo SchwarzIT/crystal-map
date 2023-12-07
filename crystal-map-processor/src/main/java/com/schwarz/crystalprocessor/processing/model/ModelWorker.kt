@@ -33,7 +33,8 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             schemaGenerator = SchemaGenerator(
                 it,
                 processingEnv.options.getOrDefault(
-                    CoachBaseBinderProcessor.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME, "schema.json"
+                    CoachBaseBinderProcessor.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME,
+                    "schema.json"
                 )
             )
         }
@@ -64,7 +65,6 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
     }
 
     private fun <T : BaseEntityHolder> process(models: List<T>, generatedInterfaces: MutableSet<String>, useSuspend: Boolean, generate: (T) -> FileSpec) {
-
         for (model in models) {
             generateInterface(generatedInterfaces, model, useSuspend)
             documentationGenerator?.addEntitySegments(model)

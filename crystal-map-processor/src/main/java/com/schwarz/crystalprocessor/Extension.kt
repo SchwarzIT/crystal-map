@@ -14,6 +14,9 @@ fun TypeName.javaToKotlinType(): TypeName = if (this is ParameterizedTypeName) {
 } else {
     val className = JavaToKotlinClassMap.INSTANCE
         .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
-    if (className == null) this
-    else ClassName.bestGuess(className)
+    if (className == null) {
+        this
+    } else {
+        ClassName.bestGuess(className)
+    }
 }

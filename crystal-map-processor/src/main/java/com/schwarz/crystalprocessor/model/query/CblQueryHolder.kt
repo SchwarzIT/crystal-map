@@ -36,7 +36,6 @@ class CblQueryHolder(private val mQuery: Query) {
         if (entityHolder.deprecated?.addDeprecatedFunctions(fields, builder) == true) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
-
             builder.addStatement(
                 "val queryParams = mutableMapOf<%T, %T>()",
                 TypeUtil.string(),

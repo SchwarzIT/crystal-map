@@ -26,7 +26,10 @@ object EntityFactory {
         return create(
             sourceModel,
             EntityHolder(
-                annotation.database, annotation.modifierOpen, annotation.type, sourceModel
+                annotation.database,
+                annotation.modifierOpen,
+                annotation.type,
+                sourceModel
             ),
             allWrappers,
             allBaseModels
@@ -38,7 +41,10 @@ object EntityFactory {
         allWrappers: List<String>
     ): BaseModelHolder {
         return create(
-            sourceModel, BaseModelHolder(sourceModel), allWrappers, emptyMap()
+            sourceModel,
+            BaseModelHolder(sourceModel),
+            allWrappers,
+            emptyMap()
         ) as BaseModelHolder
     }
 
@@ -62,7 +68,6 @@ object EntityFactory {
         allWrappers: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
     ): BaseEntityHolder {
-
         content.reducesModels = createReduceModels(sourceModel, content, allWrappers, allBaseModels)
         content.abstractParts = sourceModel.abstractParts
         content.comment = sourceModel.commentAnnotation?.comment ?: arrayOf()
@@ -83,7 +88,9 @@ object EntityFactory {
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
                     CblGenerateAccessorHolder(
-                        content.sourceClazzTypeName, it, null
+                        content.sourceClazzTypeName,
+                        it,
+                        null
                     )
                 )
             }
@@ -92,7 +99,9 @@ object EntityFactory {
             if (it.generateAccessor != null) {
                 content.generateAccessors.add(
                     CblGenerateAccessorHolder(
-                        content.sourceClazzTypeName, null, it
+                        content.sourceClazzTypeName,
+                        null,
+                        it
                     )
                 )
             }
@@ -163,9 +172,7 @@ object EntityFactory {
         allWrappers: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
     ) {
-
         for (cblField in sourceModel.fieldAnnotations) {
-
             if (cblField.readonly) {
                 content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {

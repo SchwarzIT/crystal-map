@@ -10,7 +10,6 @@ private const val GENERATED_REPRESENT_NAME = "Represent"
 class CommonInterfaceGeneration {
 
     fun generateModel(holder: BaseEntityHolder, useSuspend: Boolean): FileSpec {
-
         val interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
 
@@ -40,7 +39,6 @@ class CommonInterfaceGeneration {
     }
 
     private fun generateRepresent(holder: BaseModelHolder, parent: TypeSpec.Builder, useSuspend: Boolean) {
-
         val typeBuilder = TypeSpec.classBuilder(GENERATED_REPRESENT_NAME)
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PRIVATE)

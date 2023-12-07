@@ -26,7 +26,9 @@ object FieldExtractionUtil {
 
             if (annotation.replacedBy != null) {
                 throw Exception("Expected to get a MirroredTypeException")
-            } else null
+            } else {
+                null
+            }
         } catch (mte: MirroredTypeException) {
             mte.typeMirror
         }
@@ -42,7 +44,6 @@ object FieldExtractionUtil {
     }
 
     fun typeMirror(annotation: BasedOn): List<TypeMirror> {
-
         val result = mutableListOf<TypeMirror>()
 
         try {

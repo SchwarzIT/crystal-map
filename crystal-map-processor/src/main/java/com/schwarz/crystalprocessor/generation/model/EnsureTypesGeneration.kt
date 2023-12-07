@@ -8,7 +8,6 @@ import com.squareup.kotlinpoet.FunSpec
 object EnsureTypesGeneration {
 
     fun ensureTypes(holder: BaseEntityHolder, useNullableMap: Boolean): FunSpec {
-
         val explicitType =
             if (useNullableMap) TypeUtil.hashMapStringAnyNullable() else TypeUtil.hashMapStringAny()
         val type = if (useNullableMap) TypeUtil.mapStringAnyNullable() else TypeUtil.mapStringAny()
@@ -20,7 +19,6 @@ object EnsureTypesGeneration {
 
         ensureTypes.addStatement("result.putAll(%T.ensureTypes<%T>(mapOf(", CrystalWrap::class, typeConversionReturnType)
         for (field in holder.fields.values) {
-
             ensureTypes.addStatement("%N to %T::class,", field.constantName, field.evaluateClazzForTypeConversion())
         }
         ensureTypes.addStatement("), doc))")
