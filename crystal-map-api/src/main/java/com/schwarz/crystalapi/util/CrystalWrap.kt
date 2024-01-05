@@ -20,6 +20,15 @@ object CrystalWrap {
         } ?: null
     }
 
+    inline fun validate(
+        doc: MutableMap<String, Any>,
+        mandatoryFields: Array<String>
+    ) {
+        for (mandatoryField in mandatoryFields) {
+            doc[mandatoryField]!!
+        }
+    }
+
     inline fun <T> getList(
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, Any>,

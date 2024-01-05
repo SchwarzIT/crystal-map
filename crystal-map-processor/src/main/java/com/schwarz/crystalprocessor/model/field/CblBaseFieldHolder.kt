@@ -33,6 +33,9 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
     val defaultValue: String
         get() = mField.defaultValue
 
+    val mandatory: Boolean
+        get() = mField.mandatory
+
     val comment: Array<String>
         get() = mField.comment
 

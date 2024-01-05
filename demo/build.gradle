@@ -6,7 +6,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.1'
+        classpath("com.android.library:com.android.library.gradle.plugin:8.1.4")
+        classpath("com.android.application:com.android.application.gradle.plugin:8.1.4")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -103,7 +104,4 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.1'
     testImplementation 'ch.qos.logback:logback-classic:1.4.4'
     kapt 'org.apache.logging.log4j:log4j-api:2.19.0'
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
 }

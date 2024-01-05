@@ -1,5 +1,6 @@
 package com.schwarz.crystalprocessor.generation.model
 
+import com.schwarz.crystalapi.MandatoryCheck
 import com.schwarz.crystalprocessor.generation.MapifyableImplGeneration
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
@@ -11,6 +12,7 @@ class WrapperGeneration {
 
     fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
+        companionSpec.superclass(TypeUtil.wrapperCompanion(holder.entityTypeName))
 
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
@@ -18,11 +20,13 @@ class WrapperGeneration {
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PUBLIC)
             .addSuperinterface(holder.interfaceTypeName)
+            .addSuperinterface(MandatoryCheck::class)
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
             .addFunction(CblDefaultGeneration.addDefaults(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
             .addFunction(MapSupportGeneration.toMap(holder))
+            .addFunction(ValidateMethodGeneration.generate(holder, false))
             .addProperty(PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build())
             .addFunction(constructorMap())
             .addFunction(constructorDefault())
@@ -52,7 +56,6 @@ class WrapperGeneration {
             }
         }
 
-        companionSpec.addFunctions(fromMap(holder))
         companionSpec.addFunctions(toMap(holder))
         companionSpec.addFunctions(create(holder))
         typeBuilder.addType(companionSpec.build())
@@ -66,10 +69,9 @@ class WrapperGeneration {
 
     private fun toMap(holder: BaseEntityHolder): List<FunSpec> {
         val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return mutableMapOf()").endControlFlow().build()
-        val nullCheckList = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return listOf()").endControlFlow().build()
 
         return Arrays.asList(
-            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
+            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
                 .addParameter("obj", holder.entityTypeName.copy(nullable = true)).returns(TypeUtil.mutableMapStringAny())
                 .addAnnotation(JvmStatic::class)
                 .addCode(nullCheck).addStatement("var result = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
@@ -77,40 +79,6 @@ class WrapperGeneration {
                 .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
                 .endControlFlow()
                 .addStatement("return result").build(),
-
-            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.list(holder.entityTypeName).copy(nullable = true)).addAnnotation(JvmStatic::class)
-                .returns(TypeUtil.listWithMutableMapStringAny()).addCode(nullCheckList)
-                .addStatement("var result = %T()", TypeUtil.arrayListWithMutableMapStringAny())
-                .addCode(
-                    CodeBlock.builder()
-                        .beginControlFlow("for(entry in obj)")
-                        .addStatement("var temp = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
-                        .addStatement("temp.putAll(%N.toMap(entry)!!)", holder.entitySimpleName)
-                        .addStatement("result.add(temp)", holder.entitySimpleName).endControlFlow().build()
-                )
-                .addStatement("return result").build()
-        )
-    }
-
-    private fun fromMap(holder: BaseEntityHolder): List<FunSpec> {
-        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
-
-        return Arrays.asList(
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
-                .returns(holder.entityTypeName.copy(nullable = true)).addCode(nullCheck)
-                .addStatement("return %T(obj)", holder.entityTypeName).build(),
-
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
-                .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
-                .returns(TypeUtil.list(holder.entityTypeName).copy(nullable = true)).addCode(nullCheck)
-                .addStatement("var result = %T()", TypeUtil.arrayList(holder.entityTypeName))
-                .addCode(
-                    CodeBlock.builder().beginControlFlow("for(entry in obj)")
-                        .addStatement("result.add(%N(entry))", holder.entitySimpleName)
-                        .endControlFlow().build()
-                ).addStatement("return result").build()
         )
     }
 
@@ -125,11 +93,11 @@ class WrapperGeneration {
 
     private fun create(holder: WrapperEntityHolder): List<FunSpec> {
         return Arrays.asList(
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement(
+            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement(
                 "return %N(doc)",
                 holder.entitySimpleName
             ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class).addStatement(
+            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE).addAnnotation(JvmStatic::class).addStatement(
                 "return %N(%T())",
                 holder.entitySimpleName,
                 TypeUtil.hashMapStringAnyNullable()
