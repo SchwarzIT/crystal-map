@@ -40,7 +40,7 @@ class SchemaGenerator(path: String, val fileName: String) {
 
     private fun DeprecatedModel.deprecatedToSchema(): DeprecatedSchema = DeprecatedSchema(replacedBy = this.replacedByTypeMirror.toString(), inUse = this.deprecationType == DeprecationType.FIELD_DEPRECATION || this.deprecationType == DeprecationType.ENTITY_DEPRECATION, deprecatedFields = this.deprecatedFields.values.map { DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse) })
 
-    private fun List<CblBaseFieldHolder>.fieldsToSchemaList(): List<Fields> = map { Fields(dbField = it.dbField, fieldType = it.fieldType.toString(), isIterable = it.isIterable, isConstant = it.isConstant, defaultValue = it.defaultValue, mandatory = (if(it.mandatory) true else null)) }
+    private fun List<CblBaseFieldHolder>.fieldsToSchemaList(): List<Fields> = map { Fields(dbField = it.dbField, fieldType = it.fieldType.toString(), isIterable = it.isIterable, isConstant = it.isConstant, defaultValue = it.defaultValue, mandatory = (if (it.mandatory) true else null)) }
 
     private fun List<CblQueryHolder>.queriesToSchemaList(): List<Queries> = map { Queries(it.fields.asList()) }
 }

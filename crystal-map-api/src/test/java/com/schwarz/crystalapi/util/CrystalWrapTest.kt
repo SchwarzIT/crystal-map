@@ -6,13 +6,11 @@ import org.junit.Test
 class CrystalWrapTest {
     @Test
     fun `test validate throws exception on null value`() {
-
         val values = mutableMapOf<String, Any>("foo" to "bar")
-        try{
+        try {
             CrystalWrap.validate(values, arrayOf("foo", "foobar"))
             Assert.fail("there should be an exception")
-        }catch (e: NullPointerException){
-
+        } catch (e: NullPointerException) {
         }
     }
 }

@@ -78,7 +78,7 @@ class WrapperGeneration {
                 .beginControlFlow("obj.mDoc.forEach")
                 .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
                 .endControlFlow()
-                .addStatement("return result").build(),
+                .addStatement("return result").build()
         )
     }
 

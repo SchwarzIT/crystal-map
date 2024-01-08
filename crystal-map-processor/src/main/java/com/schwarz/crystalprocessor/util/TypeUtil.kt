@@ -80,11 +80,11 @@ object TypeUtil {
         return ClassName("kotlin.collections", "List").parameterizedBy(typeName)
     }
 
-    fun crystalCreator(valueType: TypeName, type: TypeName): ParameterizedTypeName{
+    fun crystalCreator(valueType: TypeName, type: TypeName): ParameterizedTypeName {
         return CrystalCreator::class.asTypeName().parameterizedBy(listOf(type, valueType))
     }
 
-    fun wrapperCompanion(type: TypeName): ParameterizedTypeName{
+    fun wrapperCompanion(type: TypeName): ParameterizedTypeName {
         return WrapperCompanion::class.asTypeName().parameterizedBy(type)
     }
 

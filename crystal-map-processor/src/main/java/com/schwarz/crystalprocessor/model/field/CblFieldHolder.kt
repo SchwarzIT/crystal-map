@@ -52,7 +52,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
     ): PropertySpec {
         var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
-        if(mandatory.not()){
+        if (mandatory.not()) {
             returnType = returnType.copy(nullable = true)
         }
 
@@ -72,7 +72,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
     ): PropertySpec {
         var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
-        if(mandatory.not()){
+        if (mandatory.not()) {
             returnType = returnType.copy(nullable = true)
         }
 
@@ -213,7 +213,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
     }
 
     private fun String.forceCastIfMandatory(mandatory: Boolean): String {
-        if(mandatory){
+        if (mandatory) {
             return "$this!!"
         }
         return this
