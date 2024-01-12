@@ -13,6 +13,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.jvm.throws
 import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.MandatoryCheck
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 
@@ -31,6 +32,7 @@ class EntityGeneration {
 
     fun generateModel(holder: EntityHolder, useSuspend: Boolean): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
+        companionSpec.superclass(TypeUtil.crystalCreator(TypeUtil.any(), holder.entityTypeName))
         companionSpec.addProperty(idConstant())
         companionSpec.addProperty(CblReduceGeneration.onlyIncludeProperty(holder))
         companionSpec.addFunctions(create(holder, useSuspend))
@@ -58,10 +60,12 @@ class EntityGeneration {
             .addModifiers(KModifier.PUBLIC)
             .addSuperinterface(TypeUtil.iEntity())
             .addSuperinterface(holder.interfaceTypeName)
+            .addSuperinterface(MandatoryCheck::class)
             .addProperty(holder.dbNameProperty())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
             .addFunction(CblDefaultGeneration.addDefaults(holder, false))
             .addFunction(CblConstantGeneration.addConstants(holder, false))
+            .addFunction(ValidateMethodGeneration.generate(holder, true))
             .addProperty(
                 PropertySpec.builder(
                     "mDoc",
@@ -250,11 +254,16 @@ class EntityGeneration {
             .throws(PersistenceException::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
-        if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), saveBuilder) == true) {
+        if (holder.deprecated?.addDeprecatedFunctions(
+                idFields.toTypedArray(),
+                saveBuilder
+            ) == true
+        ) {
             saveBuilder.addStatement("// workaround for kotlin poet to create brackets")
             saveBuilder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             saveBuilder.addStatement("val doc = toMap()")
+            saveBuilder.addStatement("validate()")
             var idResolve = "getId()"
 
             holder.docId?.let {
@@ -299,13 +308,13 @@ class EntityGeneration {
                     PersistenceConfig::class,
                     holder.dbName
                 ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
+            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
                 .addAnnotation(JvmStatic::class).addStatement(
                     "return %N(%T())",
                     holder.entitySimpleName,
                     TypeUtil.hashMapStringAny()
                 ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC)
+            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
                 .addParameter("map", TypeUtil.mutableMapStringAny()).addAnnotation(JvmStatic::class)
                 .addStatement(
                     "return %N(map)",

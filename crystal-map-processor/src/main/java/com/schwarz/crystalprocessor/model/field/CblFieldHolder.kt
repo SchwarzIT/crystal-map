@@ -46,12 +46,20 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         }
     }
 
-    override fun interfaceProperty(isOverride: Boolean, deprecated: DeprecatedModel?): PropertySpec {
-        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
-            .copy(nullable = true)
+    override fun interfaceProperty(
+        isOverride: Boolean,
+        deprecated: DeprecatedModel?
+    ): PropertySpec {
+        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
+
+        if (mandatory.not()) {
+            returnType = returnType.copy(nullable = true)
+        }
+
         val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
-        val propertyBuilder = PropertySpec.builder(accessorSuffix(), returnType.copy(true), modifiers)
-            .mutable(true)
+        val propertyBuilder =
+            PropertySpec.builder(accessorSuffix(), returnType, modifiers)
+                .mutable(true)
         deprecated?.addDeprecated(dbField, propertyBuilder)
         return propertyBuilder.build()
     }
@@ -62,12 +70,15 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?
     ): PropertySpec {
-        val returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
-            .copy(nullable = true)
+        var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
+
+        if (mandatory.not()) {
+            returnType = returnType.copy(nullable = true)
+        }
 
         val propertyBuilder = PropertySpec.builder(
             accessorSuffix(),
-            returnType.copy(true),
+            returnType,
             KModifier.PUBLIC,
             KModifier.OVERRIDE
         ).mutable(true)
@@ -82,7 +93,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         if (isTypeOfSubEntity) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})",
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})".forceCastIfMandatory(mandatory),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
@@ -99,7 +110,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})",
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})".forceCastIfMandatory(mandatory),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
@@ -119,7 +130,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
             val forTypeConversion = evaluateClazzForTypeConversion()
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)",
+                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)".forceCastIfMandatory(mandatory),
                     CrystalWrap::class,
                     fieldType,
                     constantName,
@@ -127,7 +138,7 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class)",
+                    "return %T.get<%T>($mDocPhrase, %N, %T::class)".forceCastIfMandatory(mandatory),
                     CrystalWrap::class,
                     fieldType,
                     constantName,
@@ -199,5 +210,12 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         } else {
             TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
         }
+    }
+
+    private fun String.forceCastIfMandatory(mandatory: Boolean): String {
+        if (mandatory) {
+            return "$this!!"
+        }
+        return this
     }
 }

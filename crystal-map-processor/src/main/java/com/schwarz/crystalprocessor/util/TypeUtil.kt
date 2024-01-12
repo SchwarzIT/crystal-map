@@ -1,5 +1,6 @@
 package com.schwarz.crystalprocessor.util
 
+import com.schwarz.crystalapi.CrystalCreator
 import com.schwarz.crystalprocessor.javaToKotlinType
 import com.squareup.kotlinpoet.*
 
@@ -7,6 +8,7 @@ import javax.lang.model.type.TypeMirror
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.schwarz.crystalapi.IEntity
 import com.schwarz.crystalapi.MapSupport
+import com.schwarz.crystalapi.WrapperCompanion
 import com.schwarz.crystalapi.mapify.IMapper
 import com.schwarz.crystalapi.mapify.IMapifyable
 import com.schwarz.crystalapi.mapify.Mapifyable
@@ -76,6 +78,14 @@ object TypeUtil {
 
     fun list(typeName: TypeName): ParameterizedTypeName {
         return ClassName("kotlin.collections", "List").parameterizedBy(typeName)
+    }
+
+    fun crystalCreator(valueType: TypeName, type: TypeName): ParameterizedTypeName {
+        return CrystalCreator::class.asTypeName().parameterizedBy(listOf(type, valueType))
+    }
+
+    fun wrapperCompanion(type: TypeName): ParameterizedTypeName {
+        return WrapperCompanion::class.asTypeName().parameterizedBy(type)
     }
 
     fun arrayList(typeName: TypeName): ParameterizedTypeName {
@@ -169,4 +179,10 @@ object TypeUtil {
     fun isMap(fieldType: TypeName): Boolean {
         return fieldType.toString().startsWith("kotlin.collections.Map")
     }
+
+    fun mapOf() = MemberName("kotlin.collections", "mapOf")
+
+    fun mutableMapOf() = MemberName("kotlin.collections", "mutableMapOf")
+
+    fun arrayOf() = MemberName("kotlin", "arrayOf")
 }

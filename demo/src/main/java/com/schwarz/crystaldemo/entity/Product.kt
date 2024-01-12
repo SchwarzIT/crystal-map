@@ -27,7 +27,8 @@ import com.schwarz.crystalapi.query.Query
     Field(
         name = "name",
         type = String::class,
-        comment = ["contains the product name.", "and other infos"]
+        comment = ["contains the product name.", "and other infos"],
+        mandatory = true
     ),
     Field(
         name = "comments",

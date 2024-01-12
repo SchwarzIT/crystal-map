@@ -9,13 +9,23 @@ import com.squareup.kotlinpoet.TypeSpec
 object BuilderClassGeneration {
 
     fun generateBaseBuilder(holder: BaseEntityHolder): TypeSpec.Builder {
-        val builderBuilder = TypeSpec.classBuilder("Builder").primaryConstructor(FunSpec.constructorBuilder().addParameter("parent", holder.entityTypeName).build())
-        builderBuilder.addProperty(PropertySpec.builder("obj", holder.entityTypeName).initializer("parent").build())
-        builderBuilder.addFunction(FunSpec.builder("exit").addStatement("return obj").returns(holder.entityTypeName).build())
+        val builderBuilder = TypeSpec.classBuilder("Builder").primaryConstructor(
+            FunSpec.constructorBuilder().addParameter("parent", holder.entityTypeName).build()
+        )
+        builderBuilder.addProperty(
+            PropertySpec.builder("obj", holder.entityTypeName).initializer("parent").build()
+        )
+        builderBuilder.addFunction(
+            FunSpec.builder("exit")
+                .addStatement("obj.validate()")
+                .addStatement("return obj")
+                .returns(holder.entityTypeName).build()
+        )
         return builderBuilder
     }
 
     fun generateBuilderFun(holder: BaseEntityHolder): FunSpec {
-        return FunSpec.builder("builder").addStatement("return Builder(this)").returns(ClassName(holder.sourcePackage, "${holder.entitySimpleName}.Builder")).build()
+        return FunSpec.builder("builder").addStatement("return Builder(this)")
+            .returns(ClassName(holder.sourcePackage, "${holder.entitySimpleName}.Builder")).build()
     }
 }
