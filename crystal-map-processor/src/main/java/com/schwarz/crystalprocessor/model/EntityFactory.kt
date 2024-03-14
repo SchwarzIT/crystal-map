@@ -7,6 +7,7 @@ import com.schwarz.crystalprocessor.model.entity.BaseModelHolder
 import com.schwarz.crystalprocessor.model.entity.EntityHolder
 import com.schwarz.crystalprocessor.model.entity.ReducedModelHolder
 import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
+import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.field.CblConstantHolder
 import com.schwarz.crystalprocessor.model.field.CblFieldHolder
 import com.schwarz.crystalprocessor.model.id.DocIdHolder
@@ -16,10 +17,12 @@ import com.schwarz.crystalprocessor.model.source.ISourceModel
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 
 object EntityFactory {
+    private const val WRAPPER_SUB_ENTITY_POST_FIX = "Wrapper"
+    private const val SCHEMA_SUB_ENTITY_POST_FIX = "Schema"
 
     fun createEntityHolder(
         sourceModel: ISourceModel,
-        allWrappers: List<String>,
+        allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
     ): EntityHolder {
         val annotation = sourceModel.entityAnnotation!!
@@ -29,46 +32,64 @@ object EntityFactory {
                 annotation.database,
                 annotation.modifierOpen,
                 annotation.type,
-                sourceModel
+                sourceModel,
             ),
-            allWrappers,
-            allBaseModels
+            allWrapperPaths,
+            allBaseModels,
+            WRAPPER_SUB_ENTITY_POST_FIX,
         ) as EntityHolder
     }
 
     fun createBaseModelHolder(
         sourceModel: ISourceModel,
-        allWrappers: List<String>
+        allWrapperPaths: List<String>
     ): BaseModelHolder {
         return create(
             sourceModel,
             BaseModelHolder(sourceModel),
-            allWrappers,
-            emptyMap()
+            allWrapperPaths,
+            emptyMap(),
+            WRAPPER_SUB_ENTITY_POST_FIX,
         ) as BaseModelHolder
     }
 
     fun createChildEntityHolder(
         sourceModel: ISourceModel,
-        allWrappers: List<String>,
+        allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
     ): WrapperEntityHolder {
         val annotation = sourceModel.mapWrapperAnnotation!!
         return create(
             sourceModel,
             WrapperEntityHolder(annotation.modifierOpen, sourceModel),
-            allWrappers,
-            allBaseModels
+            allWrapperPaths,
+            allBaseModels,
+            WRAPPER_SUB_ENTITY_POST_FIX,
         ) as WrapperEntityHolder
+    }
+
+    fun createSchemaEntityHolder(
+        sourceModel: ISourceModel,
+        allSchemaClassPaths: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>
+    ): SchemaClassHolder {
+        return create(
+            sourceModel,
+            SchemaClassHolder(sourceModel),
+            allSchemaClassPaths,
+            allBaseModels,
+            SCHEMA_SUB_ENTITY_POST_FIX,
+        ) as SchemaClassHolder
     }
 
     private fun create(
         sourceModel: ISourceModel,
         content: BaseEntityHolder,
-        allWrappers: List<String>,
-        allBaseModels: Map<String, BaseModelHolder>
+        classPaths: List<String>,
+        allBaseModels: Map<String, BaseModelHolder>,
+        subEntityNamePostFix: String,
     ): BaseEntityHolder {
-        content.reducesModels = createReduceModels(sourceModel, content, allWrappers, allBaseModels)
+        content.reducesModels = createReduceModels(sourceModel, content)
         content.abstractParts = sourceModel.abstractParts
         content.comment = sourceModel.commentAnnotation?.comment ?: arrayOf()
         content.deprecated = sourceModel.deprecatedAnnotation?.let { DeprecatedModel(it) }
@@ -76,7 +97,7 @@ object EntityFactory {
         addBasedOn(sourceModel, allBaseModels, content)
 
         parseQueries(sourceModel, content)
-        parseFields(sourceModel, content, allWrappers, allBaseModels)
+        parseFields(sourceModel, content, classPaths, subEntityNamePostFix)
 
         val docId = sourceModel.docIdAnnotation
         val docIdSegments: MutableList<DocIdSegmentHolder> = mutableListOf()
@@ -116,9 +137,7 @@ object EntityFactory {
 
     private fun createReduceModels(
         sourceModel: ISourceModel,
-        content: BaseEntityHolder,
-        allWrappers: List<String>,
-        allBaseModels: Map<String, BaseModelHolder>
+        content: BaseEntityHolder
     ): List<ReducedModelHolder> {
         sourceModel.reduceAnnotations.let { reduce ->
             return reduce.map {
@@ -169,14 +188,14 @@ object EntityFactory {
     private fun parseFields(
         sourceModel: ISourceModel,
         content: BaseEntityHolder,
-        allWrappers: List<String>,
-        allBaseModels: Map<String, BaseModelHolder>
+        classPaths: List<String>,
+        subEntityNamePostFix: String
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
             if (cblField.readonly) {
                 content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
-                val cblFieldHolder = CblFieldHolder(cblField, allWrappers)
+                val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNamePostFix)
                 content.fields[cblField.name] = cblFieldHolder
             }
         }

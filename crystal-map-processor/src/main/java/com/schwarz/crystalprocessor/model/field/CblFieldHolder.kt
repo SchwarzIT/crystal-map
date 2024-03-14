@@ -12,7 +12,7 @@ import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.util.CrystalWrap
 import org.apache.commons.lang3.StringUtils
 
-class CblFieldHolder(field: Field, allWrappers: List<String>) :
+class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNamePostFix: String) :
     CblBaseFieldHolder(field.name, field) {
 
     private var subEntityPackage: String? = null
@@ -35,9 +35,9 @@ class CblFieldHolder(field: Field, allWrappers: List<String>) :
         TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
     init {
-        if (allWrappers.contains(typeMirror.toString())) {
+        if (classPaths.contains(typeMirror.toString())) {
 
-            subEntitySimpleName = TypeUtil.getSimpleName(typeMirror) + "Wrapper"
+            subEntitySimpleName = TypeUtil.getSimpleName(typeMirror) + subEntityNamePostFix
             subEntityPackage = TypeUtil.getPackage(typeMirror)
             isSubEntityIsTypeParam = field.list
         }
