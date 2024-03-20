@@ -17,8 +17,8 @@ import com.schwarz.crystalprocessor.model.source.ISourceModel
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 
 object EntityFactory {
-    private const val WRAPPER_SUB_ENTITY_POST_FIX = "Wrapper"
-    private const val SCHEMA_SUB_ENTITY_POST_FIX = "Schema"
+    private const val WRAPPER_SUB_ENTITY_SUFFIX = "Wrapper"
+    private const val SCHEMA_SUB_ENTITY_SUFFIX = "Schema"
 
     fun createEntityHolder(
         sourceModel: ISourceModel,
@@ -36,7 +36,7 @@ object EntityFactory {
             ),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_POST_FIX,
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as EntityHolder
     }
 
@@ -49,7 +49,7 @@ object EntityFactory {
             BaseModelHolder(sourceModel),
             allWrapperPaths,
             emptyMap(),
-            WRAPPER_SUB_ENTITY_POST_FIX,
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as BaseModelHolder
     }
 
@@ -64,7 +64,7 @@ object EntityFactory {
             WrapperEntityHolder(annotation.modifierOpen, sourceModel),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_POST_FIX,
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as WrapperEntityHolder
     }
 
@@ -77,7 +77,7 @@ object EntityFactory {
         SchemaClassHolder(sourceModel),
         allSchemaClassPaths,
         allBaseModels,
-        SCHEMA_SUB_ENTITY_POST_FIX,
+        SCHEMA_SUB_ENTITY_SUFFIX,
     ) as SchemaClassHolder
 
     private fun create(
@@ -85,7 +85,7 @@ object EntityFactory {
         content: BaseEntityHolder,
         classPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder>,
-        subEntityNamePostFix: String,
+        subEntityNameSuffix: String,
     ): BaseEntityHolder {
         content.reducesModels = createReduceModels(sourceModel, content)
         content.abstractParts = sourceModel.abstractParts
@@ -95,7 +95,7 @@ object EntityFactory {
         addBasedOn(sourceModel, allBaseModels, content)
 
         parseQueries(sourceModel, content)
-        parseFields(sourceModel, content, classPaths, subEntityNamePostFix)
+        parseFields(sourceModel, content, classPaths, subEntityNameSuffix)
 
         val docId = sourceModel.docIdAnnotation
         val docIdSegments: MutableList<DocIdSegmentHolder> = mutableListOf()
@@ -187,13 +187,13 @@ object EntityFactory {
         sourceModel: ISourceModel,
         content: BaseEntityHolder,
         classPaths: List<String>,
-        subEntityNamePostFix: String
+        subEntityNameSuffix: String
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
             if (cblField.readonly) {
                 content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
-                val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNamePostFix)
+                val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNameSuffix)
                 content.fields[cblField.name] = cblFieldHolder
             }
         }
