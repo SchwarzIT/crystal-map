@@ -74,10 +74,10 @@ class SchemaGeneration {
             schemaClass.addProperty(constantProperty.build())
 
             buildAndAddFieldProperty(
-                schemaClass = schemaClass,
-                fieldName = fieldName,
-                fieldObject = fieldObject,
-                schemaClassPaths = schemaClassPaths
+                schemaClass,
+                fieldName,
+                fieldObject,
+                schemaClassPaths
             )
         }
     }
@@ -89,10 +89,10 @@ class SchemaGeneration {
     ) {
         holder.fields.forEach { (fieldName, fieldObject) ->
             buildAndAddFieldProperty(
-                schemaClass = schemaClass,
-                fieldName = fieldName,
-                fieldObject = fieldObject,
-                schemaClassPaths = schemaClassPaths,
+                schemaClass,
+                fieldName,
+                fieldObject,
+                schemaClassPaths,
             )
         }
     }
