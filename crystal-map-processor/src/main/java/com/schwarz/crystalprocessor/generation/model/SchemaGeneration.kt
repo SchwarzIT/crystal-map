@@ -10,13 +10,13 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
 /**
- * This class for generation of the Schema classes.
+ * This class is responsible for generating the Schema classes.
  *
- * To generate a SchemaClass add the
+ * To generate a SchemaClass, add the following annotation to your Class:
  * ```
  * @SchemaClass
  * ```
- * annotation to your Class and all the Fields will be generated into a new File.
+ * All the fields will then be generated into a new file.
  */
 class SchemaGeneration {
     private val pathAttributeName = "path"
