@@ -163,22 +163,16 @@ class SchemaGeneration {
     private fun getOuterPropertyType(
         isIterable: Boolean,
         isObject: Boolean
-    ) = if (isIterable && isObject) {
-        CMObjectList::class.asTypeName()
-    } else if (isIterable) {
-        CMList::class.asTypeName()
-    } else if (isObject) {
-        CMObject::class.asTypeName()
-    } else {
-        CMField::class.asTypeName()
+    ) = when {
+        isIterable && isObject -> CMObjectList::class.asTypeName()
+        isIterable -> CMList::class.asTypeName()
+        isObject -> CMObject::class.asTypeName()
+        else -> CMField::class.asTypeName()
     }
 
-    private fun getInnerPropertyType(fieldObject: CblBaseFieldHolder): TypeName {
-        val name: String? = when (fieldObject) {
-            is CblFieldHolder -> fieldObject.subEntitySimpleName
-            else -> null
-        }
+    private fun getInnerPropertyType(field: CblBaseFieldHolder): TypeName {
+        val name: String? = if (field is CblFieldHolder) field.subEntitySimpleName else null
 
-        return TypeUtil.parseMetaType(fieldObject.typeMirror, false, name)
+        return TypeUtil.parseMetaType(field.typeMirror, false, name)
     }
 }
