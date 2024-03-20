@@ -72,15 +72,13 @@ object EntityFactory {
         sourceModel: ISourceModel,
         allSchemaClassPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder>
-    ): SchemaClassHolder {
-        return create(
-            sourceModel,
-            SchemaClassHolder(sourceModel),
-            allSchemaClassPaths,
-            allBaseModels,
-            SCHEMA_SUB_ENTITY_POST_FIX,
-        ) as SchemaClassHolder
-    }
+    ): SchemaClassHolder = create(
+        sourceModel,
+        SchemaClassHolder(sourceModel),
+        allSchemaClassPaths,
+        allBaseModels,
+        SCHEMA_SUB_ENTITY_POST_FIX,
+    ) as SchemaClassHolder
 
     private fun create(
         sourceModel: ISourceModel,
