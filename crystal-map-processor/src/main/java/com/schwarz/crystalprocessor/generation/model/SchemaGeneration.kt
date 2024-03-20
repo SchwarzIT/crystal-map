@@ -102,11 +102,9 @@ class SchemaGeneration {
         fieldName: String,
         fieldObject: CblBaseFieldHolder,
         schemaClassPaths: List<String>,
-    ): TypeSpec.Builder {
-        return schemaClass.addProperty(
-            buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
-        )
-    }
+    ): TypeSpec.Builder = schemaClass.addProperty(
+        buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
+    )
 
     private fun buildFieldProperty(
         fieldObject: CblBaseFieldHolder,
