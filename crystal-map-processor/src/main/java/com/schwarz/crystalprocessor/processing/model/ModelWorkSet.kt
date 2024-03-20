@@ -77,7 +77,7 @@ class ModelWorkSet(
             schemaModels[element.toString()] = schemaModel
 
             schemaModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(schemaModel.sourceElement, it), allSchemaClassPaths, baseModels)
+                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(schemaModel.sourceElement, it), allWrapperPaths, baseModels)
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
