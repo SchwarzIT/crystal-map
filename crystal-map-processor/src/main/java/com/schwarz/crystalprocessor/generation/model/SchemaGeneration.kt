@@ -169,8 +169,8 @@ class SchemaGeneration {
     }
 
     private fun getInnerPropertyType(field: CblBaseFieldHolder): TypeName {
-        val name: String? = if (field is CblFieldHolder) field.subEntitySimpleName else null
+        val subEntity = (field as? CblFieldHolder)?.subEntitySimpleName
 
-        return TypeUtil.parseMetaType(field.typeMirror, false, name)
+        return TypeUtil.parseMetaType(field.typeMirror, false, subEntity)
     }
 }
