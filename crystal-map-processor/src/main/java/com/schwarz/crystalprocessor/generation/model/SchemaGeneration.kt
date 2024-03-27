@@ -1,13 +1,24 @@
 package com.schwarz.crystalprocessor.generation.model
 
-import com.schwarz.crystalapi.schema.*
+import com.schwarz.crystalapi.schema.CMField
+import com.schwarz.crystalapi.schema.CMList
+import com.schwarz.crystalapi.schema.CMObject
+import com.schwarz.crystalapi.schema.CMObjectList
+import com.schwarz.crystalapi.schema.Schema
 import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.field.CblBaseFieldHolder
 import com.schwarz.crystalprocessor.model.field.CblFieldHolder
 import com.schwarz.crystalprocessor.util.ConversionUtil
 import com.schwarz.crystalprocessor.util.TypeUtil
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.asTypeName
 
 /**
  * This class is responsible for generating the Schema classes.
