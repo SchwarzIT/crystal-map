@@ -8,6 +8,7 @@ import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
+import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.query.Queries
@@ -16,6 +17,7 @@ import com.schwarz.crystalapi.query.Query
 @Entity(database = "mydb_db")
 @MapWrapper
 @Comment(["Hey, I just met you and this is crazy", "But here's my documentation, so read it maybe"])
+@SchemaClass
 @Fields(
     Field(
         name = "type",

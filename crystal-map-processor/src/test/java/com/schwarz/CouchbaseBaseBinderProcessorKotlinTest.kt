@@ -169,6 +169,27 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testKotlinFieldsGeneration() {
+        val subSchema = SourceFile.kotlin(
+            "Sub.kt",
+            "package com.kaufland.testModels\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "import com.schwarz.crystalapi.SchemaClass\n" +
+                    "@SchemaClass\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test_test_test\", type = Number::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
+                    ")\n" +
+                    "class Sub"
+        )
+
+        val compilation = compileKotlin(subSchema)
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
     fun testKotlinPrivateGeneration() {
         val subEntity = SourceFile.kotlin(
             "Sub.kt",
