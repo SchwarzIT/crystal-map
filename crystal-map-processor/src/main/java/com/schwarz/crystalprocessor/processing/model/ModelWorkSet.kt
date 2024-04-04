@@ -75,12 +75,6 @@ class ModelWorkSet(
         for (element in allSchemaClassElements) {
             val schemaModel = EntityFactory.createSchemaEntityHolder(SourceModel(element), allSchemaClassPaths, baseModels)
             schemaModels[element.toString()] = schemaModel
-
-            schemaModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(schemaModel.sourceElement, it), allWrapperPaths, baseModels)
-                reduced.isReduced = true
-                entityModels[reduced.entitySimpleName] = reduced
-            }
         }
 
         ModelValidation(logger, baseModels, wrapperModels, entityModels).postValidate()
