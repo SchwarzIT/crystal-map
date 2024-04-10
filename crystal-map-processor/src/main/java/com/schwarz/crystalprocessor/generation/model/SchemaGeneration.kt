@@ -58,7 +58,7 @@ class SchemaGeneration {
     private fun buildAndAddFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>,
+        schemaClassPaths: List<String>
     ) {
         buildAndAddConstantFieldProperties(holder, schemaClass, schemaClassPaths)
         buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths)
@@ -103,7 +103,7 @@ class SchemaGeneration {
                 schemaClass,
                 fieldName,
                 fieldObject,
-                schemaClassPaths,
+                schemaClassPaths
             )
         }
     }
@@ -112,7 +112,7 @@ class SchemaGeneration {
         schemaClass: TypeSpec.Builder,
         fieldName: String,
         fieldObject: CblBaseFieldHolder,
-        schemaClassPaths: List<String>,
+        schemaClassPaths: List<String>
     ): TypeSpec.Builder = schemaClass.addProperty(
         buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
     )
@@ -120,7 +120,7 @@ class SchemaGeneration {
     private fun buildFieldProperty(
         fieldObject: CblBaseFieldHolder,
         fieldName: String,
-        schemaClassPaths: List<String>,
+        schemaClassPaths: List<String>
     ): PropertySpec {
         val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
 
@@ -133,7 +133,7 @@ class SchemaGeneration {
             outerType.parameterizedBy(innerType)
         ).initializer(
             createPropertyFormat(fieldName, innerType, fieldObject.isIterable, isObject),
-            outerType,
+            outerType
         ).build()
     }
 

@@ -61,8 +61,10 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             WrapperGeneration().generateModel(it, useSuspend)
         }
 
-        process(workSet.schemas, generatedInterfaces, useSuspend) {
-            SchemaGeneration().generateModel(it, workSet.schemaClassPaths)
+        if (processingEnv.options?.getOrDefault(CoachBaseBinderProcessor.FRAMEWORK_GENERATE_SCHEMAS, "true")?.toBoolean() == true) {
+            process(workSet.schemas, generatedInterfaces, useSuspend) {
+                SchemaGeneration().generateModel(it, workSet.schemaClassPaths)
+            }
         }
 
         documentationGenerator?.generate()

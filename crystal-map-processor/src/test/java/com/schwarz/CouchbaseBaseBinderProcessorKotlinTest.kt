@@ -175,28 +175,28 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         val testObject = SourceFile.kotlin(
             "TestObject.kt",
             "package com.kaufland.testModels\n" +
-                    "import com.schwarz.crystalapi.Field\n" +
-                    "import com.schwarz.crystalapi.Fields\n" +
-                    "import com.schwarz.crystalapi.SchemaClass\n" +
-                    "@SchemaClass\n" +
-                    "class TestObject"
+                "import com.schwarz.crystalapi.Field\n" +
+                "import com.schwarz.crystalapi.Fields\n" +
+                "import com.schwarz.crystalapi.SchemaClass\n" +
+                "@SchemaClass\n" +
+                "class TestObject"
         )
         val sub = SourceFile.kotlin(
             "Sub.kt",
             "package com.kaufland.testModels\n" +
-                    "import com.kaufland.testModels.TestObject\n" +
-                    "import com.schwarz.crystalapi.Field\n" +
-                    "import com.schwarz.crystalapi.Fields\n" +
-                    "import com.schwarz.crystalapi.SchemaClass\n" +
-                    "@SchemaClass\n" +
-                    "@Fields(\n" +
-                    "Field(name = \"test_test_test\", type = Number::class),\n" +
-                    "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true),\n" +
-                    "Field(name = \"list\", type = String::class, list = true),\n" +
-                    "Field(name = \"someObject\", type = TestObject::class),\n" +
-                    "Field(name = \"objects\", type = TestObject::class, list = true),\n" +
-                    ")\n" +
-                    "class Sub"
+                "import com.kaufland.testModels.TestObject\n" +
+                "import com.schwarz.crystalapi.Field\n" +
+                "import com.schwarz.crystalapi.Fields\n" +
+                "import com.schwarz.crystalapi.SchemaClass\n" +
+                "@SchemaClass\n" +
+                "@Fields(\n" +
+                "Field(name = \"test_test_test\", type = Number::class),\n" +
+                "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true),\n" +
+                "Field(name = \"list\", type = String::class, list = true),\n" +
+                "Field(name = \"someObject\", type = TestObject::class),\n" +
+                "Field(name = \"objects\", type = TestObject::class, list = true),\n" +
+                ")\n" +
+                "class Sub"
         )
         val compilation = compileKotlin(testObject, sub)
 

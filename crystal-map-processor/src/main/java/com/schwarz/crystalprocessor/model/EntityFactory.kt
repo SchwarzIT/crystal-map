@@ -32,11 +32,11 @@ object EntityFactory {
                 annotation.database,
                 annotation.modifierOpen,
                 annotation.type,
-                sourceModel,
+                sourceModel
             ),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_SUFFIX,
+            WRAPPER_SUB_ENTITY_SUFFIX
         ) as EntityHolder
     }
 
@@ -49,7 +49,7 @@ object EntityFactory {
             BaseModelHolder(sourceModel),
             allWrapperPaths,
             emptyMap(),
-            WRAPPER_SUB_ENTITY_SUFFIX,
+            WRAPPER_SUB_ENTITY_SUFFIX
         ) as BaseModelHolder
     }
 
@@ -64,7 +64,7 @@ object EntityFactory {
             WrapperEntityHolder(annotation.modifierOpen, sourceModel),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_SUFFIX,
+            WRAPPER_SUB_ENTITY_SUFFIX
         ) as WrapperEntityHolder
     }
 
@@ -77,7 +77,7 @@ object EntityFactory {
         SchemaClassHolder(sourceModel),
         allSchemaClassPaths,
         allBaseModels,
-        SCHEMA_SUB_ENTITY_SUFFIX,
+        SCHEMA_SUB_ENTITY_SUFFIX
     ) as SchemaClassHolder
 
     private fun create(
@@ -85,7 +85,7 @@ object EntityFactory {
         content: BaseEntityHolder,
         classPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder>,
-        subEntityNameSuffix: String,
+        subEntityNameSuffix: String
     ): BaseEntityHolder {
         content.reducesModels = createReduceModels(sourceModel, content)
         content.abstractParts = sourceModel.abstractParts

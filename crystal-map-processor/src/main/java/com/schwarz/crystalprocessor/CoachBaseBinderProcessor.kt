@@ -1,7 +1,13 @@
 package com.schwarz.crystalprocessor
 
 import com.google.auto.service.AutoService
-import com.schwarz.crystalapi.*
+import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.GenerateAccessor
+import com.schwarz.crystalapi.MapWrapper
+import com.schwarz.crystalapi.Reduce
+import com.schwarz.crystalapi.Reduces
+import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
@@ -15,7 +21,12 @@ import com.schwarz.crystalprocessor.generation.CodeGenerator
 import com.schwarz.crystalprocessor.processing.Worker
 import com.schwarz.crystalprocessor.processing.mapper.MapperWorker
 import com.schwarz.crystalprocessor.processing.model.ModelWorker
-import javax.annotation.processing.*
+import javax.annotation.processing.AbstractProcessor
+import javax.annotation.processing.ProcessingEnvironment
+import javax.annotation.processing.Processor
+import javax.annotation.processing.RoundEnvironment
+import javax.annotation.processing.SupportedOptions
+import javax.annotation.processing.SupportedSourceVersion
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 
