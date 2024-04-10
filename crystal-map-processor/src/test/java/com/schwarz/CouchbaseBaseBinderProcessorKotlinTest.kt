@@ -171,7 +171,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinSchemaGeneration() {
-        val expected = File("src\\test\\resources\\ExpectedSchema.txt").readLines()
+        val expected = File("src/test/resources/ExpectedSchema.txt").readLines()
         val testObject = SourceFile.kotlin(
             "TestObject.kt",
             "package com.kaufland.testModels\n" +
