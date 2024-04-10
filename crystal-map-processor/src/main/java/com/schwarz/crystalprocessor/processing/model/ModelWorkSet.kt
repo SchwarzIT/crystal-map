@@ -4,6 +4,7 @@ import com.schwarz.crystalprocessor.Logger
 import com.schwarz.crystalprocessor.model.EntityFactory
 import com.schwarz.crystalprocessor.model.entity.BaseModelHolder
 import com.schwarz.crystalprocessor.model.entity.EntityHolder
+import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
 import com.schwarz.crystalprocessor.model.source.ReducedSourceModel
 import com.schwarz.crystalprocessor.model.source.SourceModel
@@ -13,12 +14,19 @@ import com.schwarz.crystalprocessor.validation.model.PreModelValidation
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
-class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: Set<Element>, val allBaseModelElements: Set<Element>) :
+class ModelWorkSet(
+    val allEntityElements: Set<Element>,
+    val allWrapperElements: Set<Element>,
+    val allSchemaClassElements: Set<Element>,
+    val allBaseModelElements: Set<Element>
+) :
     WorkSet {
 
     private val entityModels: MutableMap<String, EntityHolder> = HashMap()
 
     private val wrapperModels: MutableMap<String, WrapperEntityHolder> = HashMap()
+
+    private val schemaModels: MutableMap<String, SchemaClassHolder> = HashMap()
 
     private val baseModels: MutableMap<String, BaseModelHolder> = HashMap()
 
@@ -29,10 +37,10 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
     }
 
     override fun loadModels(logger: Logger, env: ProcessingEnvironment) {
-        val allWrapperStrings = allWrapperElements.map { element -> element.toString() }
+        val allWrapperPaths = allWrapperElements.map { element -> element.toString() }
 
         for (element in allBaseModelElements) {
-            val baseModel = EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperStrings)
+            val baseModel = EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperPaths)
             baseModels[element.toString()] = baseModel
         }
 
@@ -42,25 +50,31 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
         }
 
         for (element in allEntityElements) {
-            val entityModel = EntityFactory.createEntityHolder(SourceModel(element), allWrapperStrings, baseModels)
+            val entityModel = EntityFactory.createEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
             entityModels[element.toString()] = entityModel
 
             entityModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(entityModel.sourceElement, it), allWrapperStrings, baseModels)
+                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(entityModel.sourceElement, it), allWrapperPaths, baseModels)
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
 
         for (element in allWrapperElements) {
-            val wrapperModel = EntityFactory.createChildEntityHolder(SourceModel(element), allWrapperStrings, baseModels)
+            val wrapperModel = EntityFactory.createChildEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
             wrapperModels[element.toString()] = wrapperModel
 
             wrapperModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(wrapperModel.sourceElement, it), allWrapperStrings, baseModels)
+                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(wrapperModel.sourceElement, it), allWrapperPaths, baseModels)
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
+        }
+
+        val allSchemaClassPaths = allSchemaClassElements.map { element -> element.toString() }
+        for (element in allSchemaClassElements) {
+            val schemaModel = EntityFactory.createSchemaEntityHolder(SourceModel(element), allSchemaClassPaths, baseModels)
+            schemaModels[element.toString()] = schemaModel
         }
 
         ModelValidation(logger, baseModels, wrapperModels, entityModels).postValidate()
@@ -71,6 +85,12 @@ class ModelWorkSet(val allEntityElements: Set<Element>, val allWrapperElements: 
 
     val wrappers: List<WrapperEntityHolder>
         get() = wrapperModels.values.toList()
+
+    val schemas: List<SchemaClassHolder>
+        get() = schemaModels.values.toList()
+
+    val schemaClassPaths: List<String>
+        get() = schemaModels.keys.toList()
 
     val bases: List<BaseModelHolder>
         get() = baseModels.values.toList()

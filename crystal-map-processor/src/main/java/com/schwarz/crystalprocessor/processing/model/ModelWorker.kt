@@ -1,5 +1,9 @@
 package com.schwarz.crystalprocessor.processing.model
 
+import com.schwarz.crystalapi.BaseModel
+import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.SchemaClass
+import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor
 import com.schwarz.crystalprocessor.Logger
 import com.schwarz.crystalprocessor.documentation.DocumentationGenerator
@@ -7,14 +11,12 @@ import com.schwarz.crystalprocessor.documentation.EntityRelationshipGenerator
 import com.schwarz.crystalprocessor.generation.CodeGenerator
 import com.schwarz.crystalprocessor.generation.model.CommonInterfaceGeneration
 import com.schwarz.crystalprocessor.generation.model.EntityGeneration
+import com.schwarz.crystalprocessor.generation.model.SchemaGeneration
 import com.schwarz.crystalprocessor.generation.model.WrapperGeneration
 import com.schwarz.crystalprocessor.meta.SchemaGenerator
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.processing.Worker
 import com.squareup.kotlinpoet.FileSpec
-import com.schwarz.crystalapi.BaseModel
-import com.schwarz.crystalapi.Entity
-import com.schwarz.crystalapi.MapWrapper
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 
@@ -45,7 +47,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
     }
 
     override fun doWork(workSet: ModelWorkSet, useSuspend: Boolean) {
-        var generatedInterfaces = mutableSetOf<String>()
+        val generatedInterfaces = mutableSetOf<String>()
 
         for (baseModelHolder in workSet.bases) {
             generateInterface(generatedInterfaces, baseModelHolder, useSuspend)
@@ -57,6 +59,10 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
 
         process(workSet.wrappers, generatedInterfaces, useSuspend) {
             WrapperGeneration().generateModel(it, useSuspend)
+        }
+
+        process(workSet.schemas, generatedInterfaces, useSuspend) {
+            SchemaGeneration().generateModel(it, workSet.schemaClassPaths)
         }
 
         documentationGenerator?.generate()
@@ -90,6 +96,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
     override fun evaluateWorkSet(roundEnv: RoundEnvironment): ModelWorkSet = ModelWorkSet(
         allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java),
         allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java),
+        allSchemaClassElements = roundEnv.getElementsAnnotatedWith(SchemaClass::class.java),
         allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
     )
 }

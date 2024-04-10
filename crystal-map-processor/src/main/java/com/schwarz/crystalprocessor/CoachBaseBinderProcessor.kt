@@ -1,6 +1,16 @@
 package com.schwarz.crystalprocessor
 
 import com.google.auto.service.AutoService
+import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.GenerateAccessor
+import com.schwarz.crystalapi.MapWrapper
+import com.schwarz.crystalapi.Reduce
+import com.schwarz.crystalapi.Reduces
+import com.schwarz.crystalapi.SchemaClass
+import com.schwarz.crystalapi.mapify.Mapper
+import com.schwarz.crystalapi.query.Queries
+import com.schwarz.crystalapi.query.Query
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
@@ -11,17 +21,25 @@ import com.schwarz.crystalprocessor.generation.CodeGenerator
 import com.schwarz.crystalprocessor.processing.Worker
 import com.schwarz.crystalprocessor.processing.mapper.MapperWorker
 import com.schwarz.crystalprocessor.processing.model.ModelWorker
-import com.schwarz.crystalapi.*
-import com.schwarz.crystalapi.mapify.Mapper
-import com.schwarz.crystalapi.query.Queries
-import com.schwarz.crystalapi.query.Query
-import javax.annotation.processing.*
+import javax.annotation.processing.AbstractProcessor
+import javax.annotation.processing.ProcessingEnvironment
+import javax.annotation.processing.Processor
+import javax.annotation.processing.RoundEnvironment
+import javax.annotation.processing.SupportedOptions
+import javax.annotation.processing.SupportedSourceVersion
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 @AutoService(Processor::class)
-@SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME, FRAMEWORK_USE_SUSPEND_OPTION_NAME, FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME, FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME, FRAMEWORK_SCHEMA_PATH_OPTION_NAME, FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME)
+@SupportedOptions(
+    KAPT_KOTLIN_GENERATED_OPTION_NAME,
+    FRAMEWORK_USE_SUSPEND_OPTION_NAME,
+    FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME,
+    FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME,
+    FRAMEWORK_SCHEMA_PATH_OPTION_NAME,
+    FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
+)
 class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private lateinit var mLogger: Logger
@@ -81,6 +99,17 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return setOf(Field::class.java.canonicalName, Entity::class.java.canonicalName, MapWrapper::class.java.canonicalName, Queries::class.java.canonicalName, Query::class.java.canonicalName, GenerateAccessor::class.java.canonicalName, Mapper::class.java.canonicalName, Reduces::class.java.canonicalName, Reduce::class.java.canonicalName).toMutableSet()
+        return setOf(
+            Field::class.java.canonicalName,
+            Entity::class.java.canonicalName,
+            MapWrapper::class.java.canonicalName,
+            SchemaClass::class.java.canonicalName,
+            Queries::class.java.canonicalName,
+            Query::class.java.canonicalName,
+            GenerateAccessor::class.java.canonicalName,
+            Mapper::class.java.canonicalName,
+            Reduces::class.java.canonicalName,
+            Reduce::class.java.canonicalName
+        ).toMutableSet()
     }
 }
