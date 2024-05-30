@@ -32,6 +32,7 @@ import java.util.*
     Field(name = "supplier", type = Supplier::class)
 )
 @DocId("art:%storeId%:%article_no%")
+@SchemaClass
 open class StoreArticle {
     companion object {
         const val PREFIX: String = "storearticle"

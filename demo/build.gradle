@@ -92,6 +92,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
+    implementation project(path: ':dummy')
     kapt project(path: ':crystal-map-processor')
     compileOnly project(path: ':crystal-map-processor')
     implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
