@@ -6,7 +6,6 @@ import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import kotlin.reflect.KClass
 
 open class UnitTestConnector(
-    override val typeConversions: Map<KClass<*>, TypeConversion> = emptyMap()
 ) : PersistenceConfig.Connector {
     override fun deleteDocument(id: String, dbName: String) {
         // Do Nothing

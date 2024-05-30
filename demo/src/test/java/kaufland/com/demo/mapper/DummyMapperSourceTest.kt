@@ -15,8 +15,6 @@ class DummyMapperSourceTest {
     @Before
     fun init() {
         PersistenceConfig.configure(object : PersistenceConfig.Connector {
-            override val typeConversions: Map<KClass<*>, TypeConversion>
-                get() = mapOf()
 
             override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
                 return null

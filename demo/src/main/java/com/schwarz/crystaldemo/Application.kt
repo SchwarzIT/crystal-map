@@ -7,14 +7,10 @@ import com.couchbase.lite.Database
 import com.couchbase.lite.DatabaseConfiguration
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
-import com.schwarz.crystalapi.TypeConversion
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import com.schwarz.crystalcouchbaseconnector.Couchbase2Connector
-import com.schwarz.crystaldemo.customtypes.GenerateClassName
-import com.schwarz.crystaldemo.customtypes.GenerateClassNameConversion
 import com.schwarz.crystaldemo.entity.ProductEntity
 import com.schwarz.crystaldemo.entity.UserCommentWrapper
-import kotlin.reflect.KClass
 
 class Application : android.app.Application() {
 
@@ -45,14 +41,6 @@ class Application : android.app.Application() {
                 }
                 throw RuntimeException("wrong db name defined!!")
             }
-
-            override val typeConversions: Map<KClass<*>, TypeConversion>
-                get() {
-                    val mutableMapOf =
-                        mutableMapOf<KClass<*>, TypeConversion>(GenerateClassName::class to GenerateClassNameConversion())
-                    mutableMapOf.putAll(super.typeConversions)
-                    return mutableMapOf
-                }
 
             override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
                 if (errorWrapper.exception is java.lang.ClassCastException) {

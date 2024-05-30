@@ -3,64 +3,12 @@ package com.schwarz.crystalcouchbaseconnector
 import com.couchbase.lite.*
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
-import com.schwarz.crystalapi.TypeConversion
 import java.util.*
 import kotlin.jvm.Throws
-import kotlin.reflect.KClass
 
 abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
-    private val mTypeConversions = HashMap<KClass<*>, TypeConversion>()
-
     protected abstract fun getDatabase(name: String): Database
-
-    init {
-        mTypeConversions[Int::class] = object : TypeConversion {
-
-            override fun write(value: Any?): Any? {
-                return value
-            }
-
-            override fun read(value: Any?): Any? {
-                if (value is Number) {
-                    return value.toInt()
-                }
-                if (value is Iterable<*>) {
-                    val result = ArrayList<Any>()
-                    for (itValue in value) {
-                        itValue?.let {
-                            read(itValue)?.let { it1 -> result.add(it1) }
-                        }
-                    }
-                    return result
-                }
-                return value
-            }
-        }
-        mTypeConversions[Double::class] = object : TypeConversion {
-            override fun write(value: Any?): Any? {
-                return value
-            }
-
-            override fun read(value: Any?): Any? {
-                if (value is Number) {
-                    return value.toDouble()
-                }
-                if (value is Iterable<*>) {
-                    val result = ArrayList<Any>()
-                    for (itValue in value) {
-                        itValue?.let {
-                            read(itValue)?.let { it1 -> result.add(it1) }
-                        }
-                    }
-                    return result
-                }
-                return value
-            }
-        }
-    }
-
-    override val typeConversions: Map<KClass<*>, TypeConversion> = mTypeConversions
 
     override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
         val document = getDatabase(dbName).getDocument(id) ?: return null

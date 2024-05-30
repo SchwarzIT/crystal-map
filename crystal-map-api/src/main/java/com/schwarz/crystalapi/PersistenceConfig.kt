@@ -1,13 +1,10 @@
 package com.schwarz.crystalapi
 
-import kotlin.reflect.KClass
-
 object PersistenceConfig {
     private var mConnector: Connector? = null
     private var mSuspendingConnector: SuspendingConnector? = null
 
     interface Connector : TypeConversionErrorCallback {
-        val typeConversions: Map<KClass<*>, TypeConversion>
         fun getDocument(
             id: String,
             dbName: String,
@@ -39,8 +36,6 @@ object PersistenceConfig {
     }
 
     interface SuspendingConnector : TypeConversionErrorCallback {
-
-        val typeConversions: Map<KClass<*>, TypeConversion>
 
         suspend fun getDocument(
             id: String,
@@ -87,15 +82,6 @@ object PersistenceConfig {
             }
             return mSuspendingConnector!!
         }
-
-    fun getTypeConversion(type: KClass<*>): TypeConversion? {
-        if (mConnector != null) {
-            return connector.typeConversions[type]
-        } else if (mSuspendingConnector != null) {
-            return suspendingConnector.typeConversions[type]
-        }
-        throw RuntimeException("no database connector configured.. call PersistenceConfig.configure")
-    }
 
     fun onTypeConversionError(errorWrapper: TypeConversionErrorWrapper) {
         (mConnector ?: mSuspendingConnector)?.let {
