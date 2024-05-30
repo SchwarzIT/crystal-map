@@ -32,6 +32,8 @@ class CblGenerateAccessorHolder(
                 memberFunction.name
             )
 
+            methodBuilder.returns(memberFunction.returnTypeName)
+
             return methodBuilder.build()
         }
 

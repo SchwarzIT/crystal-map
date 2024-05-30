@@ -1,15 +1,16 @@
 package com.schwarz.crystalprocessor.model.field
 
+import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystalprocessor.generation.model.KDocGeneration
 import com.schwarz.crystalprocessor.model.deprecated.DeprecatedModel
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.util.TypeUtil
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
-import com.schwarz.crystalapi.Field
-import com.schwarz.crystalapi.util.CrystalWrap
 import org.apache.commons.lang3.StringUtils
 
 class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix: String) :
@@ -25,10 +26,10 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
 
     override var isIterable: Boolean = false
 
-    private val subEntityTypeName: TypeName
+    val subEntityTypeName: TypeName
         get() = ClassName(subEntityPackage!!, subEntitySimpleName!!)
 
-    private val isTypeOfSubEntity: Boolean
+    val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
     override val fieldType: TypeName =
@@ -68,7 +69,8 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
         dbName: String?,
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ): PropertySpec {
         var returnType = TypeUtil.parseMetaType(typeMirror, isIterable, subEntitySimpleName)
 
@@ -89,70 +91,112 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
         deprecated?.addDeprecated(dbField, propertyBuilder)
 
         val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
-
-        if (isTypeOfSubEntity) {
+        if (isNonConvertibleClass) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it) ?: emptyList()})".forceCastIfMandatory(mandatory),
+                    "return %T.getList<%T>($mDocPhrase, %N)".forceCastIfMandatory(
+                        mandatory
+                    ),
+                    CrystalWrap::class,
+                    fieldType,
+                    constantName
+                )
+                setter.addStatement(
+                    "%T.setList(%N, %N, value)",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName
+                )
+            } else {
+                getter.addStatement(
+                    "return %T.get<%T>($mDocPhrase, %N)".forceCastIfMandatory(
+                        mandatory
+                    ),
+                    CrystalWrap::class,
+                    fieldType,
+                    constantName
+                )
+                setter.addStatement(
+                    "%T.set(%N, %N, value)",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName
+                )
+            }
+        } else if (isTypeOfSubEntity) {
+            if (isIterable) {
+                getter.addStatement(
+                    "return %T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it) ?: emptyList()})".forceCastIfMandatory(
+                        mandatory
+                    ),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
-                    subEntityTypeName,
                     subEntityTypeName
                 )
                 setter.addStatement(
-                    "%T.setList(%N, %N, value, %T::class, {%T.toMap(it)})",
+                    "%T.setList(%N, %N, value, {%T.toMap(it)})",
                     CrystalWrap::class,
                     if (useMDocChanges) "mDocChanges" else "mDoc",
                     constantName,
-                    subEntityTypeName,
                     subEntityTypeName
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class, {%T.fromMap(it)})".forceCastIfMandatory(mandatory),
+                    "return %T.get<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
+                        mandatory
+                    ),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
-                    subEntityTypeName,
                     subEntityTypeName
                 )
                 setter.addStatement(
-                    "%T.set(%N, %N, value, %T::class, {%T.toMap(it)})",
+                    "%T.set(%N, %N, value, {%T.toMap(it)})",
                     CrystalWrap::class,
                     if (useMDocChanges) "mDocChanges" else "mDoc",
                     constantName,
-                    subEntityTypeName,
                     subEntityTypeName
                 )
             }
         } else {
-            val forTypeConversion = evaluateClazzForTypeConversion()
+            val typeConverterHolder =
+                typeConvertersByConvertedClass.get(fieldType)!!
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, %T::class)".forceCastIfMandatory(mandatory),
+                    "return %T.getList($mDocPhrase, %N, %T)".forceCastIfMandatory(
+                        mandatory
+                    ),
                     CrystalWrap::class,
-                    fieldType,
                     constantName,
-                    forTypeConversion
+                    typeConverterHolder.instanceClassTypeName
+                )
+
+                setter.addStatement(
+                    "%T.setList(%N, %N, value, %T)",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName,
+                    typeConverterHolder.instanceClassTypeName
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, %T::class)".forceCastIfMandatory(mandatory),
+                    "return %T.get($mDocPhrase, %N, %T)".forceCastIfMandatory(
+                        mandatory
+                    ),
                     CrystalWrap::class,
-                    fieldType,
                     constantName,
-                    forTypeConversion
+                    typeConverterHolder.instanceClassTypeName
+                )
+
+                setter.addStatement(
+                    "%T.set(%N, %N, value, %T)",
+                    CrystalWrap::class,
+                    if (useMDocChanges) "mDocChanges" else "mDoc",
+                    constantName,
+                    typeConverterHolder.instanceClassTypeName
                 )
             }
-
-            setter.addStatement(
-                "%T.set(%N, %N, value, %T::class)",
-                CrystalWrap::class,
-                if (useMDocChanges) "mDocChanges" else "mDoc",
-                constantName,
-                forTypeConversion
-            )
         }
 
         if (comment.isNotEmpty()) {

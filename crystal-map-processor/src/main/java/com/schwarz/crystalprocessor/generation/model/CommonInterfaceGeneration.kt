@@ -2,6 +2,7 @@ package com.schwarz.crystalprocessor.generation.model
 
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.model.entity.BaseModelHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import java.util.*
@@ -9,7 +10,7 @@ import java.util.*
 private const val GENERATED_REPRESENT_NAME = "Represent"
 class CommonInterfaceGeneration {
 
-    fun generateModel(holder: BaseEntityHolder, useSuspend: Boolean): FileSpec {
+    fun generateModel(holder: BaseEntityHolder, useSuspend: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FileSpec {
         val interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
 
@@ -31,19 +32,19 @@ class CommonInterfaceGeneration {
 
         if (holder is BaseModelHolder) {
             companionSpec.addFunctions(fromMap(holder))
-            generateRepresent(holder, interfaceSpec, useSuspend)
+            generateRepresent(holder, interfaceSpec, useSuspend, typeConvertersByConvertedClass)
         }
         interfaceSpec.addType(companionSpec.build())
 
         return FileSpec.get(holder.sourcePackage, interfaceSpec.build())
     }
 
-    private fun generateRepresent(holder: BaseModelHolder, parent: TypeSpec.Builder, useSuspend: Boolean) {
+    private fun generateRepresent(holder: BaseModelHolder, parent: TypeSpec.Builder, useSuspend: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>) {
         val typeBuilder = TypeSpec.classBuilder(GENERATED_REPRESENT_NAME)
             .addSuperinterface(TypeUtil.mapSupport())
             .addModifiers(KModifier.PRIVATE)
             .addSuperinterface(holder.interfaceTypeName)
-            .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
+            .addFunction(EnsureTypesGeneration.ensureTypes(holder, true, typeConvertersByConvertedClass))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
             .addFunction(MapSupportGeneration.toMap(holder))
@@ -62,7 +63,7 @@ class CommonInterfaceGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
+            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass))
         }
 
         val companionSpec = TypeSpec.companionObjectBuilder()

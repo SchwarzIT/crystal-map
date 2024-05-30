@@ -7,6 +7,9 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.schwarz.crystalapi.Field
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
+import com.schwarz.crystalprocessor.model.typeconverter.nonConvertibleClassesTypeNames
+import com.squareup.kotlinpoet.ParameterizedTypeName
 import org.apache.commons.lang3.text.WordUtils
 import javax.lang.model.type.TypeMirror
 
@@ -41,6 +44,12 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     abstract val fieldType: TypeName
 
+    val isNonConvertibleClass: Boolean
+        get() {
+            val rawFieldType = (fieldType as? ParameterizedTypeName)?.rawType ?: fieldType
+            return nonConvertibleClassesTypeNames.contains(rawFieldType)
+        }
+
     fun accessorSuffix(): String {
         return WordUtils.uncapitalize(
             WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "")
@@ -53,7 +62,8 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         dbName: String?,
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ): PropertySpec
 
     abstract fun builderSetter(

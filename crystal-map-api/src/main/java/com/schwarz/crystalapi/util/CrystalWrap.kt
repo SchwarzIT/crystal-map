@@ -1,26 +1,133 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.schwarz.crystalapi.util
 
+import com.schwarz.crystalapi.ITypeConverter
 import com.schwarz.crystalapi.PersistenceConfig
-import java.lang.Exception
-import kotlin.reflect.KClass
+import java.lang.ClassCastException
 
 object CrystalWrap {
 
-    inline fun <T> get(
+    inline fun <reified T> get(
         changes: MutableMap<String, Any?>,
-        doc: MutableMap<String, Any>,
+        doc: MutableMap<String, out Any?>,
         fieldName: String,
-        clazz: KClass<*>,
-        noinline mapper: ((MutableMap<String, Any?>?) -> T?)? = null
-    ): T? {
-        return (changes[fieldName] ?: doc[fieldName])?.let { value ->
-            mapper?.let {
-                mapper.invoke(value as? MutableMap<String, Any?>)
-            } ?: read(value, fieldName, clazz)
-        } ?: null
+        mapper: ((MutableMap<String, Any?>?) -> T?)
+    ): T? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            mapper.invoke(value as MutableMap<String, Any?>)
+        }
     }
 
-    inline fun validate(
+    inline fun <reified T, reified U> get(
+        changes: MutableMap<String, Any?>,
+        doc: MutableMap<String, out Any?>,
+        fieldName: String,
+        typeConverter: ITypeConverter<T, U>
+    ): T? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            typeConverter.read(value as U)
+        }
+    }
+
+    inline fun <reified T> get(
+        changes: MutableMap<String, Any?>,
+        doc: MutableMap<String, out Any?>,
+        fieldName: String
+    ): T? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            value as T
+        }
+    }
+
+    inline fun <T> getList(
+        changes: MutableMap<String, Any?>,
+        doc: MutableMap<String, out Any?>,
+        fieldName: String,
+        mapper: ((List<MutableMap<String, Any?>>?) -> List<T>)
+    ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            mapper.invoke(value as List<MutableMap<String, Any?>>)
+        }
+    }
+
+    inline fun <T, reified U> getList(
+        changes: MutableMap<String, Any?>,
+        doc: MutableMap<String, out Any?>,
+        fieldName: String,
+        typeConverter: ITypeConverter<T, U>
+    ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            ((value as List<Any>).map { it as U }).mapNotNull {
+                typeConverter.read(it)
+            }
+        }
+    }
+
+    inline fun <reified T> getList(
+        changes: MutableMap<String, Any?>,
+        doc: MutableMap<String, out Any?>,
+        fieldName: String
+    ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
+        catchTypeConversionError(fieldName, value) {
+            (value as List<Any>)
+                .map { it as T }
+        }
+    }
+
+    inline fun <T> set(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: T,
+        mapper: ((T) -> MutableMap<String, Any>)
+    ) {
+        changes[fieldName] = mapper.invoke(value)
+    }
+
+    inline fun <T> set(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: T?,
+        typeConverter: ITypeConverter<T, *>
+    ) {
+        changes[fieldName] = typeConverter.write(value)
+    }
+
+    inline fun <T> set(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: T?
+    ) {
+        changes[fieldName] = value
+    }
+
+    inline fun <T> setList(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: List<T>?,
+        mapper: ((List<T>) -> List<MutableMap<String, Any>>)
+    ) {
+        changes[fieldName] = if (value != null) mapper.invoke(value) else emptyList()
+    }
+
+    inline fun <T> setList(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: List<T>?,
+        typeConverter: ITypeConverter<T, *>
+    ) {
+        changes[fieldName] = value?.map { typeConverter.write(it) }
+    }
+
+    inline fun <T> setList(
+        changes: MutableMap<String, Any?>,
+        fieldName: String,
+        value: List<T>?
+    ) {
+        changes[fieldName] = value
+    }
+
+    fun validate(
         doc: MutableMap<String, Any>,
         mandatoryFields: Array<String>
     ) {
@@ -29,111 +136,17 @@ object CrystalWrap {
         }
     }
 
-    inline fun <T> getList(
-        changes: MutableMap<String, Any?>,
-        doc: MutableMap<String, Any>,
-        fieldName: String,
-        clazz: KClass<*>,
-        noinline mapper: ((List<MutableMap<String, Any?>>?) -> List<T>)? = null
-    ): List<T>? {
-        return (changes[fieldName] ?: doc[fieldName])?.let { value ->
-            mapper?.let {
-                mapper.invoke(value as? List<MutableMap<String, Any?>>)
-            } ?: read(value, fieldName, clazz)
-        } ?: null
-    }
-
-    fun <T> set(
-        changes: MutableMap<String, Any?>,
-        fieldName: String,
-        value: T,
-        clazz: KClass<*>,
-        mapper: ((T) -> MutableMap<String, Any>)? = null
-    ) {
-        val valueToSet = mapper?.let { it.invoke(value) } ?: write<T>(value, fieldName, clazz)
-        changes[fieldName] = valueToSet
-    }
-
-    inline fun <T> setList(
-        changes: MutableMap<String, Any?>,
-        fieldName: String,
-        value: List<T>?,
-        clazz: KClass<*>,
-        noinline mapper: ((List<T>) -> List<MutableMap<String, Any>>)? = null
-    ) {
-        val valueToSet =
-            mapper?.let { if (value != null) it.invoke(value) else emptyList() } ?: write<T>(
-                value,
+    inline fun <reified T> catchTypeConversionError(fieldName: String, value: Any, task: () -> T): T? = try {
+        task()
+    } catch (cce: ClassCastException) {
+        PersistenceConfig.onTypeConversionError(
+            com.schwarz.crystalapi.TypeConversionErrorWrapper(
+                cce,
                 fieldName,
-                clazz
+                value,
+                T::class
             )
-        changes[fieldName] = valueToSet
-    }
-
-    fun <T> ensureTypes(map: Map<String, KClass<*>>, doc: Map<String, Any?>): Map<String, Any> {
-        val result = mutableMapOf<String, Any>()
-        for (entry in map) {
-            write<T>(doc[entry.key], entry.key, entry.value)?.let {
-                result[entry.key] = it
-            }
-        }
-        return result
-    }
-
-    fun <T, V> addDefaults(list: List<Array<Any>>, doc: MutableMap<String, V>) {
-        for (entry in list) {
-            val key = entry[0] as String
-            val clazz = entry[1] as KClass<*>
-            val value = entry[2] as Any
-            if (doc[key] == null) {
-                write<T>(value, key, clazz)?.let {
-                    doc[key] = it as V
-                }
-            }
-        }
-    }
-
-    fun <T> read(
-        value: Any?,
-        fieldName: String,
-        clazz: KClass<*>
-    ): T? {
-        return try {
-            val conversion =
-                PersistenceConfig.getTypeConversion(clazz) ?: return value as T?
-            return conversion.read(value) as T?
-        } catch (ex: Exception) {
-            PersistenceConfig.onTypeConversionError(
-                com.schwarz.crystalapi.TypeConversionErrorWrapper(
-                    ex,
-                    fieldName,
-                    value,
-                    clazz
-                )
-            )
-            null
-        }
-    }
-
-    fun <T> write(
-        value: Any?,
-        fieldName: String,
-        clazz: KClass<*>
-    ): T? {
-        return try {
-            val conversion =
-                PersistenceConfig.getTypeConversion(clazz) ?: return value as T?
-            return conversion.write(value) as T?
-        } catch (ex: Exception) {
-            PersistenceConfig.onTypeConversionError(
-                com.schwarz.crystalapi.TypeConversionErrorWrapper(
-                    ex,
-                    fieldName,
-                    value,
-                    clazz
-                )
-            )
-            null
-        }
+        )
+        null
     }
 }

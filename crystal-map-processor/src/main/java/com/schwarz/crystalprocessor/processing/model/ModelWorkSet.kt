@@ -8,6 +8,10 @@ import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
 import com.schwarz.crystalprocessor.model.source.ReducedSourceModel
 import com.schwarz.crystalprocessor.model.source.SourceModel
+import com.schwarz.crystalprocessor.model.typeconverter.ImportedTypeConverterHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterExporterHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderFactory
 import com.schwarz.crystalprocessor.processing.WorkSet
 import com.schwarz.crystalprocessor.validation.model.ModelValidation
 import com.schwarz.crystalprocessor.validation.model.PreModelValidation
@@ -18,7 +22,10 @@ class ModelWorkSet(
     val allEntityElements: Set<Element>,
     val allWrapperElements: Set<Element>,
     val allSchemaClassElements: Set<Element>,
-    val allBaseModelElements: Set<Element>
+    val allBaseModelElements: Set<Element>,
+    val allTypeConverterElements: Set<Element>,
+    val allTypeConverterExporterElements: Set<Element>,
+    val allTypeConverterImporterElements: Set<Element>
 ) :
     WorkSet {
 
@@ -30,9 +37,30 @@ class ModelWorkSet(
 
     private val baseModels: MutableMap<String, BaseModelHolder> = HashMap()
 
+    private val typeConverterModels: MutableMap<String, TypeConverterHolder> = HashMap()
+
+    private val typeConverterExporterModels: MutableMap<String, TypeConverterExporterHolder> =
+        HashMap()
+
+    private val importedTypeConverterModels: MutableList<ImportedTypeConverterHolder> =
+        mutableListOf()
+
     override fun preValidate(logger: Logger) {
-        for (element in hashSetOf(*allBaseModelElements.toTypedArray(), *allEntityElements.toTypedArray(), *allWrapperElements.toTypedArray())) {
+        for (element in hashSetOf(
+            *allBaseModelElements.toTypedArray(),
+            *allEntityElements.toTypedArray(),
+            *allWrapperElements.toTypedArray()
+        )) {
             PreModelValidation.validate(element, logger)
+        }
+        allTypeConverterElements.forEach {
+            PreModelValidation.validateTypeConverter(it, logger)
+        }
+        allTypeConverterExporterElements.forEach {
+            PreModelValidation.validateTypeConverterExporter(it, logger)
+        }
+        allTypeConverterImporterElements.forEach {
+            PreModelValidation.validateTypeConverterImporter(it, logger)
         }
     }
 
@@ -40,32 +68,52 @@ class ModelWorkSet(
         val allWrapperPaths = allWrapperElements.map { element -> element.toString() }
 
         for (element in allBaseModelElements) {
-            val baseModel = EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperPaths)
+            val baseModel =
+                EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperPaths)
             baseModels[element.toString()] = baseModel
         }
 
         // we can resolve the based on chain when all base models are parsed.
         for (baseModel in baseModels.values) {
-            EntityFactory.addBasedOn(baseModel.sourceElement!!, baseModels, baseModel)
+            EntityFactory.addBasedOn(baseModel.sourceElement, baseModels, baseModel)
         }
 
         for (element in allEntityElements) {
-            val entityModel = EntityFactory.createEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
+            val entityModel =
+                EntityFactory.createEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
             entityModels[element.toString()] = entityModel
 
             entityModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(entityModel.sourceElement, it), allWrapperPaths, baseModels)
+                val reduced = EntityFactory.createEntityHolder(
+                    ReducedSourceModel(
+                        entityModel.sourceElement,
+                        it
+                    ),
+                    allWrapperPaths,
+                    baseModels
+                )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
 
         for (element in allWrapperElements) {
-            val wrapperModel = EntityFactory.createChildEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
+            val wrapperModel = EntityFactory.createChildEntityHolder(
+                SourceModel(element),
+                allWrapperPaths,
+                baseModels
+            )
             wrapperModels[element.toString()] = wrapperModel
 
             wrapperModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(ReducedSourceModel(wrapperModel.sourceElement, it), allWrapperPaths, baseModels)
+                val reduced = EntityFactory.createEntityHolder(
+                    ReducedSourceModel(
+                        wrapperModel.sourceElement,
+                        it
+                    ),
+                    allWrapperPaths,
+                    baseModels
+                )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
@@ -73,11 +121,36 @@ class ModelWorkSet(
 
         val allSchemaClassPaths = allSchemaClassElements.map { element -> element.toString() }
         for (element in allSchemaClassElements) {
-            val schemaModel = EntityFactory.createSchemaEntityHolder(SourceModel(element), allSchemaClassPaths, baseModels)
+            val schemaModel = EntityFactory.createSchemaEntityHolder(
+                SourceModel(element),
+                allSchemaClassPaths,
+                baseModels
+            )
             schemaModels[element.toString()] = schemaModel
         }
 
-        ModelValidation(logger, baseModels, wrapperModels, entityModels).postValidate()
+        allTypeConverterImporterElements.forEach { element ->
+            importedTypeConverterModels.addAll(TypeConverterHolderFactory.importedTypeConverterHolders(element))
+        }
+
+        allTypeConverterElements.forEach {
+            val typeConverterHolder = TypeConverterHolderFactory.typeConverterHolder(it)
+            typeConverterModels[it.toString()] = typeConverterHolder
+        }
+
+        allTypeConverterExporterElements.forEach {
+            val typeConverterExporterHolder = TypeConverterExporterHolder(it)
+            typeConverterExporterModels[it.toString()] = typeConverterExporterHolder
+        }
+
+        ModelValidation(
+            logger,
+            baseModels,
+            wrapperModels,
+            entityModels,
+            typeConverterModels.values.toList(),
+            importedTypeConverterModels
+        ).postValidate()
     }
 
     val entities: List<EntityHolder>
@@ -94,4 +167,12 @@ class ModelWorkSet(
 
     val bases: List<BaseModelHolder>
         get() = baseModels.values.toList()
+
+    val typeConverters: List<TypeConverterHolder>
+        get() = typeConverterModels.values.toList()
+
+    val importedTypeConverters: List<ImportedTypeConverterHolder> get() = importedTypeConverterModels
+
+    val typeConverterExporters: List<TypeConverterExporterHolder>
+        get() = typeConverterExporterModels.values.toList()
 }

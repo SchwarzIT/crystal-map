@@ -1,6 +1,5 @@
 package com.schwarz.crystalprocessor.generation.model
 
-import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.util.ConversionUtil
 import com.schwarz.crystalprocessor.util.TypeUtil
@@ -20,26 +19,23 @@ object CblDefaultGeneration {
             if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
 
         val builder =
-            FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter("map", type)
+            FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE)
 
-        builder.addStatement("%T.addDefaults<%T, %T>(listOf(", CrystalWrap::class, typeConversionReturnType, valueType)
         for (fieldHolder in holder.fields.values) {
             if (fieldHolder.isDefault) {
                 builder.addStatement(
-                    "arrayOf(%N, %T::class, ${ConversionUtil.convertStringToDesiredFormat(
+                    "this.%N = ${ConversionUtil.convertStringToDesiredFormat(
                         fieldHolder.typeMirror,
                         fieldHolder.defaultValue
-                    )}),",
-                    fieldHolder.constantName,
-                    fieldHolder.fieldType
+                    )}",
+                    fieldHolder.dbField
                 )
             }
         }
-        builder.addStatement("), map)")
         return builder.build()
     }
 
-    fun addAddCall(nameOfMap: String): CodeBlock {
-        return CodeBlock.builder().addStatement("addDefaults(%N)", nameOfMap).build()
+    fun addAddCall(): CodeBlock {
+        return CodeBlock.builder().addStatement("addDefaults()").build()
     }
 }

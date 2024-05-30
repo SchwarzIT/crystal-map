@@ -150,11 +150,8 @@ public class CoachBaseBinderProcessorTest {
 
         Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
 
-        Assert.assertTrue(compilation.diagnostics().stream().anyMatch(diagnostic -> diagnostic.getMessage(Locale.GERMAN).equals("Entity should not have a contructor")));
+        Assert.assertTrue(compilation.diagnostics().stream().anyMatch(diagnostic -> diagnostic.getMessage(Locale.GERMAN).equals("Entity should not have a constructor")));
     }
-
-
-
 }
 
 

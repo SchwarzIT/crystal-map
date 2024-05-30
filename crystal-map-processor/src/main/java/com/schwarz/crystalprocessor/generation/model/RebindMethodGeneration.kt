@@ -17,7 +17,7 @@ class RebindMethodGeneration {
                     .addStatement("mDoc.putAll(doc)")
                     .endControlFlow().build()
             )
-            .addCode(CblDefaultGeneration.addAddCall("mDoc"))
+            .addCode(CblDefaultGeneration.addAddCall())
             .addCode(CblConstantGeneration.addAddCall("mDoc"))
 
         if (clearMDocChanges) {
