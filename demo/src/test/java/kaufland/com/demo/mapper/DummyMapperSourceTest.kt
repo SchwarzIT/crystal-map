@@ -1,14 +1,12 @@
 package com.schwarz.crystaldemo.mapper
 
 import com.schwarz.crystalapi.PersistenceConfig
-import com.schwarz.crystalapi.TypeConversion
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import com.schwarz.crystaldemo.entity.ProductEntity
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
-import kotlin.reflect.KClass
 
 class DummyMapperSourceTest {
 

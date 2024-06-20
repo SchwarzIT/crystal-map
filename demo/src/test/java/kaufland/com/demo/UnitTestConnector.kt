@@ -1,12 +1,9 @@
 package com.schwarz.crystaldemo
 
 import com.schwarz.crystalapi.PersistenceConfig
-import com.schwarz.crystalapi.TypeConversion
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
-import kotlin.reflect.KClass
 
-open class UnitTestConnector(
-) : PersistenceConfig.Connector {
+open class UnitTestConnector() : PersistenceConfig.Connector {
     override fun deleteDocument(id: String, dbName: String) {
         // Do Nothing
     }
