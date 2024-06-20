@@ -8,5 +8,11 @@ class EnumConverter<T : Enum<T>> (private val enumClass: KClass<T>) : ITypeConve
         value?.toString()
 
     override fun read(value: String?): T? =
-        value?.let { java.lang.Enum.valueOf(enumClass.java, value) }
+        value?.let {
+            if (it.isBlank()) {
+                null
+            } else {
+                java.lang.Enum.valueOf(enumClass.java, value)
+            }
+        }
 }
