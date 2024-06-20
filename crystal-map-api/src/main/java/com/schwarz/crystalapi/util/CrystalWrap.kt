@@ -4,7 +4,6 @@ package com.schwarz.crystalapi.util
 
 import com.schwarz.crystalapi.ITypeConverter
 import com.schwarz.crystalapi.PersistenceConfig
-import java.lang.ClassCastException
 
 object CrystalWrap {
 
@@ -70,8 +69,7 @@ object CrystalWrap {
         fieldName: String
     ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
         catchTypeConversionError(fieldName, value) {
-            (value as List<Any>)
-                .map { it as T }
+            value as List<T>
         }
     }
 
