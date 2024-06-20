@@ -28,7 +28,7 @@ object CblDefaultGeneration {
                         fieldHolder.typeMirror,
                         fieldHolder.defaultValue
                     )}",
-                    fieldHolder.dbField
+                    fieldHolder.accessorSuffix()
                 )
             }
         }
