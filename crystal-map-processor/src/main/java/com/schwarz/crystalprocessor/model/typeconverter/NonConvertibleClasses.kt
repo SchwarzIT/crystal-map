@@ -5,10 +5,9 @@ import com.squareup.kotlinpoet.asTypeName
 val nonConvertibleClasses = listOf(
     String::class,
     Boolean::class,
-    Int::class,
-    Long::class,
+    Number::class,
     Map::class,
-    Double::class
+    Any::class
 )
 
 val nonConvertibleClassesTypeNames = nonConvertibleClasses.map { it.asTypeName() }
