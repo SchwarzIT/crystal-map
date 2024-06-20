@@ -11,6 +11,7 @@ import com.schwarz.crystalapi.deprecated.DeprecatedField
 import com.schwarz.crystalprocessor.model.typeconverter.ImportedTypeConverterHolder
 import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolder
 import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
+import com.schwarz.crystalprocessor.model.typeconverter.nonConvertibleClassesTypeNames
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName
 
@@ -194,6 +195,12 @@ class ModelValidation(
     }
 
     private fun validateTypeConversions() {
+        typeConverterModels.forEach {
+            if (!nonConvertibleClassesTypeNames.contains(it.mapClassTypeName)) {
+                logger.error("Invalid map type ${it.mapClassTypeName} found in TypeConverter ${it.classTypeName}. Should be one of $nonConvertibleClassesTypeNames", null)
+            }
+        }
+
         val typeConverterMap: MutableMap<ClassName, TypeConverterHolderForEntityGeneration> =
             importedTypeConverterModels.associateBy { it.domainClassTypeName }.toMutableMap()
 
