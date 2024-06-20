@@ -34,6 +34,16 @@ open class Task {
         fun ultraComplexQuery(storeId: String): String {
             return ""
         }
+
+        @GenerateAccessor
+        suspend fun suspendingUltraComplexQueryReturningList(storeId: String): List<String> {
+            return listOf("")
+        }
+
+        @GenerateAccessor(isNullableSuspendFun = true)
+        suspend fun suspendingUltraComplexQueryReturningNullableList(storeId: String): List<String>? {
+            return null
+        }
     }
 //
 //    override fun documentId(): String {
