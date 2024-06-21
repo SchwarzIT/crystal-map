@@ -13,24 +13,24 @@ import com.schwarz.crystalapi.schema.Schema
 import kotlin.Number
 import kotlin.String
 
-open class SubSchema(
-  path: String = ""
+public open class SubSchema(
+  path: String = "",
 ) : Schema {
-  val DEFAULT_TYPE: String = "test"
+  public val DEFAULT_TYPE: String = "test"
 
-  val type: CMField<String> = CMField("type", path)
+  public val type: CMField<String> = CMField("type", path)
 
-  val test_test_test: CMField<Number> = CMField("test_test_test", path)
+  public val test_test_test: CMField<Number> = CMField("test_test_test", path)
 
-  val list: CMList<String> = CMList("list", path)
+  public val list: CMList<String> = CMList("list", path)
 
-  val someObject: CMObject<TestObjectSchema> = CMObject(
+  public val someObject: CMObject<TestObjectSchema> = CMObject(
                   com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else
           "$path.someObject"),
                   path,
               )
 
-  val objects: CMObjectList<TestObjectSchema> = CMObjectList(
+  public val objects: CMObjectList<TestObjectSchema> = CMObjectList(
                   com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "objects" else
           "$path.objects"),
                   "objects",

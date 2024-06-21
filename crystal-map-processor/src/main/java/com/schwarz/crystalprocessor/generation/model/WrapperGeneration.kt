@@ -4,13 +4,14 @@ import com.schwarz.crystalapi.MandatoryCheck
 import com.schwarz.crystalprocessor.generation.MapifyableImplGeneration
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
 import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import java.util.*
 
 class WrapperGeneration {
 
-    fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean): FileSpec {
+    fun generateModel(holder: WrapperEntityHolder, useSuspend: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.superclass(TypeUtil.wrapperCompanion(holder.entityTypeName))
 
@@ -21,7 +22,7 @@ class WrapperGeneration {
             .addModifiers(KModifier.PUBLIC)
             .addSuperinterface(holder.interfaceTypeName)
             .addSuperinterface(MandatoryCheck::class)
-            .addFunction(EnsureTypesGeneration.ensureTypes(holder, true))
+            .addFunction(EnsureTypesGeneration.ensureTypes(holder, true, typeConvertersByConvertedClass))
             .addFunction(CblDefaultGeneration.addDefaults(holder, true))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
@@ -50,7 +51,7 @@ class WrapperGeneration {
 
         for (fieldHolder in holder.allFields) {
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated))
+            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass))
             fieldHolder.builderSetter(null, holder.sourcePackage, holder.entitySimpleName, false, holder.deprecated)?.let {
                 builderBuilder.addFunction(it)
             }

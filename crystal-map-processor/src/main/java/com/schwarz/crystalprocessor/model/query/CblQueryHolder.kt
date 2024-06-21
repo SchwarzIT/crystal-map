@@ -10,7 +10,8 @@ import com.squareup.kotlinpoet.jvm.throws
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystalapi.query.Query
-import com.schwarz.crystalapi.util.CrystalWrap
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
+import com.squareup.kotlinpoet.TypeName
 import org.apache.commons.lang3.text.WordUtils
 
 /**
@@ -22,7 +23,12 @@ class CblQueryHolder(private val mQuery: Query) {
     val fields: Array<String>
         get() = mQuery.fields
 
-    fun queryFun(dbName: String, entityHolder: BaseEntityHolder, useSuspend: Boolean): FunSpec {
+    fun queryFun(
+        dbName: String,
+        entityHolder: BaseEntityHolder,
+        useSuspend: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FunSpec {
         val builder = FunSpec.builder(queryFunName)
             .addModifiers(KModifier.PUBLIC)
             .addAnnotation(JvmStatic::class)
@@ -46,7 +52,7 @@ class CblQueryHolder(private val mQuery: Query) {
                 entityHolder.fields[it]?.apply {
                     builder.addParameter(dbField, fieldType)
 
-                    builder.addQueryParamComparisonStatement(this, dbField)
+                    builder.addQueryParamComparisonStatement(this, dbField, typeConvertersByConvertedClass)
                 }
                 entityHolder.fieldConstants[it]?.apply {
                     builder.addStatement(
@@ -71,17 +77,24 @@ class CblQueryHolder(private val mQuery: Query) {
 
     private fun FunSpec.Builder.addQueryParamComparisonStatement(
         fieldHolder: CblFieldHolder,
-        value: String
+        value: String,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
-        val classForTypeConversion = fieldHolder.evaluateClazzForTypeConversion()
-        addStatement(
-            "queryParams[%N] = %T.write(%N, %N, %T::class) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
-            fieldHolder.constantName,
-            CrystalWrap::class,
-            value,
-            fieldHolder.constantName,
-            classForTypeConversion
-        )
+        if (fieldHolder.isNonConvertibleClass) {
+            addStatement(
+                "queryParams[%N] = %N",
+                fieldHolder.constantName,
+                value
+            )
+        } else {
+            addStatement(
+                "queryParams[%N] = %T.write(%N) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
+                fieldHolder.constantName,
+                typeConvertersByConvertedClass.get(fieldHolder.fieldType)!!.instanceClassTypeName,
+                value
+
+            )
+        }
     }
 
     private val queryFunName: String = "findBy${

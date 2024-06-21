@@ -5,6 +5,7 @@ import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
 
 import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalapi.deprecated.Deprecated
 import javax.lang.model.type.MirroredTypesException
@@ -48,6 +49,20 @@ object FieldExtractionUtil {
 
         try {
             if (annotation.value.isNotEmpty()) {
+                throw Exception("Expected to get a MirroredTypesException")
+            }
+        } catch (mte: MirroredTypesException) {
+            result.addAll(mte.typeMirrors)
+        }
+
+        return result
+    }
+
+    fun typeMirror(annotation: TypeConverterImporter): List<TypeMirror> {
+        val result = mutableListOf<TypeMirror>()
+
+        try {
+            if (annotation.typeConverterExporter != null) {
                 throw Exception("Expected to get a MirroredTypesException")
             }
         } catch (mte: MirroredTypesException) {

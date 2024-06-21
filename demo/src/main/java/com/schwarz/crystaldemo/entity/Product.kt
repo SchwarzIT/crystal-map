@@ -13,6 +13,7 @@ import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
+import java.util.Date
 
 @Entity(database = "mydb_db")
 @MapWrapper
@@ -40,7 +41,8 @@ import com.schwarz.crystalapi.query.Query
     ),
     Field(name = "image", type = Blob::class),
     Field(name = "identifiers", type = String::class, list = true),
-    Field(name = "category", type = ProductCategory::class)
+    Field(name = "category", type = ProductCategory::class),
+    Field(name = "some_date", type = Date::class)
 )
 @Queries(
     Query(fields = ["type"]),

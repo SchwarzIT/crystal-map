@@ -8,6 +8,9 @@ import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.SchemaClass
+import com.schwarz.crystalapi.TypeConverter
+import com.schwarz.crystalapi.TypeConverterExporter
+import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
@@ -109,7 +112,10 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
             GenerateAccessor::class.java.canonicalName,
             Mapper::class.java.canonicalName,
             Reduces::class.java.canonicalName,
-            Reduce::class.java.canonicalName
+            Reduce::class.java.canonicalName,
+            TypeConverter::class.java.canonicalName,
+            TypeConverterExporter::class.java.canonicalName,
+            TypeConverterImporter::class.java.canonicalName
         ).toMutableSet()
     }
 }

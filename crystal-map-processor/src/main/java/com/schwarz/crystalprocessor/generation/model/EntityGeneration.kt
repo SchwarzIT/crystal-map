@@ -16,6 +16,8 @@ import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.MandatoryCheck
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
+import com.squareup.kotlinpoet.TypeName
 
 class EntityGeneration {
 
@@ -30,7 +32,11 @@ class EntityGeneration {
             )
             .build()
 
-    fun generateModel(holder: EntityHolder, useSuspend: Boolean): FileSpec {
+    fun generateModel(
+        holder: EntityHolder,
+        useSuspend: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.superclass(TypeUtil.crystalCreator(TypeUtil.any(), holder.entityTypeName))
         companionSpec.addProperty(idConstant())
@@ -40,7 +46,7 @@ class EntityGeneration {
         companionSpec.addFunction(findByIds(holder, useSuspend))
 
         for (query in holder.queries) {
-            query.queryFun(holder.dbName, holder, useSuspend).let {
+            query.queryFun(holder.dbName, holder, useSuspend, typeConvertersByConvertedClass).let {
                 companionSpec.addFunction(it)
             }
         }
@@ -62,7 +68,7 @@ class EntityGeneration {
             .addSuperinterface(holder.interfaceTypeName)
             .addSuperinterface(MandatoryCheck::class)
             .addProperty(holder.dbNameProperty())
-            .addFunction(EnsureTypesGeneration.ensureTypes(holder, false))
+            .addFunction(EnsureTypesGeneration.ensureTypes(holder, false, typeConvertersByConvertedClass))
             .addFunction(CblDefaultGeneration.addDefaults(holder, false))
             .addFunction(CblConstantGeneration.addConstants(holder, false))
             .addFunction(ValidateMethodGeneration.generate(holder, true))
@@ -119,7 +125,8 @@ class EntityGeneration {
                     holder.dbName,
                     holder.abstractParts,
                     true,
-                    holder.deprecated
+                    holder.deprecated,
+                    typeConvertersByConvertedClass
                 )
             )
         }

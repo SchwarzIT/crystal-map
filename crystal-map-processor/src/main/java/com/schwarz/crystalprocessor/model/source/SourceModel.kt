@@ -20,6 +20,7 @@ import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
+import com.sun.tools.javac.code.Type
 import org.apache.commons.lang3.text.WordUtils
 import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Element
@@ -110,6 +111,15 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                 }
                             }
 
+                            val returnType = if (isSuspend) {
+                                val continuationParam = (it.parameters.last()) as Symbol.VarSymbol
+                                val continuationParamType = continuationParam.type as Type.ClassType
+                                val wildcardTypeParam = continuationParamType.allparams().first() as Type.WildcardType
+                                wildcardTypeParam.type.asTypeName().javaToKotlinType()
+                            } else {
+                                it.returnType.asTypeName().javaToKotlinType().copy(it.getAnnotation(Nullable::class.java) != null)
+                            }
+
                             relevantStaticsFunctions.add(
                                 SourceMemberFunction(
                                     name = it.simpleName.toString(),
@@ -117,7 +127,7 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                     parameters = parameter,
                                     generateAccessor = accessor,
                                     docIdSegment = docSegment,
-                                    returnTypeName = it.returnType.asTypeName().javaToKotlinType().copy(it.getAnnotation(Nullable::class.java) != null)
+                                    returnTypeName = returnType
                                 )
                             )
                         }

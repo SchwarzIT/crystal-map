@@ -32,6 +32,14 @@ class CblGenerateAccessorHolder(
                 memberFunction.name
             )
 
+            val isNullableSuspendFun = memberFunction.generateAccessor?.isNullableSuspendFun ?: false
+
+            if (isNullableSuspendFun) {
+                methodBuilder.returns(memberFunction.returnTypeName.copy(nullable = true))
+            } else {
+                methodBuilder.returns(memberFunction.returnTypeName)
+            }
+
             return methodBuilder.build()
         }
 

@@ -1,23 +1,19 @@
 package com.schwarz.crystaldemo.entity
 
 import com.schwarz.crystalapi.PersistenceConfig
-import com.schwarz.crystalapi.TypeConversion
 import com.schwarz.crystaldemo.UnitTestConnector
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Test
-import kotlin.reflect.KClass
+import java.util.Date
 
 class ProductWrapperTest {
     companion object {
-        private val typeConversions: Map<KClass<*>, TypeConversion> = mapOf(
-            ProductCategory::class to ProductCategoryTypeConversion
-        )
 
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            PersistenceConfig.configure(UnitTestConnector(typeConversions))
+            PersistenceConfig.configure(UnitTestConnector())
         }
     }
 
@@ -39,5 +35,31 @@ class ProductWrapperTest {
             ),
             map
         )
+    }
+
+    @Test
+    fun `toMap - fromMap should work`() {
+        val product = ProductWrapper.create().builder()
+            .setName("name")
+            .setComments(
+                listOf(
+                    UserCommentWrapper.create().apply {
+                        comment = "foobar"
+                    }
+                )
+            )
+            .setCategory(ProductCategory.AMAZING_PRODUCT)
+            .setIdentifiers(listOf("1", "2"))
+            .setSomeDate(Date())
+            .exit()
+        val map = product.toMap() as MutableMap<String, Any?>
+
+        val result = ProductWrapper.fromMap(map)!!
+
+        assertEquals(product.name, result.name)
+        assertEquals(product.comments?.first()?.comment!!, result.comments?.first()?.comment!!)
+        assertEquals(product.category, result.category)
+        assertEquals(product.identifiers, result.identifiers)
+        assertEquals(product.someDate, result.someDate)
     }
 }
