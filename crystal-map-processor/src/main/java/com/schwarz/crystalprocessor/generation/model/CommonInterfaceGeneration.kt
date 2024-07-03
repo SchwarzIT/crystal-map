@@ -63,7 +63,16 @@ class CommonInterfaceGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass))
+            typeBuilder.addProperty(
+                fieldHolder.property(
+                    dbName = null,
+                    collection = null,
+                    holder.abstractParts,
+                    useMDocChanges = false,
+                    holder.deprecated,
+                    typeConvertersByConvertedClass
+                )
+            )
         }
 
         val companionSpec = TypeSpec.companionObjectBuilder()

@@ -25,6 +25,7 @@ class CblQueryHolder(private val mQuery: Query) {
 
     fun queryFun(
         dbName: String,
+        collection: String,
         entityHolder: BaseEntityHolder,
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
@@ -64,9 +65,10 @@ class CblQueryHolder(private val mQuery: Query) {
             }
 
             builder.beginControlFlow(
-                "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
+                "return %T.${queryDocumentMethod(useSuspend)}(%S, %S, queryParams, null, %N).map",
                 PersistenceConfig::class,
                 dbName,
+                if (collection.isEmpty()) "null" else collection,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             builder.addStatement("%T(it)", entityHolder.entityTypeName)
