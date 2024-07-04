@@ -28,6 +28,7 @@ class TypeConversionTest {
             override fun getDocument(
                 id: String,
                 dbName: String,
+                collection: String,
                 onlyInclude: List<String>?
             ): Map<String, Any> {
                 return emptyMap()
@@ -36,6 +37,7 @@ class TypeConversionTest {
             override fun getDocuments(
                 ids: List<String>,
                 dbName: String,
+                collection: String,
                 onlyInclude: List<String>?
             ): List<Map<String, Any>?> {
                 TODO("Not yet implemented")
@@ -43,6 +45,7 @@ class TypeConversionTest {
 
             override fun queryDoc(
                 dbName: String,
+                collection: String,
                 queryParams: Map<String, Any>,
                 limit: Int?,
                 onlyInclude: List<String>?
@@ -50,14 +53,15 @@ class TypeConversionTest {
                 throw Exception("Should not be called")
             }
 
-            override fun deleteDocument(id: String, dbName: String) {
+            override fun deleteDocument(id: String, dbName: String, collection: String) {
                 throw Exception("should not called")
             }
 
             override fun upsertDocument(
                 document: MutableMap<String, Any>,
                 id: String?,
-                dbName: String
+                dbName: String,
+                collection: String
             ): Map<String, Any> {
                 throw Exception("should not called")
             }

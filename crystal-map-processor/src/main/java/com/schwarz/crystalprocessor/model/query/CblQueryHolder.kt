@@ -22,7 +22,12 @@ class CblQueryHolder(private val mQuery: Query) {
     val fields: Array<String>
         get() = mQuery.fields
 
-    fun queryFun(dbName: String, entityHolder: BaseEntityHolder, useSuspend: Boolean): FunSpec {
+    fun queryFun(
+        dbName: String,
+        collection: String,
+        entityHolder: BaseEntityHolder,
+        useSuspend: Boolean,
+    ): FunSpec {
         val builder = FunSpec.builder(queryFunName)
             .addModifiers(KModifier.PUBLIC)
             .addAnnotation(JvmStatic::class)
@@ -58,9 +63,10 @@ class CblQueryHolder(private val mQuery: Query) {
             }
 
             builder.beginControlFlow(
-                "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
+                "return %T.${queryDocumentMethod(useSuspend)}(%S, %S, queryParams, null, %N).map",
                 PersistenceConfig::class,
                 dbName,
+                collection,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
             builder.addStatement("%T(it)", entityHolder.entityTypeName)

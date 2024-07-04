@@ -6,15 +6,20 @@ import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import kotlin.reflect.KClass
 
 open class UnitTestConnector(
-    override val typeConversions: Map<KClass<*>, TypeConversion> = emptyMap()
+    override val typeConversions: Map<KClass<*>, TypeConversion>
 ) : PersistenceConfig.Connector {
-    override fun deleteDocument(id: String, dbName: String) {
+    override fun deleteDocument(
+        id: String,
+        dbName: String,
+        collection: String
+    ) {
         // Do Nothing
     }
 
     override fun getDocument(
         id: String,
         dbName: String,
+        collection: String,
         onlyInclude: List<String>?
     ): Map<String, Any>? {
         return null
@@ -23,6 +28,7 @@ open class UnitTestConnector(
     override fun getDocuments(
         ids: List<String>,
         dbName: String,
+        collection: String,
         onlyInclude: List<String>?
     ): List<Map<String, Any>?> {
         return emptyList()
@@ -30,6 +36,7 @@ open class UnitTestConnector(
 
     override fun queryDoc(
         dbName: String,
+        collection: String,
         queryParams: Map<String, Any>,
         limit: Int?,
         onlyInclude: List<String>?
@@ -40,7 +47,8 @@ open class UnitTestConnector(
     override fun upsertDocument(
         document: MutableMap<String, Any>,
         id: String?,
-        dbName: String
+        dbName: String,
+        collection: String
     ): Map<String, Any> {
         return document
     }

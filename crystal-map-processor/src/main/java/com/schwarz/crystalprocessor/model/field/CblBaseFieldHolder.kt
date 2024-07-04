@@ -51,6 +51,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     abstract fun property(
         dbName: String?,
+        collection: String?,
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?
@@ -58,6 +59,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
 
     abstract fun builderSetter(
         dbName: String?,
+        collection: String?,
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,

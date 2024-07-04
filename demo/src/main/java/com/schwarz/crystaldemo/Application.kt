@@ -24,7 +24,8 @@ class Application : android.app.Application() {
         get() {
             return try {
                 if (mDatabase == null) {
-                    val config = DatabaseConfiguration(applicationContext)
+
+                    val config = DatabaseConfiguration()
                     mDatabase = Database(DB, config)
                 }
                 mDatabase

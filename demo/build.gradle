@@ -94,7 +94,7 @@ dependencies {
     implementation project(path: ':crystal-map-couchbase-connector')
     kapt project(path: ':crystal-map-processor')
     compileOnly project(path: ':crystal-map-processor')
-    implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
+    implementation 'com.couchbase.lite:couchbase-lite-android:3.1.8'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // Test dependencies

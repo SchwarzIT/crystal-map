@@ -34,7 +34,13 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
         return builder.build()
     }
 
-    override fun property(dbName: String?, possibleOverrides: Set<String>, useMDocChanges: Boolean, deprecated: DeprecatedModel?): PropertySpec {
+    override fun property(
+        dbName: String?,
+        collection: String?,
+        possibleOverrides: Set<String>,
+        useMDocChanges: Boolean,
+        deprecated: DeprecatedModel?,
+    ): PropertySpec {
         val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
 
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, KModifier.PUBLIC, KModifier.OVERRIDE)
@@ -59,7 +65,14 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
         )
     }
 
-    override fun builderSetter(dbName: String?, packageName: String, entitySimpleName: String, useMDocChanges: Boolean, deprecated: DeprecatedModel?): FunSpec? {
+    override fun builderSetter(
+        dbName: String?,
+        collection: String?,
+        packageName: String,
+        entitySimpleName: String,
+        useMDocChanges: Boolean,
+        deprecated: DeprecatedModel?
+    ): FunSpec? {
         return null
     }
 }

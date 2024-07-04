@@ -18,23 +18,23 @@ class DummyMapperSourceTest {
             override val typeConversions: Map<KClass<*>, TypeConversion>
                 get() = mapOf()
 
-            override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
+            override fun getDocument(id: String, dbName: String, collection: String, onlyInclude: List<String>?): Map<String, Any>? {
                 return null
             }
 
-            override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
+            override fun getDocuments(ids: List<String>, dbName: String, collection: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
                 TODO("Not yet implemented")
             }
 
-            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
+            override fun queryDoc(dbName: String, collection: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
                 return emptyList()
             }
 
-            override fun deleteDocument(id: String, dbName: String) {
+            override fun deleteDocument(id: String, dbName: String, collection: String) {
                 // nope
             }
 
-            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String, collection: String): Map<String, Any> {
                 TODO("Not yet implemented")
             }
 

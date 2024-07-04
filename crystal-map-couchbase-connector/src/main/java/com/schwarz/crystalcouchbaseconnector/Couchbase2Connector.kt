@@ -4,6 +4,7 @@ import com.couchbase.lite.*
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystalapi.TypeConversion
+import java.lang.IllegalStateException
 import java.util.*
 import kotlin.jvm.Throws
 import kotlin.reflect.KClass
@@ -62,8 +63,13 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
 
     override val typeConversions: Map<KClass<*>, TypeConversion> = mTypeConversions
 
-    override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
-        val document = getDatabase(dbName).getDocument(id) ?: return null
+    override fun getDocument(
+        id: String,
+        dbName: String,
+        collection: String,
+        onlyInclude: List<String>?
+    ): Map<String, Any>? {
+        val document = getDocument(id, dbName, collection) ?: return null
 
         val result = document.toMap()
         result["_id"] = id
@@ -73,18 +79,23 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     override fun getDocuments(
         ids: List<String>,
         dbName: String,
+        collection: String,
         onlyInclude: List<String>?
     ): List<Map<String, Any>?> =
         ids.mapNotNull { docId ->
-            getDocument(docId, dbName)
+            getDocument(docId, dbName, collection, null)
         }
 
     @Throws(PersistenceException::class)
-    override fun deleteDocument(id: String, dbName: String) {
+    override fun deleteDocument(id: String, dbName: String, collection: String) {
         try {
-            val document = getDatabase(dbName).getDocument(id)
+            val document = getDocument(id, dbName, collection)
             if (document != null) {
-                getDatabase(dbName).delete(document)
+                if (collection.isEmpty()) {
+                    getDatabase(dbName).delete(document)
+                } else {
+                    getDatabase(dbName).getCollection(collection)?.delete(document)
+                }
             }
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
@@ -94,13 +105,24 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     @Throws(PersistenceException::class)
     override fun queryDoc(
         dbName: String,
+        collection: String,
         queryParams: Map<String, Any>,
         limit: Int?,
         onlyInclude: List<String>?
     ): List<Map<String, Any>> {
         try {
-            val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
-                .from(DataSource.database(getDatabase(dbName)))
+            val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all()).let { select ->
+                if (collection.isEmpty()) {
+                    select.from(DataSource.database(getDatabase(dbName)))
+                } else {
+                    select.from(
+                        DataSource.collection(
+                            getDatabase(dbName).getCollection(collection)
+                                ?: throw IllegalStateException("Collection $collection not found for db $dbName")
+                        )
+                    )
+                }
+            }
 
             parseExpressions(queryParams)?.let {
                 builder.where(it)
@@ -119,10 +141,9 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
             ArrayList()
         if (execute != null) {
             for (result in execute) {
-                val item: MutableMap<String, Any> =
-                    HashMap()
-                item["_id"] = result.getString(0)
-                item.putAll(result.getDictionary(1).toMap())
+                val item: MutableMap<String, Any> = mutableMapOf()
+                item["_id"] = result.getString(0).orEmpty()
+                item.putAll(result.getDictionary(1)?.toMap() ?: emptyMap())
                 parsed.add(item)
             }
         }
@@ -147,7 +168,7 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+    override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String, collection: String): Map<String, Any> {
         if (document["_id"] == null && id != null) {
             document["_id"] = id
         }
@@ -155,10 +176,23 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         return try {
             document["_id"] = unsavedDoc.id
             unsavedDoc.setString("_id", unsavedDoc.id)
-            getDatabase(dbName).save(unsavedDoc)
+            if (collection.isEmpty()) {
+                getDatabase(dbName).save(unsavedDoc)
+            } else {
+                getDatabase(dbName).getCollection(collection)?.save(unsavedDoc)
+                    ?: throw IllegalStateException("Collection $collection not found for db $dbName")
+            }
             document
         } catch (e: CouchbaseLiteException) {
             throw PersistenceException(e)
         }
     }
+
+    private fun getDocument(id: String, dbName: String, collection: String): Document? =
+        if (collection.isEmpty()) {
+            getDatabase(dbName).getDocument(id) ?: null
+        } else {
+            getDatabase(dbName).getCollection(collection)?.getDocument(id) ?: null
+        }
+    
 }
