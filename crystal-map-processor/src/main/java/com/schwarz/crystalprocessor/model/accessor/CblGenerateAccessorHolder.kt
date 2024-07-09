@@ -9,8 +9,8 @@ import com.squareup.kotlinpoet.TypeName
 
 class CblGenerateAccessorHolder(
     private val sourceClassTypeName: TypeName,
-    private val memberFunction: SourceMemberFunction?,
-    private val memberProperty: SourceMemberField?
+    val memberFunction: SourceMemberFunction?,
+    val memberProperty: SourceMemberField?
 ) {
 
     fun accessorFunSpec(): FunSpec? {
@@ -32,11 +32,11 @@ class CblGenerateAccessorHolder(
                 memberFunction.name
             )
 
-            val isNullableSuspendFun = memberFunction.generateAccessor?.isNullableSuspendFun ?: false
-
-            if (isNullableSuspendFun) {
-                methodBuilder.returns(memberFunction.returnTypeName.copy(nullable = true))
-            } else {
+            // We only specify a return value if the function is non-suspending. If the function
+            // is suspending, we cannot safely obtain the return type. Since KotlinPoet doesn't
+            // allow us to use implicit return types, we default to Unit and remove it later
+            // in the CodeGenerator.
+            if (!memberFunction.isSuspend) {
                 methodBuilder.returns(memberFunction.returnTypeName)
             }
 

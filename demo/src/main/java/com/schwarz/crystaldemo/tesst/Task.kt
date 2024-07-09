@@ -36,14 +36,30 @@ open class Task {
         }
 
         @GenerateAccessor
+        fun ultraComplexQueryReturningEntity(storeId: String): List<TaskEntity> {
+            return emptyList()
+        }
+
+        @GenerateAccessor
         suspend fun suspendingUltraComplexQueryReturningList(storeId: String): List<String> {
             return listOf("")
         }
 
-        @GenerateAccessor(isNullableSuspendFun = true)
+        @GenerateAccessor()
         suspend fun suspendingUltraComplexQueryReturningNullableList(storeId: String): List<String>? {
             return null
         }
+
+        @GenerateAccessor()
+        suspend fun suspendingUltraComplexQueryReturningEntity(storeId: String): List<TaskEntity> {
+            return emptyList()
+        }
+
+        @GenerateAccessor()
+        suspend fun suspendingUltraComplexQueryWithAVeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeryLongName(storeId: String): List<TaskEntity> {
+            return emptyList()
+        }
+
     }
 //
 //    override fun documentId(): String {

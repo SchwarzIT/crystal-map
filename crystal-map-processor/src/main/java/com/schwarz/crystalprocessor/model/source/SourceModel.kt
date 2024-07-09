@@ -111,14 +111,7 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
                                 }
                             }
 
-                            val returnType = if (isSuspend) {
-                                val continuationParam = (it.parameters.last()) as Symbol.VarSymbol
-                                val continuationParamType = continuationParam.type as Type.ClassType
-                                val wildcardTypeParam = continuationParamType.allparams().first() as Type.WildcardType
-                                wildcardTypeParam.type.asTypeName().javaToKotlinType()
-                            } else {
-                                it.returnType.asTypeName().javaToKotlinType().copy(it.getAnnotation(Nullable::class.java) != null)
-                            }
+                            val returnType = it.returnType.asTypeName().javaToKotlinType().copy(it.getAnnotation(Nullable::class.java) != null)
 
                             relevantStaticsFunctions.add(
                                 SourceMemberFunction(
