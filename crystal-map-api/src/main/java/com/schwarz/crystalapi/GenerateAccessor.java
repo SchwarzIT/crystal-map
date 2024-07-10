@@ -11,7 +11,4 @@ import java.lang.annotation.Target;
 public @interface GenerateAccessor {
 
     Class<?> value() default Void.class;
-
-    // We need to explicitly specify this since the information is lost during annotation processing
-    boolean isNullableSuspendFun() default false;
 }

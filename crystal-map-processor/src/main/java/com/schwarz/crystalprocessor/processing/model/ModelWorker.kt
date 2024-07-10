@@ -70,11 +70,11 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             generateInterface(generatedInterfaces, baseModelHolder, useSuspend, typeConvertersByConvertedClass)
         }
 
-        process(workSet.entities, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        processAndFixAccessors(workSet.entities, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
             EntityGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
-        process(workSet.wrappers, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        processAndFixAccessors(workSet.wrappers, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
             WrapperGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
@@ -101,6 +101,35 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             entityRelationshipGenerator?.addEntityNodes(model)
             generate(model).apply {
                 codeGenerator.generate(this, processingEnv)
+            }
+        }
+    }
+
+    private fun <T : BaseEntityHolder> processAndFixAccessors(
+        models: List<T>,
+        generatedInterfaces: MutableSet<String>,
+        useSuspend: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
+        generate: (T) -> FileSpec
+    ) {
+        for (model in models) {
+            generateInterface(generatedInterfaces, model, useSuspend, typeConvertersByConvertedClass)
+            documentationGenerator?.addEntitySegments(model)
+            schemaGenerator?.addEntity(model)
+            entityRelationshipGenerator?.addEntityNodes(model)
+            generate(model).apply {
+                if (model.generateAccessors.isNotEmpty()) {
+                    codeGenerator.generateAndFixAccessors(
+                        this,
+                        model.generateAccessors,
+                        processingEnv
+                    )
+                } else {
+                    codeGenerator.generate(
+                        this,
+                        processingEnv
+                    )
+                }
             }
         }
     }

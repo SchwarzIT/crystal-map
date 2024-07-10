@@ -2,14 +2,21 @@ package com.schwarz.crystalprocessor.generation
 
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor
 import com.schwarz.crystalprocessor.ProcessingContext
+import com.schwarz.crystalprocessor.model.accessor.CblGenerateAccessorHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.OriginatingElementsHolder
 import java.io.File
 
 import java.io.IOException
 
 import javax.annotation.processing.Filer
 import javax.annotation.processing.ProcessingEnvironment
+import javax.tools.StandardLocation
+import kotlin.io.path.createDirectories
+import kotlin.io.path.isDirectory
+import kotlin.io.path.notExists
+import kotlin.io.path.outputStream
 
 class CodeGenerator(private val filer: Filer) {
 
@@ -27,6 +34,59 @@ class CodeGenerator(private val filer: Filer) {
             fileWithHeader.writeTo(File(codePath))
         } else {
             fileWithHeader.writeTo(filer)
+        }
+    }
+
+    @Throws(IOException::class)
+    fun generateAndFixAccessors(
+        entityToGenerate: FileSpec,
+        generateAccessors: MutableList<CblGenerateAccessorHolder>,
+        processingEnvironment: ProcessingEnvironment
+    ) {
+        ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
+            ProcessingContext.createdQualifiedClazzNames.add(this)
+        }
+
+        val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]
+        val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
+
+        val fixedFileString = generateAccessors.fold(fileWithHeader.toString()) { acc, generateAccessor ->
+            if (generateAccessor.memberFunction != null && generateAccessor.memberFunction.isSuspend) {
+                acc.replace(Regex("(${generateAccessor.memberFunction.name}\\([^)]*\\)):\\s*Unit(\\s*=)"), "$1$2")
+            } else {
+                acc
+            }
+        }
+
+        // used for kapt returns null for legacy annotationprocessor declarations
+        if (codePath != null) {
+            val directory = File(codePath).toPath()
+            require(directory.notExists() || directory.isDirectory()) {
+                "path $directory exists but is not a directory."
+            }
+            val outputPath = directory.resolve(fileWithHeader.relativePath)
+            outputPath.parent.createDirectories()
+            outputPath.outputStream().bufferedWriter().use { it.write(fixedFileString) }
+        } else {
+            val originatingElements = fileWithHeader.members.asSequence()
+                .filterIsInstance<OriginatingElementsHolder>()
+                .flatMap { it.originatingElements.asSequence() }
+                .toSet()
+            val filerSourceFile = filer.createResource(
+                StandardLocation.SOURCE_OUTPUT,
+                fileWithHeader.packageName,
+                "${fileWithHeader.name}.kt",
+                *originatingElements.toTypedArray()
+            )
+            try {
+                filerSourceFile.openWriter().use { it.write(fixedFileString) }
+            } catch (e: Exception) {
+                try {
+                    filerSourceFile.delete()
+                } catch (ignored: Exception) {
+                }
+                throw e
+            }
         }
     }
 

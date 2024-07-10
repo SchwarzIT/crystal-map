@@ -69,7 +69,7 @@ object CrystalWrap {
         fieldName: String
     ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
         catchTypeConversionError(fieldName, value) {
-            value as List<T>
+            (value as List<Any>).map { it as T }
         }
     }
 
