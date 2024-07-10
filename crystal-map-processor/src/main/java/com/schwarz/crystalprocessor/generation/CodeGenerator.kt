@@ -76,7 +76,7 @@ class CodeGenerator(private val filer: Filer) {
                 StandardLocation.SOURCE_OUTPUT,
                 fileWithHeader.packageName,
                 "${fileWithHeader.name}.kt",
-                *originatingElements.toTypedArray(),
+                *originatingElements.toTypedArray()
             )
             try {
                 filerSourceFile.openWriter().use { it.write(fixedFileString) }

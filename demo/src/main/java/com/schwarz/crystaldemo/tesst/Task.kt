@@ -59,7 +59,6 @@ open class Task {
         suspend fun suspendingUltraComplexQueryWithAVeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeryLongName(storeId: String): List<TaskEntity> {
             return emptyList()
         }
-
     }
 //
 //    override fun documentId(): String {
