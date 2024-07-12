@@ -38,6 +38,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     override fun property(
         dbName: String?,
+        collection: String?,
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?,
@@ -98,6 +99,7 @@ class CblConstantHolder(field: Field) : CblBaseFieldHolder(field.name, field) {
 
     override fun builderSetter(
         dbName: String?,
+        collection: String?,
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,

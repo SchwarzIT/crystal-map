@@ -51,8 +51,24 @@ class WrapperGeneration {
 
         for (fieldHolder in holder.allFields) {
             companionSpec.addProperties(fieldHolder.createFieldConstant())
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass))
-            fieldHolder.builderSetter(null, holder.sourcePackage, holder.entitySimpleName, false, holder.deprecated)?.let {
+            typeBuilder.addProperty(
+                fieldHolder.property(
+                    dbName = null,
+                    collection = null,
+                    holder.abstractParts,
+                    useMDocChanges = false,
+                    holder.deprecated,
+                    typeConvertersByConvertedClass
+                )
+            )
+            fieldHolder.builderSetter(
+                dbName = null,
+                collection = null,
+                holder.sourcePackage,
+                holder.entitySimpleName,
+                useMDocChanges = false,
+                holder.deprecated
+            )?.let {
                 builderBuilder.addFunction(it)
             }
         }

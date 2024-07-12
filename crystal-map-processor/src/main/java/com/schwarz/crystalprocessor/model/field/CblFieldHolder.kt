@@ -67,6 +67,7 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
 
     override fun property(
         dbName: String?,
+        collection: String?,
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?,
@@ -208,6 +209,7 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
 
     override fun builderSetter(
         dbName: String?,
+        collection: String?,
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,
