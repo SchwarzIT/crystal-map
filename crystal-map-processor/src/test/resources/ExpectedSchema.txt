@@ -20,7 +20,7 @@ public open class SubSchema(
 
   public val type: CMField<String> = CMField("type", path)
 
-  public val test_test_test: CMField<Number> = CMField("test_test_test", path)
+  public val testTestTest: CMField<Number> = CMField("test_test_test", path)
 
   public val list: CMList<String> = CMList("list", path)
 
