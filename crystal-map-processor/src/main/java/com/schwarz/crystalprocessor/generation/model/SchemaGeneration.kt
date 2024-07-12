@@ -1,24 +1,14 @@
 package com.schwarz.crystalprocessor.generation.model
 
-import com.schwarz.crystalapi.schema.CMField
-import com.schwarz.crystalapi.schema.CMList
-import com.schwarz.crystalapi.schema.CMObject
-import com.schwarz.crystalapi.schema.CMObjectList
-import com.schwarz.crystalapi.schema.Schema
+import com.schwarz.crystalapi.schema.*
 import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.field.CblBaseFieldHolder
 import com.schwarz.crystalprocessor.model.field.CblFieldHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.util.ConversionUtil
 import com.schwarz.crystalprocessor.util.TypeUtil
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
 
 /**
  * This class is responsible for generating the Schema classes.
@@ -31,13 +21,17 @@ import com.squareup.kotlinpoet.asTypeName
  */
 class SchemaGeneration {
     private val pathAttributeName = "path"
-    fun generateModel(holder: SchemaClassHolder, schemaClassPaths: List<String>): FileSpec {
+    fun generateModel(
+        holder: SchemaClassHolder,
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FileSpec {
         val packageName = holder.sourcePackage
         val schemaClassName = holder.entitySimpleName
 
         val schemaClass: TypeSpec.Builder = buildSchemaClass(schemaClassName)
 
-        buildAndAddFieldProperties(holder, schemaClass, schemaClassPaths)
+        buildAndAddFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
 
         return FileSpec.builder(packageName, schemaClassName).addType(schemaClass.build()).build()
     }
@@ -58,16 +52,18 @@ class SchemaGeneration {
     private fun buildAndAddFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
-        buildAndAddConstantFieldProperties(holder, schemaClass, schemaClassPaths)
-        buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths)
+        buildAndAddConstantFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
+        buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
     }
 
     private fun buildAndAddConstantFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
         holder.fieldConstants.forEach { (fieldName, fieldObject) ->
             val defaultVariableName = "DEFAULT_${fieldObject.constantName}"
@@ -88,7 +84,8 @@ class SchemaGeneration {
                 schemaClass,
                 fieldName,
                 fieldObject,
-                schemaClassPaths
+                schemaClassPaths,
+                typeConvertersByConvertedClass
             )
         }
     }
@@ -96,14 +93,16 @@ class SchemaGeneration {
     private fun buildAndAddNormalFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
         holder.fields.forEach { (fieldName, fieldObject) ->
             buildAndAddFieldProperty(
                 schemaClass,
                 fieldName,
                 fieldObject,
-                schemaClassPaths
+                schemaClassPaths,
+                typeConvertersByConvertedClass
             )
         }
     }
@@ -112,10 +111,18 @@ class SchemaGeneration {
         schemaClass: TypeSpec.Builder,
         fieldName: String,
         fieldObject: CblBaseFieldHolder,
-        schemaClassPaths: List<String>
-    ): TypeSpec.Builder = schemaClass.addProperty(
-        buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
-    )
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): TypeSpec.Builder {
+        val propertyType = typeConvertersByConvertedClass[fieldObject.typeMirror.asTypeName()]
+        return schemaClass.addProperty(
+            if (propertyType != null) {
+                buildConverterFieldProperty(fieldObject, propertyType, fieldName)
+            } else {
+                buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
+            }
+        )
+    }
 
     private fun buildFieldProperty(
         fieldObject: CblBaseFieldHolder,
@@ -137,6 +144,26 @@ class SchemaGeneration {
         ).build()
     }
 
+    private fun buildConverterFieldProperty(
+        fieldObject: CblBaseFieldHolder,
+        propertyType: TypeConverterHolderForEntityGeneration,
+        fieldName: String
+    ): PropertySpec {
+        val outerType = if (fieldObject.isIterable) {
+            CMConverterList::class.asTypeName()
+        } else {
+            CMConverterField::class.asTypeName()
+        }
+
+        return PropertySpec.builder(
+            fieldName,
+            outerType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
+        ).initializer(
+            buildConverterFormat(fieldName, propertyType),
+            outerType
+        ).build()
+    }
+
     private fun createPropertyFormat(
         fieldName: String,
         propertyType: TypeName,
@@ -152,6 +179,9 @@ class SchemaGeneration {
             else -> buildSimpleFormat(fieldName)
         }
     }
+
+    private fun buildConverterFormat(fieldName: String, propertyType: TypeConverterHolderForEntityGeneration): String =
+        """%T("$fieldName", ${propertyType.instanceClassTypeName}, $pathAttributeName)"""
 
     private fun buildObjectListFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
         """%T(
