@@ -136,7 +136,7 @@ class SchemaGeneration {
         val innerType: TypeName = getInnerPropertyType(fieldObject)
 
         return PropertySpec.builder(
-            fieldName,
+            fieldObject.accessorSuffix(),
             outerType.parameterizedBy(innerType)
         ).initializer(
             createPropertyFormat(fieldName, innerType, fieldObject.isIterable, isObject),
@@ -156,7 +156,7 @@ class SchemaGeneration {
         }
 
         return PropertySpec.builder(
-            fieldName,
+            fieldObject.accessorSuffix(),
             outerType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
         ).initializer(
             buildConverterFormat(fieldName, propertyType),
