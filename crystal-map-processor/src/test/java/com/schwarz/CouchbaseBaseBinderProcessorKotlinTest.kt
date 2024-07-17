@@ -207,20 +207,19 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         val expected = File("src/test/resources/ExpectedSchema.txt").readLines()
         val testObject = SourceFile.kotlin(
             "TestObject.kt",
-            "package com.kaufland.testModels\n" +
-                "import com.schwarz.crystalapi.Field\n" +
-                "import com.schwarz.crystalapi.Fields\n" +
+            PACKAGE_HEADER +
                 "import com.schwarz.crystalapi.SchemaClass\n" +
                 "@SchemaClass\n" +
                 "class TestObject"
         )
         val sub = SourceFile.kotlin(
             "Sub.kt",
-            "package com.kaufland.testModels\n" +
+            PACKAGE_HEADER +
                 "import com.kaufland.testModels.TestObject\n" +
                 "import com.schwarz.crystalapi.Field\n" +
                 "import com.schwarz.crystalapi.Fields\n" +
                 "import com.schwarz.crystalapi.SchemaClass\n" +
+                "import java.time.OffsetDateTime\n" +
                 "@SchemaClass\n" +
                 "@Fields(\n" +
                 "Field(name = \"test_test_test\", type = Number::class),\n" +
@@ -228,10 +227,23 @@ class CouchbaseBaseBinderProcessorKotlinTest {
                 "Field(name = \"list\", type = String::class, list = true),\n" +
                 "Field(name = \"someObject\", type = TestObject::class),\n" +
                 "Field(name = \"objects\", type = TestObject::class, list = true),\n" +
+                "Field(name = \"date_converter_field\", type = OffsetDateTime::class),\n" +
+                "Field(name = \"date_converter_list\", type = OffsetDateTime::class, list = true),\n" +
                 ")\n" +
                 "class Sub"
         )
-        val compilation = compileKotlin(testObject, sub)
+        val typeConverter = SourceFile.kotlin(
+            "DateTypeConverter.kt",
+            PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}"
+        )
+        val compilation = compileKotlin(typeConverter, testObject, sub)
 
         val actual = compilation.generatedFiles.find { it.name == "SubSchema.kt" }!!.readLines()
 
