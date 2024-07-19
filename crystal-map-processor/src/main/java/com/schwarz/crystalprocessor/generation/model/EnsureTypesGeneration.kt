@@ -22,70 +22,70 @@ object EnsureTypesGeneration {
         val typeConversionReturnType =
             if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
         val ensureTypes = FunSpec.builder("ensureTypes").addParameter("doc", type).returns(type)
-        ensureTypes.addStatement("val %N = %T()", RESULT_VAL_NAME, explicitType)
-        ensureTypes.addStatement("%N.putAll(doc)", RESULT_VAL_NAME)
+//        ensureTypes.addStatement("val %N = %T()", RESULT_VAL_NAME, explicitType)
+//        ensureTypes.addStatement("%N.putAll(doc)", RESULT_VAL_NAME)
 
-        for (field in holder.fields.values) {
-            if (field.isNonConvertibleClass) {
-                if (field.isIterable) {
-                    ensureTypes.addStatement(
-                        "%T.getList<%T>(mutableMapOf(), %N, %N)",
-                        CrystalWrap::class,
-                        field.fieldType,
-                        RESULT_VAL_NAME,
-                        field.constantName
-                    )
-                } else {
-                    ensureTypes.addStatement(
-                        "%T.get<%T>(mutableMapOf(), %N, %N)",
-                        CrystalWrap::class,
-                        field.fieldType,
-                        RESULT_VAL_NAME,
-                        field.constantName
-                    )
-                }
-            } else if (field.isTypeOfSubEntity) {
-                if (field.isIterable) {
-                    ensureTypes.addStatement(
-                        "%T.getList(mutableMapOf(), %N, %N, {%T.fromMap(it) ?: emptyList()})",
-                        CrystalWrap::class,
-                        RESULT_VAL_NAME,
-                        field.constantName,
-                        field.subEntityTypeName
-                    )
-                } else {
-                    ensureTypes.addStatement(
-                        "%T.get(mutableMapOf(), %N, %N, {%T.fromMap(it)})",
-                        CrystalWrap::class,
-                        RESULT_VAL_NAME,
-                        field.constantName,
-                        field.subEntityTypeName
-                    )
-                }
-            } else {
-                val typeConverterHolder =
-                    typeConvertersByConvertedClass.get(field.fieldType)!!
-                if (field.isIterable) {
-                    ensureTypes.addStatement(
-                        "%T.getList(mutableMapOf(), %N, %N, %T)",
-                        CrystalWrap::class,
-                        RESULT_VAL_NAME,
-                        field.constantName,
-                        typeConverterHolder.instanceClassTypeName
-                    )
-                } else {
-                    ensureTypes.addStatement(
-                        "%T.get(mutableMapOf(), %N, %N, %T)",
-                        CrystalWrap::class,
-                        RESULT_VAL_NAME,
-                        field.constantName,
-                        typeConverterHolder.instanceClassTypeName
-                    )
-                }
-            }
-        }
+//        for (field in holder.fields.values) {
+//            if (field.isNonConvertibleClass) {
+//                if (field.isIterable) {
+//                    ensureTypes.addStatement(
+//                        "%T.getList<%T>(mutableMapOf(), %N, %N)",
+//                        CrystalWrap::class,
+//                        field.fieldType,
+//                        RESULT_VAL_NAME,
+//                        field.constantName
+//                    )
+//                } else {
+//                    ensureTypes.addStatement(
+//                        "%T.get<%T>(mutableMapOf(), %N, %N)",
+//                        CrystalWrap::class,
+//                        field.fieldType,
+//                        RESULT_VAL_NAME,
+//                        field.constantName
+//                    )
+//                }
+//            } else if (field.isTypeOfSubEntity) {
+//                if (field.isIterable) {
+//                    ensureTypes.addStatement(
+//                        "%T.getList(mutableMapOf(), %N, %N, {%T.fromMap(it) ?: emptyList()})",
+//                        CrystalWrap::class,
+//                        RESULT_VAL_NAME,
+//                        field.constantName,
+//                        field.subEntityTypeName
+//                    )
+//                } else {
+//                    ensureTypes.addStatement(
+//                        "%T.get(mutableMapOf(), %N, %N, {%T.fromMap(it)})",
+//                        CrystalWrap::class,
+//                        RESULT_VAL_NAME,
+//                        field.constantName,
+//                        field.subEntityTypeName
+//                    )
+//                }
+//            } else {
+//                val typeConverterHolder =
+//                    typeConvertersByConvertedClass.get(field.fieldType)!!
+//                if (field.isIterable) {
+//                    ensureTypes.addStatement(
+//                        "%T.getList(mutableMapOf(), %N, %N, %T)",
+//                        CrystalWrap::class,
+//                        RESULT_VAL_NAME,
+//                        field.constantName,
+//                        typeConverterHolder.instanceClassTypeName
+//                    )
+//                } else {
+//                    ensureTypes.addStatement(
+//                        "%T.get(mutableMapOf(), %N, %N, %T)",
+//                        CrystalWrap::class,
+//                        RESULT_VAL_NAME,
+//                        field.constantName,
+//                        typeConverterHolder.instanceClassTypeName
+//                    )
+//                }
+//            }
+//        }
 
-        ensureTypes.addStatement("return result")
+        ensureTypes.addStatement("return doc")
         return ensureTypes.build()
     }
 }
