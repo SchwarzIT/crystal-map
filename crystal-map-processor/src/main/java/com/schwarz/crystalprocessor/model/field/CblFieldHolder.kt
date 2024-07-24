@@ -90,7 +90,21 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
 
         deprecated?.addDeprecated(dbField, propertyBuilder)
 
-        val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
+        crystalWrapGetStatement(getter, if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()", typeConvertersByConvertedClass)
+        crystalWrapSetStatement(setter, if (useMDocChanges) "mDocChanges" else "mDoc", typeConvertersByConvertedClass, "value")
+
+        if (comment.isNotEmpty()) {
+            propertyBuilder.addKdoc(KDocGeneration.generate(comment))
+        }
+
+        return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
+    }
+
+    fun crystalWrapGetStatement(
+        getter: FunSpec.Builder,
+        mDocPhrase: String,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ) {
         if (isNonConvertibleClass) {
             if (isIterable) {
                 getter.addStatement(
@@ -156,14 +170,6 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                 )
             }
         }
-
-        crystalWrapSetStatement(setter, if (useMDocChanges) "mDocChanges" else "mDoc", typeConvertersByConvertedClass, "value")
-
-        if (comment.isNotEmpty()) {
-            propertyBuilder.addKdoc(KDocGeneration.generate(comment))
-        }
-
-        return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
     }
 
     fun crystalWrapSetStatement(
