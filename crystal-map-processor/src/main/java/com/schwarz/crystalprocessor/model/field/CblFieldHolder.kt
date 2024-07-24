@@ -101,12 +101,6 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                     fieldType,
                     constantName
                 )
-                setter.addStatement(
-                    "%T.setList(%N, %N, value)",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
-                    constantName
-                )
             } else {
                 getter.addStatement(
                     "return %T.get<%T>($mDocPhrase, %N)".forceCastIfMandatory(
@@ -116,28 +110,15 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                     fieldType,
                     constantName
                 )
-                setter.addStatement(
-                    "%T.set(%N, %N, value)",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
-                    constantName
-                )
             }
         } else if (isTypeOfSubEntity) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it) ?: emptyList()})".forceCastIfMandatory(
+                    "return %T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
                         mandatory
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
-                    constantName,
-                    subEntityTypeName
-                )
-                setter.addStatement(
-                    "%T.setList(%N, %N, value, {%T.toMap(it)})",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
                     constantName,
                     subEntityTypeName
                 )
@@ -148,13 +129,6 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
-                    constantName,
-                    subEntityTypeName
-                )
-                setter.addStatement(
-                    "%T.set(%N, %N, value, {%T.toMap(it)})",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
                     constantName,
                     subEntityTypeName
                 )
@@ -171,14 +145,6 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                     constantName,
                     typeConverterHolder.instanceClassTypeName
                 )
-
-                setter.addStatement(
-                    "%T.setList(%N, %N, value, %T)",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
-                    constantName,
-                    typeConverterHolder.instanceClassTypeName
-                )
             } else {
                 getter.addStatement(
                     "return %T.get($mDocPhrase, %N, %T)".forceCastIfMandatory(
@@ -188,22 +154,85 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
                     constantName,
                     typeConverterHolder.instanceClassTypeName
                 )
-
-                setter.addStatement(
-                    "%T.set(%N, %N, value, %T)",
-                    CrystalWrap::class,
-                    if (useMDocChanges) "mDocChanges" else "mDoc",
-                    constantName,
-                    typeConverterHolder.instanceClassTypeName
-                )
             }
         }
+
+        crystalWrapSetStatement(setter, if (useMDocChanges) "mDocChanges" else "mDoc", typeConvertersByConvertedClass, "value")
 
         if (comment.isNotEmpty()) {
             propertyBuilder.addKdoc(KDocGeneration.generate(comment))
         }
 
         return propertyBuilder.setter(setter.build()).getter(getter.build()).build()
+    }
+
+    fun crystalWrapSetStatement(
+        setter: FunSpec.Builder,
+        mDocPhrase: String,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
+        valueName: String
+    ) {
+        if (isNonConvertibleClass) {
+            if (isIterable) {
+                setter.addStatement(
+                    "%T.setList(%N, %N, %L)",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName
+                )
+            } else {
+                setter.addStatement(
+                    "%T.set(%N, %N, %L)",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName
+                )
+            }
+        } else if (isTypeOfSubEntity) {
+            if (isIterable) {
+                setter.addStatement(
+                    "%T.setList(%N, %N, %L, {%T.toMap(it)})",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName,
+                    subEntityTypeName
+                )
+            } else {
+                setter.addStatement(
+                    "%T.set(%N, %N, %L, {%T.toMap(it)})",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName,
+                    subEntityTypeName
+                )
+            }
+        } else {
+            val typeConverterHolder =
+                typeConvertersByConvertedClass.get(fieldType)!!
+            if (isIterable) {
+                setter.addStatement(
+                    "%T.setList(%N, %N, %L, %T)",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName,
+                    typeConverterHolder.instanceClassTypeName
+                )
+            } else {
+                setter.addStatement(
+                    "%T.set(%N, %N, %L, %T)",
+                    CrystalWrap::class,
+                    mDocPhrase,
+                    constantName,
+                    valueName,
+                    typeConverterHolder.instanceClassTypeName
+                )
+            }
+        }
     }
 
     override fun builderSetter(
@@ -242,18 +271,6 @@ class CblFieldHolder(field: Field, classPaths: List<String>, subEntityNameSuffix
             PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC)
                 .initializer("%S", dbField).addAnnotation(JvmField::class).build()
         return listOf(fieldAccessorConstant)
-    }
-
-    fun evaluateClazzForTypeConversion(): TypeName {
-        return if (isIterable) {
-            if (TypeUtil.isMap(fieldType)) {
-                TypeUtil.string()
-            } else {
-                fieldType
-            }
-        } else {
-            TypeUtil.parseMetaType(typeMirror, isIterable, false, subEntitySimpleName)
-        }
     }
 
     private fun String.forceCastIfMandatory(mandatory: Boolean): String {

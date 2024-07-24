@@ -11,7 +11,7 @@ class RebindMethodGeneration {
         val type = if (clearMDocChanges) TypeUtil.mapStringAny() else TypeUtil.mapStringAnyNullable()
         val rebind = FunSpec.builder("rebind").addParameter("doc", type)
             .addStatement("mDoc = %T()", explicitType)
-            .addCode(CblDefaultGeneration.addAddCall())
+            .addCode(CblDefaultGeneration.addAddCall("mDoc"))
             .addCode(
                 CodeBlock.builder()
                     .beginControlFlow("if(doc != null)")

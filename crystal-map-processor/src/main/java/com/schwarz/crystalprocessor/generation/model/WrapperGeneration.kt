@@ -23,7 +23,7 @@ class WrapperGeneration {
             .addSuperinterface(holder.interfaceTypeName)
             .addSuperinterface(MandatoryCheck::class)
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, true, typeConvertersByConvertedClass))
-            .addFunction(CblDefaultGeneration.addDefaults(holder, true))
+            .addFunction(CblDefaultGeneration.addDefaults(holder, true, typeConvertersByConvertedClass))
             .addFunction(CblConstantGeneration.addConstants(holder, true))
             .addFunction(SetAllMethodGeneration().generate(holder, false))
             .addFunction(MapSupportGeneration.toMap(holder))
