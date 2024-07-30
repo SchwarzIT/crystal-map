@@ -8,12 +8,12 @@ import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
-import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.Reduces
+import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
-import java.util.Date
+import java.time.LocalDate
 
 @Entity(database = "mydb_db")
 @MapWrapper
@@ -39,10 +39,16 @@ import java.util.Date
         list = true,
         comment = ["I'm also comfortable with pseudo %2D placeholders"]
     ),
+    Field(
+        name = "top_comment",
+        type = UserComment::class
+    ),
     Field(name = "image", type = Blob::class),
     Field(name = "identifiers", type = String::class, list = true),
     Field(name = "category", type = ProductCategory::class),
-    Field(name = "some_date", type = Date::class)
+    Field(name = "some_date", type = LocalDate::class),
+    Field(name = "some_dates", type = LocalDate::class, list = true),
+    Field(name = "field_with_default", type = String::class, defaultValue = "foobar")
 )
 @Queries(
     Query(fields = ["type"]),

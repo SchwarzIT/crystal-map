@@ -39,26 +39,32 @@ object CrystalWrap {
         }
     }
 
-    inline fun <T> getList(
+    inline fun <reified T> getList(
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
-        mapper: ((List<MutableMap<String, Any?>>?) -> List<T>)
+        mapper: ((MutableMap<String, Any?>?) -> T?)
     ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
         catchTypeConversionError(fieldName, value) {
-            mapper.invoke(value as List<MutableMap<String, Any?>>)
+            (value as List<Any>).mapNotNull {
+                catchTypeConversionError(fieldName, it) {
+                    mapper.invoke(it as MutableMap<String, Any?>)
+                }
+            }
         }
     }
 
-    inline fun <T, reified U> getList(
+    inline fun <reified T, reified U> getList(
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
         typeConverter: ITypeConverter<T, U>
     ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
         catchTypeConversionError(fieldName, value) {
-            ((value as List<Any>).map { it as U }).mapNotNull {
-                typeConverter.read(it)
+            (value as List<Any>).mapNotNull {
+                catchTypeConversionError(fieldName, it) {
+                    typeConverter.read(it as U)
+                }
             }
         }
     }
@@ -69,7 +75,11 @@ object CrystalWrap {
         fieldName: String
     ): List<T>? = (changes[fieldName] ?: doc[fieldName])?.let { value ->
         catchTypeConversionError(fieldName, value) {
-            (value as List<Any>).map { it as T }
+            (value as List<Any>).mapNotNull {
+                catchTypeConversionError(fieldName, it) {
+                    it as T
+                }
+            }
         }
     }
 
@@ -134,12 +144,50 @@ object CrystalWrap {
         }
     }
 
-    inline fun <reified T> catchTypeConversionError(fieldName: String, value: Any, task: () -> T): T? = try {
+    inline fun <reified DomainType> ensureType(
+        map: HashMap<String, in Any>,
+        key: String,
+        typeConverter: ITypeConverter<DomainType, *>
+    ) {
+        val value = map[key]
+        catchTypeConversionError(key, value) {
+            if (value != null && value is DomainType) {
+                val converted = typeConverter.write(value)
+                converted?.let { map.replace(key, it) }
+            }
+        }
+    }
+
+    inline fun <reified DomainType, reified MapType> ensureListType(
+        map: HashMap<String, in Any>,
+        key: String,
+        typeConverter: ITypeConverter<DomainType, MapType>
+    ) {
+        val value = map[key]
+        if (value != null && value is List<*>) {
+            val converted = value.map {
+                if (it != null && it is DomainType) {
+                    catchTypeConversionError<MapType?>(key, it) {
+                        typeConverter.write(it)
+                    }
+                } else {
+                    it
+                }
+            }
+            map.replace(key, converted)
+        }
+    }
+
+    inline fun <reified T> catchTypeConversionError(
+        fieldName: String,
+        value: Any?,
+        task: () -> T
+    ): T? = try {
         task()
-    } catch (cce: ClassCastException) {
+    } catch (e: Exception) {
         PersistenceConfig.onTypeConversionError(
             com.schwarz.crystalapi.TypeConversionErrorWrapper(
-                cce,
+                e,
                 fieldName,
                 value,
                 T::class

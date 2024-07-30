@@ -69,7 +69,7 @@ class EntityGeneration {
             .addSuperinterface(MandatoryCheck::class)
             .addProperty(holder.dbNameProperty())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, false, typeConvertersByConvertedClass))
-            .addFunction(CblDefaultGeneration.addDefaults(holder, false))
+            .addFunction(CblDefaultGeneration.addDefaults(holder, false, typeConvertersByConvertedClass))
             .addFunction(CblConstantGeneration.addConstants(holder, false))
             .addFunction(ValidateMethodGeneration.generate(holder, true))
             .addProperty(

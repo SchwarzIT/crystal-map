@@ -5,7 +5,7 @@ import com.schwarz.crystaldemo.UnitTestConnector
 import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Test
-import java.util.Date
+import java.time.LocalDate
 
 class ProductWrapperTest {
     companion object {
@@ -29,6 +29,7 @@ class ProductWrapperTest {
         map.remove(ProductWrapper.TYPE)
         assertEquals(
             mapOf(
+                ProductWrapper.FIELD_WITH_DEFAULT to "foobar",
                 ProductWrapper.NAME to "name",
                 ProductWrapper.COMMENTS to listOf<UserCommentWrapper>(),
                 ProductWrapper.IDENTIFIERS to listOf("1", "2")
@@ -50,7 +51,7 @@ class ProductWrapperTest {
             )
             .setCategory(ProductCategory.AMAZING_PRODUCT)
             .setIdentifiers(listOf("1", "2"))
-            .setSomeDate(Date())
+            .setSomeDate(LocalDate.now())
             .exit()
         val map = product.toMap() as MutableMap<String, Any?>
 
