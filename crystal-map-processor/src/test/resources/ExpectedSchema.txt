@@ -41,10 +41,10 @@ public open class SubSchema(
               )
 
   public val dateConverterField: CMConverterField<OffsetDateTime, String> =
-      CMConverterField("date_converter_field", com.kaufland.testModels.DateTypeConverterInstance,
-      path)
+      CMConverterField("date_converter_field", path,
+      com.kaufland.testModels.DateTypeConverterInstance)
 
   public val dateConverterList: CMConverterList<OffsetDateTime, String> =
-      CMConverterList("date_converter_list", com.kaufland.testModels.DateTypeConverterInstance,
-      path)
+      CMConverterList("date_converter_list", path,
+      com.kaufland.testModels.DateTypeConverterInstance)
 }

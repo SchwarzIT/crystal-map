@@ -16,12 +16,12 @@ class CMObjectList<out T : Schema>(val element: T, val name: String, override va
 
 class CMConverterField<KotlinType, MapType>(
     name: String,
-    val typeConverter: ITypeConverter<KotlinType, MapType>,
-    path: String
+    path: String,
+    val typeConverter: ITypeConverter<KotlinType, MapType>
 ) : CMField<MapType>(name, path)
 
 class CMConverterList<KotlinType, MapType>(
     name: String,
-    val typeConverter: ITypeConverter<KotlinType, MapType>,
-    path: String
+    path: String,
+    val typeConverter: ITypeConverter<KotlinType, MapType>
 ) : CMList<MapType>(name, path)

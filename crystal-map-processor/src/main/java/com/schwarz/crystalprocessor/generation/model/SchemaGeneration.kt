@@ -181,7 +181,7 @@ class SchemaGeneration {
     }
 
     private fun buildConverterFormat(fieldName: String, propertyType: TypeConverterHolderForEntityGeneration): String =
-        """%T("$fieldName", ${propertyType.instanceClassTypeName}, $pathAttributeName)"""
+        """%T("$fieldName", $pathAttributeName, ${propertyType.instanceClassTypeName})"""
 
     private fun buildObjectListFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
         """%T(
