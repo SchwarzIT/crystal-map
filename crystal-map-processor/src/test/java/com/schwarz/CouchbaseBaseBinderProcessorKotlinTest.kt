@@ -235,13 +235,13 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         val typeConverter = SourceFile.kotlin(
             "DateTypeConverter.kt",
             PACKAGE_HEADER +
-                    TYPE_CONVERTER_HEADER +
-                    "import java.time.OffsetDateTime\n" +
-                    "@TypeConverter\n" +
-                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
-                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                    "}"
+                TYPE_CONVERTER_HEADER +
+                "import java.time.OffsetDateTime\n" +
+                "@TypeConverter\n" +
+                "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                "}"
         )
         val compilation = compileKotlin(typeConverter, testObject, sub)
 

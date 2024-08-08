@@ -117,7 +117,7 @@ class SchemaGeneration {
         val propertyType = typeConvertersByConvertedClass[fieldObject.typeMirror.asTypeName()]
         return schemaClass.addProperty(
             if (propertyType != null) {
-                buildConverterFieldProperty(fieldObject, propertyType, fieldName)
+                buildConverterFieldProperty(fieldObject, fieldName, propertyType)
             } else {
                 buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
             }
@@ -146,8 +146,8 @@ class SchemaGeneration {
 
     private fun buildConverterFieldProperty(
         fieldObject: CblBaseFieldHolder,
-        propertyType: TypeConverterHolderForEntityGeneration,
-        fieldName: String
+        fieldName: String,
+        propertyType: TypeConverterHolderForEntityGeneration
     ): PropertySpec {
         val outerType = if (fieldObject.isIterable) {
             CMConverterList::class.asTypeName()
