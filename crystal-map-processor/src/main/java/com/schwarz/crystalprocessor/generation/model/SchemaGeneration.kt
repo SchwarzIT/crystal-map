@@ -117,12 +117,12 @@ class SchemaGeneration {
         val propertyType = typeConvertersByConvertedClass[fieldObject.typeMirror.asTypeName()]
         val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
         val hasProperty = propertyType != null
-        val outerType = getOuterPropertyType(fieldObject.isIterable, isObject, hasProperty)
+        val fieldType = getFieldType(fieldObject.isIterable, isObject, hasProperty)
         return schemaClass.addProperty(
             if (propertyType != null) {
-                buildConverterFieldProperty(fieldObject, fieldName, propertyType, outerType)
+                buildConverterFieldProperty(fieldObject, fieldName, propertyType, fieldType)
             } else {
-                buildFieldProperty(fieldObject, fieldName, outerType, isObject)
+                buildFieldProperty(fieldObject, fieldName, fieldType, isObject)
             }
         )
     }
@@ -133,13 +133,13 @@ class SchemaGeneration {
         outerType: ClassName,
         isObject: Boolean
     ): PropertySpec {
-        val innerType: TypeName = getInnerPropertyType(fieldObject)
+        val genericFieldType = getGenericFieldType(fieldObject)
 
         return PropertySpec.builder(
             fieldObject.accessorSuffix(),
-            outerType.parameterizedBy(innerType)
+            outerType.parameterizedBy(genericFieldType)
         ).initializer(
-            createPropertyFormat(fieldName, innerType, fieldObject.isIterable, isObject),
+            createPropertyFormat(fieldName, genericFieldType, fieldObject.isIterable, isObject),
             outerType
         ).build()
     }
@@ -148,14 +148,14 @@ class SchemaGeneration {
         fieldObject: CblBaseFieldHolder,
         fieldName: String,
         propertyType: TypeConverterHolderForEntityGeneration,
-        outerType: ClassName
+        fieldType: ClassName
     ): PropertySpec {
         return PropertySpec.builder(
             fieldObject.accessorSuffix(),
-            outerType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
+            fieldType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
         ).initializer(
             buildConverterFormat(fieldName, propertyType),
-            outerType
+            fieldType
         ).build()
     }
 
@@ -194,20 +194,20 @@ class SchemaGeneration {
             $pathAttributeName,
         )"""
 
-    private fun getOuterPropertyType(
+    private fun getFieldType(
         isIterable: Boolean,
         isObject: Boolean,
         hasProperty: Boolean
     ) = when {
-        hasProperty && isIterable-> CMConverterList::class.asTypeName()
+        hasProperty && isIterable -> CMConverterList::class.asTypeName()
         hasProperty -> CMConverterField::class.asTypeName()
         isIterable && isObject -> CMObjectList::class.asTypeName()
-        isIterable -> CMList::class.asTypeName()
+        isIterable -> CMJsonList::class.asTypeName()
         isObject -> CMObject::class.asTypeName()
-        else -> CMField::class.asTypeName()
+        else -> CMJsonField::class.asTypeName()
     }
 
-    private fun getInnerPropertyType(field: CblBaseFieldHolder): TypeName {
+    private fun getGenericFieldType(field: CblBaseFieldHolder): TypeName {
         val subEntity = (field as? CblFieldHolder)?.subEntitySimpleName
 
         return TypeUtil.parseMetaType(field.typeMirror, false, subEntity)
