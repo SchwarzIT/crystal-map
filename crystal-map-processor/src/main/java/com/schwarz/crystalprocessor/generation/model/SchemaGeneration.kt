@@ -115,11 +115,14 @@ class SchemaGeneration {
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ): TypeSpec.Builder {
         val propertyType = typeConvertersByConvertedClass[fieldObject.typeMirror.asTypeName()]
+        val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
+        val hasProperty = propertyType != null
+        val outerType = getOuterPropertyType(fieldObject.isIterable, isObject, hasProperty)
         return schemaClass.addProperty(
             if (propertyType != null) {
-                buildConverterFieldProperty(fieldObject, fieldName, propertyType)
+                buildConverterFieldProperty(fieldObject, fieldName, propertyType, outerType)
             } else {
-                buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
+                buildFieldProperty(fieldObject, fieldName, outerType, isObject)
             }
         )
     }
@@ -127,12 +130,9 @@ class SchemaGeneration {
     private fun buildFieldProperty(
         fieldObject: CblBaseFieldHolder,
         fieldName: String,
-        schemaClassPaths: List<String>
+        outerType: ClassName,
+        isObject: Boolean
     ): PropertySpec {
-        val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
-
-        val outerType = getOuterPropertyType(fieldObject.isIterable, isObject)
-
         val innerType: TypeName = getInnerPropertyType(fieldObject)
 
         return PropertySpec.builder(
@@ -147,14 +147,9 @@ class SchemaGeneration {
     private fun buildConverterFieldProperty(
         fieldObject: CblBaseFieldHolder,
         fieldName: String,
-        propertyType: TypeConverterHolderForEntityGeneration
+        propertyType: TypeConverterHolderForEntityGeneration,
+        outerType: ClassName
     ): PropertySpec {
-        val outerType = if (fieldObject.isIterable) {
-            CMConverterList::class.asTypeName()
-        } else {
-            CMConverterField::class.asTypeName()
-        }
-
         return PropertySpec.builder(
             fieldObject.accessorSuffix(),
             outerType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
@@ -201,8 +196,11 @@ class SchemaGeneration {
 
     private fun getOuterPropertyType(
         isIterable: Boolean,
-        isObject: Boolean
+        isObject: Boolean,
+        hasProperty: Boolean
     ) = when {
+        hasProperty && isIterable-> CMConverterList::class.asTypeName()
+        hasProperty -> CMConverterField::class.asTypeName()
         isIterable && isObject -> CMObjectList::class.asTypeName()
         isIterable -> CMList::class.asTypeName()
         isObject -> CMObject::class.asTypeName()
