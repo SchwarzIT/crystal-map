@@ -79,7 +79,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         }
 
         process(workSet.schemas, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
-            SchemaGeneration().generateModel(it, workSet.schemaClassPaths)
+            SchemaGeneration().generateModel(it, workSet.schemaClassPaths, typeConvertersByConvertedClass)
         }
 
         documentationGenerator?.generate()

@@ -1,24 +1,14 @@
 package com.schwarz.crystalprocessor.generation.model
 
-import com.schwarz.crystalapi.schema.CMField
-import com.schwarz.crystalapi.schema.CMList
-import com.schwarz.crystalapi.schema.CMObject
-import com.schwarz.crystalapi.schema.CMObjectList
-import com.schwarz.crystalapi.schema.Schema
+import com.schwarz.crystalapi.schema.*
 import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.field.CblBaseFieldHolder
 import com.schwarz.crystalprocessor.model.field.CblFieldHolder
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.util.ConversionUtil
 import com.schwarz.crystalprocessor.util.TypeUtil
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
 
 /**
  * This class is responsible for generating the Schema classes.
@@ -31,13 +21,17 @@ import com.squareup.kotlinpoet.asTypeName
  */
 class SchemaGeneration {
     private val pathAttributeName = "path"
-    fun generateModel(holder: SchemaClassHolder, schemaClassPaths: List<String>): FileSpec {
+    fun generateModel(
+        holder: SchemaClassHolder,
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FileSpec {
         val packageName = holder.sourcePackage
         val schemaClassName = holder.entitySimpleName
 
         val schemaClass: TypeSpec.Builder = buildSchemaClass(schemaClassName)
 
-        buildAndAddFieldProperties(holder, schemaClass, schemaClassPaths)
+        buildAndAddFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
 
         return FileSpec.builder(packageName, schemaClassName).addType(schemaClass.build()).build()
     }
@@ -58,16 +52,18 @@ class SchemaGeneration {
     private fun buildAndAddFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
-        buildAndAddConstantFieldProperties(holder, schemaClass, schemaClassPaths)
-        buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths)
+        buildAndAddConstantFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
+        buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
     }
 
     private fun buildAndAddConstantFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
         holder.fieldConstants.forEach { (fieldName, fieldObject) ->
             val defaultVariableName = "DEFAULT_${fieldObject.constantName}"
@@ -88,7 +84,8 @@ class SchemaGeneration {
                 schemaClass,
                 fieldName,
                 fieldObject,
-                schemaClassPaths
+                schemaClassPaths,
+                typeConvertersByConvertedClass
             )
         }
     }
@@ -96,14 +93,16 @@ class SchemaGeneration {
     private fun buildAndAddNormalFieldProperties(
         holder: SchemaClassHolder,
         schemaClass: TypeSpec.Builder,
-        schemaClassPaths: List<String>
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
         holder.fields.forEach { (fieldName, fieldObject) ->
             buildAndAddFieldProperty(
                 schemaClass,
                 fieldName,
                 fieldObject,
-                schemaClassPaths
+                schemaClassPaths,
+                typeConvertersByConvertedClass
             )
         }
     }
@@ -112,28 +111,51 @@ class SchemaGeneration {
         schemaClass: TypeSpec.Builder,
         fieldName: String,
         fieldObject: CblBaseFieldHolder,
-        schemaClassPaths: List<String>
-    ): TypeSpec.Builder = schemaClass.addProperty(
-        buildFieldProperty(fieldObject, fieldName, schemaClassPaths)
-    )
+        schemaClassPaths: List<String>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): TypeSpec.Builder {
+        val propertyType = typeConvertersByConvertedClass[fieldObject.typeMirror.asTypeName()]
+        val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
+        val hasProperty = propertyType != null
+        val fieldType = getFieldType(fieldObject.isIterable, isObject, hasProperty)
+        return schemaClass.addProperty(
+            if (propertyType != null) {
+                buildConverterFieldProperty(fieldObject, fieldName, propertyType, fieldType)
+            } else {
+                buildFieldProperty(fieldObject, fieldName, fieldType, isObject)
+            }
+        )
+    }
 
     private fun buildFieldProperty(
         fieldObject: CblBaseFieldHolder,
         fieldName: String,
-        schemaClassPaths: List<String>
+        outerType: ClassName,
+        isObject: Boolean
     ): PropertySpec {
-        val isObject = schemaClassPaths.contains(fieldObject.typeMirror.toString())
-
-        val outerType = getOuterPropertyType(fieldObject.isIterable, isObject)
-
-        val innerType: TypeName = getInnerPropertyType(fieldObject)
+        val genericFieldType = getGenericFieldType(fieldObject)
 
         return PropertySpec.builder(
-            fieldName,
-            outerType.parameterizedBy(innerType)
+            fieldObject.accessorSuffix(),
+            outerType.parameterizedBy(genericFieldType)
         ).initializer(
-            createPropertyFormat(fieldName, innerType, fieldObject.isIterable, isObject),
+            createPropertyFormat(fieldName, genericFieldType, fieldObject.isIterable, isObject),
             outerType
+        ).build()
+    }
+
+    private fun buildConverterFieldProperty(
+        fieldObject: CblBaseFieldHolder,
+        fieldName: String,
+        propertyType: TypeConverterHolderForEntityGeneration,
+        fieldType: ClassName
+    ): PropertySpec {
+        return PropertySpec.builder(
+            fieldObject.accessorSuffix(),
+            fieldType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
+        ).initializer(
+            buildConverterFormat(fieldName, propertyType),
+            fieldType
         ).build()
     }
 
@@ -153,6 +175,9 @@ class SchemaGeneration {
         }
     }
 
+    private fun buildConverterFormat(fieldName: String, propertyType: TypeConverterHolderForEntityGeneration): String =
+        """%T("$fieldName", $pathAttributeName, ${propertyType.instanceClassTypeName})"""
+
     private fun buildObjectListFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
         """%T(
             $propertyType($propertyAccessPath),
@@ -169,17 +194,20 @@ class SchemaGeneration {
             $pathAttributeName,
         )"""
 
-    private fun getOuterPropertyType(
+    private fun getFieldType(
         isIterable: Boolean,
-        isObject: Boolean
+        isObject: Boolean,
+        hasProperty: Boolean
     ) = when {
+        hasProperty && isIterable -> CMConverterList::class.asTypeName()
+        hasProperty -> CMConverterField::class.asTypeName()
         isIterable && isObject -> CMObjectList::class.asTypeName()
-        isIterable -> CMList::class.asTypeName()
+        isIterable -> CMJsonList::class.asTypeName()
         isObject -> CMObject::class.asTypeName()
-        else -> CMField::class.asTypeName()
+        else -> CMJsonField::class.asTypeName()
     }
 
-    private fun getInnerPropertyType(field: CblBaseFieldHolder): TypeName {
+    private fun getGenericFieldType(field: CblBaseFieldHolder): TypeName {
         val subEntity = (field as? CblFieldHolder)?.subEntitySimpleName
 
         return TypeUtil.parseMetaType(field.typeMirror, false, subEntity)
