@@ -170,7 +170,7 @@ class SchemaGeneration {
 
         return when {
             isIterable && isObject -> buildObjectListFormat(propertyType, fieldName, propertyAccessPath)
-            isObject -> buildObjectFormat(propertyType, propertyAccessPath)
+            isObject -> buildObjectFormat(propertyType, fieldName, propertyAccessPath)
             else -> buildSimpleFormat(fieldName)
         }
     }
@@ -188,9 +188,10 @@ class SchemaGeneration {
     private fun buildSimpleFormat(fieldName: String): String =
         """%T("$fieldName", $pathAttributeName)"""
 
-    private fun buildObjectFormat(propertyType: TypeName, propertyAccessPath: String): String =
+    private fun buildObjectFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
         """%T(
             $propertyType($propertyAccessPath),
+            "$fieldName",
             $pathAttributeName,
         )"""
 
@@ -203,7 +204,7 @@ class SchemaGeneration {
         hasProperty -> CMConverterField::class.asTypeName()
         isIterable && isObject -> CMObjectList::class.asTypeName()
         isIterable -> CMJsonList::class.asTypeName()
-        isObject -> CMObject::class.asTypeName()
+        isObject -> CMObjectField::class.asTypeName()
         else -> CMJsonField::class.asTypeName()
     }
 

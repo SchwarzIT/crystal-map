@@ -30,6 +30,7 @@ public open class SubSchema(
   public val someObject: CMObject<TestObjectSchema> = CMObject(
                   com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else
           "$path.someObject"),
+                  "someObject",
                   path,
               )
 
