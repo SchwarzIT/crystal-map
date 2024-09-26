@@ -9,7 +9,7 @@ import com.schwarz.crystalapi.schema.CMConverterField
 import com.schwarz.crystalapi.schema.CMConverterList
 import com.schwarz.crystalapi.schema.CMJsonField
 import com.schwarz.crystalapi.schema.CMJsonList
-import com.schwarz.crystalapi.schema.CMObject
+import com.schwarz.crystalapi.schema.CMObjectField
 import com.schwarz.crystalapi.schema.CMObjectList
 import com.schwarz.crystalapi.schema.Schema
 import java.time.OffsetDateTime
@@ -27,7 +27,7 @@ public open class SubSchema(
 
   public val list: CMJsonList<String> = CMJsonList("list", path)
 
-  public val someObject: CMObject<TestObjectSchema> = CMObject(
+  public val someObject: CMObjectField<TestObjectSchema> = CMObjectField(
                   com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else
           "$path.someObject"),
                   "someObject",
