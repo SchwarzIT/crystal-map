@@ -35,6 +35,9 @@ public class JavaAnnotationUtil {
             public String database() {
                 return source.database();
             }
+
+            @Override
+            public String collection() { return source.collection(); }
         };
 
         return annotation;

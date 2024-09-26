@@ -8,30 +8,38 @@ object PersistenceConfig {
         fun getDocument(
             id: String,
             dbName: String,
+            collection: String = "",
             onlyInclude: List<String>? = null
         ): Map<String, Any>?
 
         fun getDocuments(
             ids: List<String>,
             dbName: String,
+            collection: String = "",
             onlyInclude: List<String>? = null
         ): List<Map<String, Any>?>
 
         fun queryDoc(
             dbName: String,
+            collection: String = "",
             queryParams: Map<String, Any>,
             limit: Int? = null,
             onlyInclude: List<String>? = null
         ): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
-        fun deleteDocument(id: String, dbName: String)
+        fun deleteDocument(
+            id: String,
+            dbName: String,
+            collection: String = ""
+        )
 
         @Throws(PersistenceException::class)
         fun upsertDocument(
             document: MutableMap<String, Any>,
             id: String?,
-            dbName: String
+            dbName: String,
+            collection: String = ""
         ): Map<String, Any>
     }
 
@@ -40,30 +48,38 @@ object PersistenceConfig {
         suspend fun getDocument(
             id: String,
             dbName: String,
+            collection: String = "",
             onlyInclude: List<String>? = null
         ): Map<String, Any>?
 
         suspend fun getDocuments(
             ids: List<String>,
             dbName: String,
+            collection: String = "",
             onlyInclude: List<String>? = null
         ): List<Map<String, Any>>
 
         suspend fun queryDoc(
             dbName: String,
+            collection: String = "",
             queryParams: Map<String, Any>,
             limit: Int? = null,
             onlyInclude: List<String>? = null
         ): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
-        suspend fun deleteDocument(id: String, dbName: String)
+        suspend fun deleteDocument(
+            id: String,
+            dbName: String,
+            collection: String = ""
+        )
 
         @Throws(PersistenceException::class)
         suspend fun upsertDocument(
             document: MutableMap<String, Any>,
             id: String?,
-            dbName: String
+            dbName: String,
+            collection: String = ""
         ): Map<String, Any>
     }
 
