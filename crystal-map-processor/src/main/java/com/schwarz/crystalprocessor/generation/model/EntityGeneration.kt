@@ -46,7 +46,13 @@ class EntityGeneration {
         companionSpec.addFunction(findByIds(holder, useSuspend))
 
         for (query in holder.queries) {
-            query.queryFun(holder.dbName, holder, useSuspend, typeConvertersByConvertedClass).let {
+            query.queryFun(
+                holder.dbName,
+                holder.collection,
+                holder,
+                useSuspend,
+                typeConvertersByConvertedClass
+            ).let {
                 companionSpec.addFunction(it)
             }
         }
@@ -68,6 +74,7 @@ class EntityGeneration {
             .addSuperinterface(holder.interfaceTypeName)
             .addSuperinterface(MandatoryCheck::class)
             .addProperty(holder.dbNameProperty())
+            .addProperty(holder.collectionProperty())
             .addFunction(EnsureTypesGeneration.ensureTypes(holder, false, typeConvertersByConvertedClass))
             .addFunction(CblDefaultGeneration.addDefaults(holder, false, typeConvertersByConvertedClass))
             .addFunction(CblConstantGeneration.addConstants(holder, false))
@@ -111,6 +118,7 @@ class EntityGeneration {
         for (fieldHolder in holder.allFields) {
             fieldHolder.builderSetter(
                 holder.dbName,
+                holder.collection,
                 holder.sourcePackage,
                 holder.entitySimpleName,
                 true,
@@ -123,6 +131,7 @@ class EntityGeneration {
             typeBuilder.addProperty(
                 fieldHolder.property(
                     holder.dbName,
+                    holder.collection,
                     holder.abstractParts,
                     true,
                     holder.deprecated,
@@ -155,9 +164,10 @@ class EntityGeneration {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement(
-                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
+                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %S, %N)",
                 PersistenceConfig::class,
                 holder.dbName,
+                holder.collection,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
                 .addStatement(
@@ -178,9 +188,10 @@ class EntityGeneration {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement(
-                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
+                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %S, %N)",
                 PersistenceConfig::class,
                 holder.dbName,
+                holder.collection,
                 CblReduceGeneration.PROPERTY_ONLY_INCLUDES
             )
                 .addStatement(
@@ -197,7 +208,7 @@ class EntityGeneration {
     }
 
     private fun toMap(holder: EntityHolder, useSuspend: Boolean): FunSpec {
-        var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
+        var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S, %S)} ?: mDoc"
 
         if (useSuspend) {
             refreshDoc = "kotlinx.coroutines.runBlocking{$refreshDoc}"
@@ -205,7 +216,12 @@ class EntityGeneration {
 
         val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE)
             .returns(TypeUtil.mutableMapStringAny())
-            .addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
+            .addStatement(
+                "val doc = $refreshDoc",
+                PersistenceConfig::class,
+                holder.dbName,
+                holder.collection
+            )
 
         for (constantField in holder.fieldConstants.values) {
             toMapBuilder.addStatement(
@@ -248,9 +264,10 @@ class EntityGeneration {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
             builder.addStatement(
-                "getId()?.let{%T.${deleteDocumentMethod(useSuspend)}(it, %S)}",
+                "getId()?.let{%T.${deleteDocumentMethod(useSuspend)}(it, %S, %S)}",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                holder.collection
             )
         }
         return builder.build()
@@ -279,9 +296,10 @@ class EntityGeneration {
 
             saveBuilder.addStatement("val docId = $idResolve")
             saveBuilder.addStatement(
-                "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
+                "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S, %S)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
+                holder.collection
             )
             saveBuilder.addStatement("rebind(upsertedDoc)")
         }
@@ -310,10 +328,11 @@ class EntityGeneration {
         return listOf(
             FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
                 .addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement(
-                    "return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
+                    "return %N(%T.${getDocumentMethod(useSuspend)}(id, %S, %S) ?: mutableMapOf(_ID to id))",
                     holder.entitySimpleName,
                     PersistenceConfig::class,
-                    holder.dbName
+                    holder.dbName,
+                    holder.collection
                 ).returns(holder.entityTypeName).build(),
             FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
                 .addAnnotation(JvmStatic::class).addStatement(
