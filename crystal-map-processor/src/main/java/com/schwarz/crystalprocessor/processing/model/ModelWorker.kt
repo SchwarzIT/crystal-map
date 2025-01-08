@@ -78,7 +78,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             WrapperGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
-        process(workSet.schemas, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        process(workSet.schemas) {
             SchemaGeneration().generateModel(it, workSet.schemaClassPaths, typeConvertersByConvertedClass)
         }
 
@@ -89,13 +89,9 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
 
     private fun <T : BaseEntityHolder> process(
         models: List<T>,
-        generatedInterfaces: MutableSet<String>,
-        useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
         generate: (T) -> FileSpec
     ) {
         for (model in models) {
-            generateInterface(generatedInterfaces, model, useSuspend, typeConvertersByConvertedClass)
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)

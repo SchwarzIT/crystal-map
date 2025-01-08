@@ -252,6 +252,59 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testKotlinSchemaGenerationWithBasedOn() {
+        val expected = File("src/test/resources/ExpectedSubSchema.txt").readLines()
+        val testObject = SourceFile.kotlin(
+            "TestObject.kt",
+            PACKAGE_HEADER +
+                "import com.schwarz.crystalapi.Fields\n" +
+                "import com.schwarz.crystalapi.Field\n" +
+                "import com.schwarz.crystalapi.MapWrapper\n" +
+                "import com.schwarz.crystalapi.SchemaClass\n" +
+                "@MapWrapper\n" +
+                "@SchemaClass\n" +
+                "@Fields(\n" +
+                "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
+                ")\n" +
+                "open class TestObject"
+        )
+        val base = SourceFile.kotlin(
+            "Base.kt",
+            PACKAGE_HEADER +
+                "import com.schwarz.crystalapi.BaseModel\n" +
+                "import com.schwarz.crystalapi.Fields\n" +
+                "import com.schwarz.crystalapi.Field\n" +
+                "@BaseModel\n" +
+                "@Fields(\n" +
+                "Field(name = \"someObject\", type = TestObject::class)\n" +
+                ")\n" +
+                "open class Base"
+        )
+        val sub = SourceFile.kotlin(
+            "Sub.kt",
+            PACKAGE_HEADER +
+                "import com.kaufland.testModels.TestObject\n" +
+                "import com.schwarz.crystalapi.BasedOn\n" +
+                "import com.schwarz.crystalapi.Field\n" +
+                "import com.schwarz.crystalapi.Fields\n" +
+                "import com.schwarz.crystalapi.SchemaClass\n" +
+                "import java.time.OffsetDateTime\n" +
+                "@SchemaClass\n" +
+                "@BasedOn(Base::class)\n" +
+                "@Fields(\n" +
+                "Field(name = \"type\", type = String::class, defaultValue = \"sub\", readonly = true)\n" +
+                ")\n" +
+                "class Sub"
+        )
+        val compilation = compileKotlin(base, testObject, sub)
+
+        val actual = compilation.generatedFiles.find { it.name == "SubSchema.kt" }!!.readLines()
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        Assert.assertEquals(expected, actual)
+    }
+
+    @Test
     fun testKotlinPrivateGeneration() {
         val subEntity = SourceFile.kotlin(
             "Sub.kt",

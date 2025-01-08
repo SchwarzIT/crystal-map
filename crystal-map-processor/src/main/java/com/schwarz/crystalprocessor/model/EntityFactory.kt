@@ -40,7 +40,7 @@ object EntityFactory {
         ) as EntityHolder
     }
 
-    fun createBaseModelHolder(
+    fun createWrapperBaseModelHolder(
         sourceModel: ISourceModel,
         allWrapperPaths: List<String>
     ): BaseModelHolder {
@@ -50,6 +50,19 @@ object EntityFactory {
             allWrapperPaths,
             emptyMap(),
             WRAPPER_SUB_ENTITY_SUFFIX
+        ) as BaseModelHolder
+    }
+
+    fun createSchemaBaseModelHolder(
+        sourceModel: ISourceModel,
+        allSchemaClassPaths: List<String>
+    ): BaseModelHolder {
+        return create(
+            sourceModel,
+            BaseModelHolder(sourceModel),
+            allSchemaClassPaths,
+            emptyMap(),
+            SCHEMA_SUB_ENTITY_SUFFIX
         ) as BaseModelHolder
     }
 

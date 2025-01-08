@@ -35,7 +35,9 @@ class ModelWorkSet(
 
     private val schemaModels: MutableMap<String, SchemaClassHolder> = HashMap()
 
-    private val baseModels: MutableMap<String, BaseModelHolder> = HashMap()
+    private val wrapperBaseModels: MutableMap<String, BaseModelHolder> = HashMap()
+
+    private val schemaBaseModels: MutableMap<String, BaseModelHolder> = HashMap()
 
     private val typeConverterModels: MutableMap<String, TypeConverterHolder> = HashMap()
 
@@ -66,21 +68,27 @@ class ModelWorkSet(
 
     override fun loadModels(logger: Logger, env: ProcessingEnvironment) {
         val allWrapperPaths = allWrapperElements.map { element -> element.toString() }
+        val allSchemaClassPaths = allSchemaClassElements.map { element -> element.toString() }
 
         for (element in allBaseModelElements) {
-            val baseModel =
-                EntityFactory.createBaseModelHolder(SourceModel(element), allWrapperPaths)
-            baseModels[element.toString()] = baseModel
+            val wrapperBaseModel = EntityFactory.createWrapperBaseModelHolder(SourceModel(element), allWrapperPaths)
+            wrapperBaseModels[element.toString()] = wrapperBaseModel
+
+            val schemaBaseModel = EntityFactory.createSchemaBaseModelHolder(SourceModel(element), allSchemaClassPaths)
+            schemaBaseModels[element.toString()] = schemaBaseModel
         }
 
         // we can resolve the based on chain when all base models are parsed.
-        for (baseModel in baseModels.values) {
-            EntityFactory.addBasedOn(baseModel.sourceElement, baseModels, baseModel)
+        for (baseModel in wrapperBaseModels.values) {
+            EntityFactory.addBasedOn(baseModel.sourceElement, wrapperBaseModels, baseModel)
+        }
+
+        for (baseModel in schemaBaseModels.values) {
+            EntityFactory.addBasedOn(baseModel.sourceElement, schemaBaseModels, baseModel)
         }
 
         for (element in allEntityElements) {
-            val entityModel =
-                EntityFactory.createEntityHolder(SourceModel(element), allWrapperPaths, baseModels)
+            val entityModel = EntityFactory.createEntityHolder(SourceModel(element), allWrapperPaths, wrapperBaseModels)
             entityModels[element.toString()] = entityModel
 
             entityModel.reducesModels.forEach {
@@ -90,7 +98,7 @@ class ModelWorkSet(
                         it
                     ),
                     allWrapperPaths,
-                    baseModels
+                    wrapperBaseModels
                 )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
@@ -101,7 +109,7 @@ class ModelWorkSet(
             val wrapperModel = EntityFactory.createChildEntityHolder(
                 SourceModel(element),
                 allWrapperPaths,
-                baseModels
+                wrapperBaseModels
             )
             wrapperModels[element.toString()] = wrapperModel
 
@@ -112,19 +120,18 @@ class ModelWorkSet(
                         it
                     ),
                     allWrapperPaths,
-                    baseModels
+                    wrapperBaseModels
                 )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
 
-        val allSchemaClassPaths = allSchemaClassElements.map { element -> element.toString() }
         for (element in allSchemaClassElements) {
             val schemaModel = EntityFactory.createSchemaEntityHolder(
                 SourceModel(element),
                 allSchemaClassPaths,
-                baseModels
+                schemaBaseModels
             )
             schemaModels[element.toString()] = schemaModel
         }
@@ -145,7 +152,6 @@ class ModelWorkSet(
 
         ModelValidation(
             logger,
-            baseModels,
             wrapperModels,
             entityModels,
             typeConverterModels.values.toList(),
@@ -166,7 +172,7 @@ class ModelWorkSet(
         get() = schemaModels.keys.toList()
 
     val bases: List<BaseModelHolder>
-        get() = baseModels.values.toList()
+        get() = wrapperBaseModels.values.toList()
 
     val typeConverters: List<TypeConverterHolder>
         get() = typeConverterModels.values.toList()
