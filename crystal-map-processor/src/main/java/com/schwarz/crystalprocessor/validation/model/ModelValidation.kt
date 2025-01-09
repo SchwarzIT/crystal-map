@@ -1,13 +1,12 @@
 package com.schwarz.crystalprocessor.validation.model
 
-import com.schwarz.crystalprocessor.Logger
-import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
-import com.schwarz.crystalprocessor.model.entity.BaseModelHolder
-import com.schwarz.crystalprocessor.model.entity.EntityHolder
-import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
 import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.TypeConverter
 import com.schwarz.crystalapi.deprecated.DeprecatedField
+import com.schwarz.crystalprocessor.Logger
+import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
+import com.schwarz.crystalprocessor.model.entity.EntityHolder
+import com.schwarz.crystalprocessor.model.entity.WrapperEntityHolder
 import com.schwarz.crystalprocessor.model.typeconverter.ImportedTypeConverterHolder
 import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolder
 import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
@@ -17,7 +16,6 @@ import com.squareup.kotlinpoet.ParameterizedTypeName
 
 class ModelValidation(
     val logger: Logger,
-    val baseModels: MutableMap<String, BaseModelHolder>,
     val wrapperModels: MutableMap<String, WrapperEntityHolder>,
     val entityModels: MutableMap<String, EntityHolder>,
     val typeConverterModels: List<TypeConverterHolder>,
@@ -197,7 +195,10 @@ class ModelValidation(
     private fun validateTypeConversions() {
         typeConverterModels.forEach {
             if (!nonConvertibleClassesTypeNames.contains(it.mapClassTypeName)) {
-                logger.error("Invalid map type ${it.mapClassTypeName} found in TypeConverter ${it.classTypeName}. Should be one of $nonConvertibleClassesTypeNames", null)
+                logger.error(
+                    "Invalid map type ${it.mapClassTypeName} found in TypeConverter ${it.classTypeName}. Should be one of $nonConvertibleClassesTypeNames",
+                    null
+                )
             }
         }
 

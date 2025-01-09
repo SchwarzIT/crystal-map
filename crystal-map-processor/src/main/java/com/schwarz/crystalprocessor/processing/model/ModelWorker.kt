@@ -20,6 +20,7 @@ import com.schwarz.crystalprocessor.generation.model.TypeConverterObjectGenerati
 import com.schwarz.crystalprocessor.generation.model.WrapperGeneration
 import com.schwarz.crystalprocessor.meta.SchemaGenerator
 import com.schwarz.crystalprocessor.model.entity.BaseEntityHolder
+import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalprocessor.processing.Worker
 import com.squareup.kotlinpoet.FileSpec
@@ -78,7 +79,7 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
             WrapperGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
-        process(workSet.schemas, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        process(workSet.schemas) {
             SchemaGeneration().generateModel(it, workSet.schemaClassPaths, typeConvertersByConvertedClass)
         }
 
@@ -87,15 +88,8 @@ class ModelWorker(override val logger: Logger, override val codeGenerator: CodeG
         schemaGenerator?.generate()
     }
 
-    private fun <T : BaseEntityHolder> process(
-        models: List<T>,
-        generatedInterfaces: MutableSet<String>,
-        useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
-        generate: (T) -> FileSpec
-    ) {
-        for (model in models) {
-            generateInterface(generatedInterfaces, model, useSuspend, typeConvertersByConvertedClass)
+    private fun process(schemaModels: List<SchemaClassHolder>, generate: (SchemaClassHolder) -> FileSpec) {
+        for (model in schemaModels) {
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
