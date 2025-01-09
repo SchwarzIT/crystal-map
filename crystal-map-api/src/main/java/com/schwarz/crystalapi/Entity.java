@@ -22,4 +22,6 @@ public @interface Entity {
     Type type() default Type.READ_AND_WRITE;
 
     String database() default "";
+
+    String collection() default "";
 }

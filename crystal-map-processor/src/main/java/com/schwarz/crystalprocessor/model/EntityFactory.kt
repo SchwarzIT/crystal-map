@@ -30,6 +30,7 @@ object EntityFactory {
             sourceModel,
             EntityHolder(
                 annotation.database,
+                annotation.collection,
                 annotation.modifierOpen,
                 annotation.type,
                 sourceModel
