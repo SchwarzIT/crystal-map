@@ -1,5 +1,6 @@
 package com.schwarz.crystalprocessor.generation.model
 
+import com.schwarz.crystalapi.ClassNameDefinition
 import com.schwarz.crystalapi.schema.*
 import com.schwarz.crystalprocessor.model.entity.SchemaClassHolder
 import com.schwarz.crystalprocessor.model.field.CblBaseFieldHolder
@@ -152,12 +153,29 @@ class SchemaGeneration {
     ): PropertySpec {
         return PropertySpec.builder(
             fieldObject.accessorSuffix(),
-            fieldType.parameterizedBy(propertyType.domainClassTypeName, propertyType.mapClassTypeName)
+            fieldType.parameterizedBy(
+                propertyType.domainClassTypeName,
+                propertyType.mapClassTypeName.addGenerics(propertyType.genericTypeNames)
+            )
         ).initializer(
             buildConverterFormat(fieldName, propertyType),
             fieldType
         ).build()
     }
+
+    private fun ClassName.addGenerics(genericTypeNames: List<ClassNameDefinition>): TypeName =
+        if (genericTypeNames.isEmpty()) {
+            this
+        } else {
+            parameterizedBy(
+                genericTypeNames.map { genericType ->
+                    val baseType = ClassName(genericType.packageName, genericType.className)
+                        .addGenerics(genericType.generics ?: emptyList())
+
+                    baseType.copy(nullable = genericType.nullable)
+                }
+            )
+        }
 
     private fun createPropertyFormat(
         fieldName: String,

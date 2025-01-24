@@ -9,6 +9,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.sun.tools.javac.code.Symbol
 import kotlinx.metadata.KmClassifier
 import kotlinx.metadata.KmTypeProjection
+import kotlinx.metadata.isNullable
 import javax.lang.model.element.Element
 
 object TypeConverterHolderFactory {
@@ -22,8 +23,9 @@ object TypeConverterHolderFactory {
         return TypeConverterHolder(
             ClassName(sourcePackageName, className),
             ClassName(sourcePackageName, className + "Instance"),
-            domainClassType.resolveToString().toTypeName(),
-            mapClassType.resolveToString().toTypeName()
+            domainClassType.resolveToString().toClassName(),
+            mapClassType.resolveToString().toClassName(),
+            mapClassType.getGenericClassNames()
         )
     }
 
@@ -36,16 +38,17 @@ object TypeConverterHolderFactory {
         return importables.map { importedTypeConverterHolder(it) }
     }
 
-    fun importedTypeConverterHolder(typeConverterImportable: TypeConverterImportable) =
+    private fun importedTypeConverterHolder(typeConverterImportable: TypeConverterImportable) =
         ImportedTypeConverterHolder(
             typeConverterImportable.typeConverterInstanceClassName.toClassName(),
             typeConverterImportable.domainClassName.toClassName(),
-            typeConverterImportable.mapClassName.toClassName()
+            typeConverterImportable.mapClassName.toClassName(),
+            typeConverterImportable.generics
         )
 
     private fun ClassNameDefinition.toClassName() = ClassName(packageName, className)
 
-    private fun String.toTypeName() = split('.').let {
+    private fun String.toClassName(): ClassName = split('.').let {
         ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
     }
 
@@ -54,4 +57,15 @@ object TypeConverterHolderFactory {
         val typeName = classifier.name.replace('/', '.')
         return typeName
     }
+
+    private fun KmTypeProjection.getGenericClassNames(): List<ClassNameDefinition> =
+        type!!.arguments.fold(emptyList()) { classNameDefinitions, generic ->
+            val type = generic.resolveToString().toClassName()
+            classNameDefinitions + ClassNameDefinition(
+                type.packageName,
+                type.simpleName,
+                generic.getGenericClassNames(),
+                nullable = generic.type!!.isNullable
+            )
+        }
 }
