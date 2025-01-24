@@ -25,7 +25,8 @@ public class TestTypeConvertersInstance : TestTypeConverters, ITypeConverterExpo
     TypeConverterImportable(
     ClassNameDefinition("com.kaufland.testModels", "DateTypeConverterInstance"),
     ClassNameDefinition("java.time", "OffsetDateTime"),
-    ClassNameDefinition("kotlin", "String")
+    ClassNameDefinition("kotlin", "String"),
+    listOf()
     ),
     )
 }
