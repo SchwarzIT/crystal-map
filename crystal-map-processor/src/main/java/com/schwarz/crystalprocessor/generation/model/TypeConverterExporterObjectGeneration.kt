@@ -117,7 +117,7 @@ object TypeConverterExporterObjectGeneration {
      * )
      */
     private fun List<ClassNameDefinition>.toKotlinCodeString(
-        indentLevel: Int = 1,
+        indentLevel: Int = 1
     ): String {
         if (isEmpty()) return "listOf()"
 
@@ -134,7 +134,6 @@ object TypeConverterExporterObjectGeneration {
             append(indent).append(")")
         }
     }
-
 
     private fun ClassNameDefinition.toKotlinCodeString(
         indentLevel: Int
@@ -155,7 +154,6 @@ object TypeConverterExporterObjectGeneration {
             append(indent).append(")")
         }
     }
-
 
     private fun typeConverterMapType() = ClassName("kotlin.collections", "Map")
         .parameterizedBy(
