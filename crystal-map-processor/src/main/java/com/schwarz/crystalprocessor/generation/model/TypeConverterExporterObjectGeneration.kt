@@ -75,9 +75,9 @@ object TypeConverterExporterObjectGeneration {
         codeBlockBuilder.add("return listOf(\n")
 
         typeConverterHolders.forEach { typeConverterHolder ->
-            val generiTypeNames = typeConverterHolder.genericTypeNames.toKotlinCodeString()
+            val genericTypeNames = typeConverterHolder.genericTypeNames.toKotlinCodeString()
             codeBlockBuilder.add(
-                "%T(\n  %T(%S, %S), \n  %T(%S, %S), \n  %T(%S, %S),\n  ${generiTypeNames}\n),\n",
+                "%T(\n  %T(%S, %S), \n  %T(%S, %S), \n  %T(%S, %S),\n  ${genericTypeNames}\n),\n",
                 TypeConverterImportable::class,
                 ClassNameDefinition::class,
                 typeConverterHolder.instanceClassTypeName.packageName,
