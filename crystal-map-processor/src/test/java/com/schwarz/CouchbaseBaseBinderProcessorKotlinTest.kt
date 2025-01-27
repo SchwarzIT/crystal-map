@@ -445,6 +445,33 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertEquals(expected, actual)
     }
 
+    @Test
+    fun testTypeConverterExporterGenerationWithGenericTypes() {
+        val expected = File("src/test/resources/ExpectedTypeConverterExporterGenerics.txt").readLines().map { it.trim() }
+        val sourceFileContents = PACKAGE_HEADER +
+            TYPE_CONVERTER_EXPORTER_HEADER +
+            TYPE_CONVERTER_HEADER +
+            "import java.time.OffsetDateTime\n" +
+            "@TypeConverter\n" +
+            "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, Map<String, Any?>> {\n" +
+            "override fun write(value: OffsetDateTime?): Map<String, Any?>? = mapOf()\n" +
+            "override fun read(value: Map<String, Any?>?): OffsetDateTime? = OffsetDateTime.now()\n" +
+            "}\n" +
+            "@TypeConverterExporter\n" +
+            "interface TestTypeConvertersGeneric"
+        val typeConverter = SourceFile.kotlin(
+            "TestTypeConvertersGeneric.kt",
+            sourceFileContents
+        )
+
+        val compilation = compileKotlin(typeConverter)
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        val actual = compilation.generatedFiles.find { it.name == "TestTypeConvertersGenericInstance.kt" }
+            ?.readLines()?.map { it.trim() }
+        Assert.assertEquals(expected, actual)
+    }
+
     private fun compileKotlin(
         vararg sourceFiles: SourceFile,
         useSuspend: Boolean = false

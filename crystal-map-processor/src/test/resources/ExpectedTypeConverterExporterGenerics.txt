@@ -14,19 +14,22 @@ import kotlin.collections.List
 import kotlin.collections.Map
 import kotlin.reflect.KClass
 
-public class TestTypeConvertersInstance : TestTypeConverters, ITypeConverterExporter {
+public class TestTypeConvertersGenericInstance : TestTypeConvertersGeneric, ITypeConverterExporter {
   override val typeConverters: Map<KClass<*>, ITypeConverter<*, *>>
-    get() = mapOf(
+  get() = mapOf(
     OffsetDateTime::class to DateTypeConverterInstance,
-    )
+  )
 
   override val typeConverterImportables: List<TypeConverterImportable>
-    get() = listOf(
+  get() = listOf(
     TypeConverterImportable(
-    ClassNameDefinition("com.kaufland.testModels", "DateTypeConverterInstance"),
-    ClassNameDefinition("java.time", "OffsetDateTime"),
-    ClassNameDefinition("kotlin", "String"),
-    listOf()
+      ClassNameDefinition("com.kaufland.testModels", "DateTypeConverterInstance"),
+      ClassNameDefinition("java.time", "OffsetDateTime"),
+      ClassNameDefinition("kotlin.collections", "Map"),
+      generics = listOf(
+        ClassNameDefinition("kotlin", "String"),
+        ClassNameDefinition("kotlin", "Any", nullable = true),
+      )
     ),
-    )
+  )
 }

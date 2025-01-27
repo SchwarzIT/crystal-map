@@ -74,19 +74,20 @@ object TypeConverterExporterObjectGeneration {
 
         codeBlockBuilder.add("return listOf(\n")
 
-        typeConverterHolders.forEach {
+        typeConverterHolders.forEach { typeConverterHolder ->
+            val genericTypeNames = typeConverterHolder.genericTypeNames.toKotlinCodeString()
             codeBlockBuilder.add(
-                "%T(\n%T(%S, %S), \n%T(%S, %S), \n%T(%S, %S)\n),\n",
+                "%T(\n  %T(%S, %S), \n  %T(%S, %S), \n  %T(%S, %S),\n  ${genericTypeNames}\n),\n",
                 TypeConverterImportable::class,
                 ClassNameDefinition::class,
-                it.instanceClassTypeName.packageName,
-                it.instanceClassTypeName.simpleName,
+                typeConverterHolder.instanceClassTypeName.packageName,
+                typeConverterHolder.instanceClassTypeName.simpleName,
                 ClassNameDefinition::class,
-                it.domainClassTypeName.packageName,
-                it.domainClassTypeName.simpleName,
+                typeConverterHolder.domainClassTypeName.packageName,
+                typeConverterHolder.domainClassTypeName.simpleName,
                 ClassNameDefinition::class,
-                it.mapClassTypeName.packageName,
-                it.mapClassTypeName.simpleName
+                typeConverterHolder.mapClassTypeName.packageName,
+                typeConverterHolder.mapClassTypeName.simpleName
             )
         }
 
@@ -104,11 +105,62 @@ object TypeConverterExporterObjectGeneration {
             .build()
     }
 
+    /**
+     * Returns a Kotlin code string like:
+     *
+     * listOf(
+     *     ClassNameDefinition("kotlin", "String"),
+     *     ClassNameDefinition("kotlin.collections", "Map", listOf(
+     *         ClassNameDefinition("kotlin", "String"),
+     *         ClassNameDefinition("kotlin", "Any", nullable = true),
+     *     ))
+     * )
+     */
+    private fun List<ClassNameDefinition>.toKotlinCodeString(
+        indentLevel: Int = 1
+    ): String {
+        if (isEmpty()) return "listOf()"
+
+        val indent = "  ".repeat(indentLevel)
+        val childIndent = "  ".repeat(indentLevel + 1)
+
+        return buildString {
+            append("generics = listOf(\n")
+            this@toKotlinCodeString.forEach { definition ->
+                append(childIndent)
+                append(definition.toKotlinCodeString(indentLevel + 1))
+                append(",\n")
+            }
+            append(indent).append(")")
+        }
+    }
+
+    private fun ClassNameDefinition.toKotlinCodeString(
+        indentLevel: Int
+    ): String {
+        val indent = "  ".repeat(indentLevel)
+
+        val nullableString = if (nullable) ", nullable = true" else ""
+        if (generics.isNullOrEmpty()) {
+            return """ClassNameDefinition("$packageName", "$className"$nullableString)"""
+        }
+
+        return buildString {
+            append("""ClassNameDefinition("$packageName", "$className"$nullableString, """)
+            append("\n")
+            append(indent)
+            append(generics?.toKotlinCodeString(indentLevel + 1))
+            append("\n")
+            append(indent).append(")")
+        }
+    }
+
     private fun typeConverterMapType() = ClassName("kotlin.collections", "Map")
         .parameterizedBy(
             ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
             ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
         )
+
     private fun typeConverterImportablesListType() = ClassName("kotlin.collections", "List")
         .parameterizedBy(
             ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
