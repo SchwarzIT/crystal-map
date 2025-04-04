@@ -4,7 +4,7 @@ import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 
 open class UnitTestConnector() : PersistenceConfig.Connector {
-    override fun deleteDocument(id: String, dbName: String) {
+    override fun deleteDocument(id: String, dbName: String, collection: String) {
         // Do Nothing
     }
 
