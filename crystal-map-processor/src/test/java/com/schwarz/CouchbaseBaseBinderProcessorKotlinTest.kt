@@ -124,6 +124,15 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     @Test
+    fun testSuccessDocIdEnumGeneration() {
+        val compilation = compileKotlin(
+            TestDataHelper.clazzAsJavaFileObjects("EntityWithEnumDocId"),
+            useSuspend = true
+        )
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
     fun testSuccessDocIdSegmentGeneration() {
         val compilation = compileKotlin(
             TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"),

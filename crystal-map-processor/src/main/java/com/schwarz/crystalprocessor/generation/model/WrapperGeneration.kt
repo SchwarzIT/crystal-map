@@ -37,7 +37,7 @@ class WrapperGeneration {
         holder.deprecated?.addDeprecated(typeBuilder)
 
         holder.docId?.let {
-            companionSpec.addFunction(it.companionFunction(holder))
+            companionSpec.addFunction(it.companionFunction(holder, typeConvertersByConvertedClass))
             typeBuilder.addFunction(it.buildExpectedDocId(holder))
             typeBuilder.addSuperinterface(TypeUtil.iDocId())
         }
