@@ -23,123 +23,127 @@ public class CoachBaseBinderProcessorTest {
         Compilation compilation =
                 javac()
                         .withProcessors(new CoachBaseBinderProcessor())
-                        .compile(JavaFileObjects.forSourceString("com.kaufland.testModels.ListTest", "package com.kaufland.testModels;\n" +
-                                "\n" +
-                                "import java.util.ArrayList;\n" +
-                                "import com.schwarz.crystalapi.Entity;\n" +
-                                "import com.schwarz.crystalapi.Field;\n" +
-                                "import com.schwarz.crystalapi.Fields;\n" +
-                                "import java.io.InputStream;\n" +
-                                "\n" +
-                                "@Entity(\n" +
-                                "        database = \"mydb_db\"\n" +
-                                ")\n" +
-                                "@Fields({@Field(\n" +
-                                "        defaultValue = \"product\",\n" +
-                                "        type = String.class,\n" +
-                                "        name = \"type\",\n" +
-                                "        readonly = true\n" +
-                                "), @Field(\n" +
-                                "        type = String.class,\n" +
-                                "        name = \"name\"\n" +
-                                "), @Field(\n" +
-                                "        list = true,\n" +
-                                "        type = String.class,\n" +
-                                "        name = \"comments\"\n" +
-                                ")" +
-                                ", @Field(\n"+
-                                "         type = Boolean.class,\n" +
-                                "                       name = \"bool\"\n" +
-                                "                                 )" +
-                                ", @Field(\n" +
-                                "        list = true,\n" +
-                                "        type = String.class,\n" +
-                                "        name = \"identifiers\"\n" +
-                                ")})" +
-                                "public class ListTest {\n" +
-                                "}"));
+                        .compile(JavaFileObjects.forSourceString("com.kaufland.testModels.ListTest", """
+                                package com.kaufland.testModels;
+                                
+                                import java.util.ArrayList;
+                                import com.schwarz.crystalapi.Entity;
+                                import com.schwarz.crystalapi.Field;
+                                import com.schwarz.crystalapi.Fields;
+                                import java.io.InputStream;
+                                
+                                @Entity(
+                                        database = "mydb_db"
+                                )
+                                @Fields({@Field(
+                                        defaultValue = "product",
+                                        type = String.class,
+                                        name = "type",
+                                        readonly = true
+                                ), @Field(
+                                        type = String.class,
+                                        name = "name"
+                                ), @Field(
+                                        list = true,
+                                        type = String.class,
+                                        name = "comments"
+                                )\
+                                , @Field(
+                                         type = Boolean.class,
+                                                       name = "bool"
+                                                                 )\
+                                , @Field(
+                                        list = true,
+                                        type = String.class,
+                                        name = "identifiers"
+                                )})\
+                                public class ListTest {
+                                }"""));
 
         if(compilation.status() == Compilation.Status.FAILURE){
             Diagnostic<? extends JavaFileObject> diagnostic = compilation.diagnostics().get(0);
             Assert.fail(diagnostic.getMessage(Locale.GERMAN));
             return;
         }
-        Assert.assertEquals(compilation.status(), Compilation.Status.SUCCESS);
+        Assert.assertEquals(Compilation.Status.SUCCESS, compilation.status());
     }
 
     @Test
     public void testSuccessSubEntityProcessing() {
 
-        JavaFileObject mMainEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.ListTest", "package com.kaufland.testModels;\n" +
-                "\n" +
-                "import java.util.ArrayList;\n" +
-                "import com.schwarz.crystalapi.Entity;\n" +
-                "import com.schwarz.crystalapi.Field;\n" +
-                "import com.schwarz.crystalapi.Fields;\n" +
-                "import java.io.InputStream;\n" +
-                "\n" +
-                "@Entity\n" +
-                "@Fields({@Field(\n" +
-                "        type = com.kaufland.testModels.Sub.class,\n" +
-                "        name = \"list_sub\",\n" +
-                "        list = true\n" +
-                "), @Field(\n" +
-                "        type = Sub.class,\n" +
-                "        name = \"sub\"\n" +
-                ")})" +
-                "public class ListTest {\n" +
-                "}");
-        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
-                "\n" +
-                "import com.schwarz.crystalapi.MapWrapper;\n" +
-                "import com.schwarz.crystalapi.Field;\n" +
-                "import com.schwarz.crystalapi.Fields;\n" +
-                "\n" +
-                "/**\n" +
-                " * Created by sbra0902 on 31.05.17.\n" +
-                " */\n" +
-                "@MapWrapper\n" +
-                "@Fields({@Field(\n" +
-                "        type = String.class,\n" +
-                "        name = \"test\"\n" +
-                ")})" +
-                "public class Sub {\n" +
-                "}");
+        JavaFileObject mMainEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.ListTest", """
+                package com.kaufland.testModels;
+                
+                import java.util.ArrayList;
+                import com.schwarz.crystalapi.Entity;
+                import com.schwarz.crystalapi.Field;
+                import com.schwarz.crystalapi.Fields;
+                import java.io.InputStream;
+                
+                @Entity
+                @Fields({@Field(
+                        type = com.kaufland.testModels.Sub.class,
+                        name = "list_sub",
+                        list = true
+                ), @Field(
+                        type = Sub.class,
+                        name = "sub"
+                )})\
+                public class ListTest {
+                }""");
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", """
+                package com.kaufland.testModels;
+                
+                import com.schwarz.crystalapi.MapWrapper;
+                import com.schwarz.crystalapi.Field;
+                import com.schwarz.crystalapi.Fields;
+                
+                /**
+                 * Created by sbra0902 on 31.05.17.
+                 */
+                @MapWrapper
+                @Fields({@Field(
+                        type = String.class,
+                        name = "test"
+                )})\
+                public class Sub {
+                }""");
         Compilation compilation =
                 javac()
                         .withProcessors(new CoachBaseBinderProcessor())
                         .compile(mMainEntity, subEntity);
 
-        Assert.assertEquals(compilation.status(), Compilation.Status.SUCCESS);
+        Assert.assertEquals(Compilation.Status.SUCCESS, compilation.status());
     }
 
     @Test
     public void testFailContructorAndPublicFieldProcessing() {
 
-        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", "package com.kaufland.testModels;\n" +
-                "\n" +
-                "import com.schwarz.crystalapi.Entity;\n" +
-                "import com.schwarz.crystalapi.Field;\n" +
-                "import com.schwarz.crystalapi.Fields;\n" +
-                "\n" +
-                "/**\n" +
-                " * Created by sbra0902 on 31.05.17.\n" +
-                " */\n" +
-                "@Entity\n" +
-                "@Fields({@Field(\n" +
-                "        type = String.class,\n" +
-                "        name = \"test\"\n" +
-                "), @Field(\n" +
-                "        type = String.class,\n" +
-                "        name = \"type\",\n" +
-                "        defaultValue = \"product\",\n"+
-                "        readonly= true\n"+
-                ")})" +
-                "public class Sub {\n" +
-                "\n" +
-                " public Sub(String test){\n" +
-                " }\n" +
-                "}");
+        JavaFileObject subEntity = JavaFileObjects.forSourceString("com.kaufland.testModels.Sub", """
+                package com.kaufland.testModels;
+                
+                import com.schwarz.crystalapi.Entity;
+                import com.schwarz.crystalapi.Field;
+                import com.schwarz.crystalapi.Fields;
+                
+                /**
+                 * Created by sbra0902 on 31.05.17.
+                 */
+                @Entity
+                @Fields({@Field(
+                        type = String.class,
+                        name = "test"
+                ), @Field(
+                        type = String.class,
+                        name = "type",
+                        defaultValue = "product",
+                        readonly= true
+                )})\
+                public class Sub {
+                
+                 public Sub(String test){
+                 }
+                }""");
 
 
         Compilation compilation =
@@ -148,7 +152,7 @@ public class CoachBaseBinderProcessorTest {
                         .compile(subEntity);
 
 
-        Assert.assertEquals(compilation.status(), Compilation.Status.FAILURE);
+        Assert.assertEquals(Compilation.Status.FAILURE, compilation.status());
 
         Assert.assertTrue(compilation.diagnostics().stream().anyMatch(diagnostic -> diagnostic.getMessage(Locale.GERMAN).equals("Entity should not have a constructor")));
     }
