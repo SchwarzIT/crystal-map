@@ -38,5 +38,5 @@ dependencies {
     implementation(gradleApi())
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation project(path: ':crystal-map-api', configuration: 'default')
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3"
 }

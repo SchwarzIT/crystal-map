@@ -459,7 +459,7 @@ class ProductEntityTest {
     }
 
     @Test
-    fun `creating and reading 1000 docs with 1000 positions should take less than 700ms`() {
+    fun `creating and reading 1000 docs with 1000 positions should take less than 600ms`() {
         val positions = List(1000) { mutableMapOf("comment" to "$it") }
         val someDates = List(1000) { LocalDate.now().toString() }
         val maps = List(1000) {
@@ -475,6 +475,6 @@ class ProductEntityTest {
             entities.flatMap { it.someDates ?: emptyList() }
         }
 
-        assertTrue("Expecting time for creating and reading to be < 700ms but was $duration", duration < 700)
+        assertTrue("Expecting time for creating and reading to be < 600ms but was $duration", duration < 600)
     }
 }
