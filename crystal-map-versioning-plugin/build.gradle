@@ -9,7 +9,7 @@ gradlePlugin {
     plugins {
         andcouchbaseentityversioning {
             id = 'andcouchbase-entity-versioning-plugin'
-            implementationClass = 'kaufland.com.couchbaseentityversioningplugin.VersioningPlugin'
+            implementationClass = 'com.schwarz.crystalversioningplugin.VersioningPlugin'
         }
     }
 }
