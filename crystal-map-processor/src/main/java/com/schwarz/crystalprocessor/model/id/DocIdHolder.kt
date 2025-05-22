@@ -91,11 +91,12 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
                 })}"
             }
                 ?: entityFields.map { (_, fieldHolder) ->
+                    val accessorSuffix = fieldHolder.accessorSuffix()
                     if (fieldHolder.isNonConvertibleClass) {
-                        fieldHolder.accessorSuffix()
+                        accessorSuffix
                     } else {
                         val typeConverter = typeConvertersByConvertedClass[fieldHolder.fieldType]!!.instanceClassTypeName.simpleName
-                        "{$typeConverter.write(${fieldHolder.accessorSuffix()})}"
+                        "{$typeConverter.write($accessorSuffix)}"
                     }
                 }
                     .joinToString(separator = ",") { "\$$it" }
