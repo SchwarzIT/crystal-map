@@ -5,6 +5,7 @@ import com.schwarz.crystalprocessor.model.field.CblFieldHolder
 import com.schwarz.crystalprocessor.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.schwarz.crystalapi.DocId
+import com.schwarz.crystalprocessor.model.typeconverter.TypeConverterHolderForEntityGeneration
 import java.util.regex.Pattern
 
 class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
@@ -76,7 +77,7 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
         return segments.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
     }
 
-    fun companionFunction(entity: BaseEntityHolder): FunSpec {
+    fun companionFunction(entity: BaseEntityHolder, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FunSpec {
         val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
             .returns(TypeUtil.string())
         var statement = pattern
@@ -89,7 +90,15 @@ class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmen
                 entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
                 })}"
             }
-                ?: entityFields.map { it.value.accessorSuffix() }
+                ?: entityFields.map { (_, fieldHolder) ->
+                    val accessorSuffix = fieldHolder.accessorSuffix()
+                    if (fieldHolder.isNonConvertibleClass) {
+                        accessorSuffix
+                    } else {
+                        val typeConverter = typeConvertersByConvertedClass[fieldHolder.fieldType]!!.instanceClassTypeName.simpleName
+                        "{$typeConverter.write($accessorSuffix)}"
+                    }
+                }
                     .joinToString(separator = ",") { "\$$it" }
 
             statement = statement.replace("%${segment.segment}%", statementValue)
