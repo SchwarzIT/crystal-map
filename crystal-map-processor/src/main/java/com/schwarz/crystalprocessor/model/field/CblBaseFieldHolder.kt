@@ -31,7 +31,7 @@ abstract class CblBaseFieldHolder(val dbField: String, private val mField: Field
         get() = mField.readonly
 
     val constantName: String
-        get() = ConversionUtil.convertCamelToUnderscore(dbField).toUpperCase()
+        get() = ConversionUtil.convertCamelToUnderscore(dbField).uppercase()
 
     val defaultValue: String
         get() = mField.defaultValue

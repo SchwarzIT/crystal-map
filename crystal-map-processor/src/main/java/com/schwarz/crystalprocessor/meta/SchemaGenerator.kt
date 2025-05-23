@@ -1,6 +1,7 @@
 package com.schwarz.crystalprocessor.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.schwarz.crystalapi.deprecated.DeprecationType
 import com.schwarz.crystalprocessor.model.deprecated.DeprecatedModel
@@ -18,7 +19,16 @@ class SchemaGenerator(path: String, val fileName: String) {
 
     fun generate() {
         path.mkdirs()
-        val mapper = ObjectMapper().registerModule(KotlinModule())
+        val mapper = ObjectMapper().registerModule(
+            KotlinModule.Builder()
+                .withReflectionCacheSize(512)
+                .configure(KotlinFeature.NullToEmptyCollection, false)
+                .configure(KotlinFeature.NullToEmptyMap, false)
+                .configure(KotlinFeature.NullIsSameAsDefault, false)
+                .configure(KotlinFeature.SingletonSupport, false)
+                .configure(KotlinFeature.StrictNullChecks, false)
+                .build()
+        )
         File(path, fileName).writeText(mapper.writeValueAsString(jsonEntitySegments.values))
     }
 

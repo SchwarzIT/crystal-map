@@ -1,6 +1,6 @@
-package kaufland.com.couchbaseentityversioningplugin
+package com.schwarz.crystalversioningplugin
 
-import kaufland.com.couchbaseentityversioningplugin.task.ValidationTask
+import com.schwarz.crystalversioningplugin.task.ValidationTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task

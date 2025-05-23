@@ -17,4 +17,4 @@ fun Element.getTypeConverterInterface(): KmType? {
 private val typeConverterKmClass = ITypeConverter::class.java.getAnnotation(Metadata::class.java).toKmClass()
 
 private fun Metadata.toKmClass() =
-    (KotlinClassMetadata.read(this) as KotlinClassMetadata.Class).kmClass
+    (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass

@@ -1,13 +1,13 @@
 
 buildscript {
-    ext.kotlin_version = '1.9.21'
+    ext.kotlin_version = '2.1.20'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:8.1.4")
-        classpath("com.android.application:com.android.application.gradle.plugin:8.1.4")
+        classpath("com.android.library:com.android.library.gradle.plugin:8.2.0")
+        classpath("com.android.application:com.android.application.gradle.plugin:8.2.0")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -88,7 +88,7 @@ kapt {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
@@ -100,9 +100,9 @@ dependencies {
 
     // Test dependencies
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:3.10.0'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.4.4'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.1'
-    testImplementation 'ch.qos.logback:logback-classic:1.4.4'
-    kapt 'org.apache.logging.log4j:log4j-api:2.19.0'
+    testImplementation 'org.mockito:mockito-core:5.17.0'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
+    testImplementation 'ch.qos.logback:logback-classic:1.5.18'
+    kapt 'org.apache.logging.log4j:log4j-api:2.24.3'
 }

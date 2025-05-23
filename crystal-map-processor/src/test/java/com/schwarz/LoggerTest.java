@@ -27,38 +27,38 @@ public class LoggerTest {
     @Test
     public void testWarn() {
 
-        new Logger(mMock).warn("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.WARNING, "message", null);
+        new Logger(mMock).warn("warnMessage", null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.WARNING, "warnMessage", null);
     }
 
     @Test
     public void testError() {
 
-        new Logger(mMock).error("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "message", null);
+        new Logger(mMock).error("errorMessage", null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "errorMessage", null);
     }
 
     @Test
     public void testErrorAbort() {
 
         try {
-            new Logger(mMock).abortWithError("message", null, null);
+            new Logger(mMock).abortWithError("abortMessage", null, null);
             Assert.fail("Should throw Exception");
-        } catch (RuntimeException e) {
+        } catch (RuntimeException ignored) {
 
         }
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "message", null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "abortMessage", null);
 
     }
 
     @Test
     public void testInfo() {
 
-        new Logger(mMock).info("message");
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "message");
+        new Logger(mMock).info("infoMessage");
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "infoMessage");
 
-        new Logger(mMock).info("message", null);
-        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "message", null);
+        new Logger(mMock).info("infoMessageWithNull", null);
+        Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.NOTE, "infoMessageWithNull", null);
     }
 
 }

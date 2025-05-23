@@ -19,50 +19,51 @@ public class UnsupportedOperationExceptionTest {
         Compilation compilation =
                 javac()
                         .withProcessors(new CoachBaseBinderProcessor())
-                        .compile(JavaFileObjects.forSourceString("com.kaufland.testModels.UnsupportedOperationExceptionTest", "package com.kaufland.testModels;\n" +
-                                "\n" +
-                                "import java.util.ArrayList;\n" +
-                                "import com.schwarz.crystalapi.Entity;\n" +
-                                "import com.schwarz.crystalapi.Field;\n" +
-                                "import com.schwarz.crystalapi.Fields;\n" +
-                                "import com.schwarz.crystalapi.MapWrapper;\n" +
-                                "import com.schwarz.crystalapi.deprecated.Deprecated;\n" +
-                                "import com.schwarz.crystalapi.deprecated.DeprecatedField;\n" +
-                                "import java.io.InputStream;\n" +
-                                "\n" +
-                                "@Entity(type = Entity.Type.READONLY, database = \"hydra_db\")\n" +
-                                "@MapWrapper" +
-                                "@Fields({@Field(\n" +
-                                "        name = \"type\",\n" +
-                                "        type = String.class,\n" +
-                                "        defaultValue = \"Article\",\n" +
-                                "        readonly = true),\n" +
-                                "        @Field(\n" +
-                                "        name = \"bottle\",\n" +
-                                "        type = String.class,\n" +
-                                "        list = true),\n" +
-                                "        @Field(\n" +
-                                "        name = \"bottle_box\",\n" +
-                                "        type = String.class,\n" +
-                                "        readonly = false),\n" +
-                                "        @Field(\n" +
-                                "        name = \"bottle2\",\n" +
-                                "        type = String.class),\n" +
-                                "        @Field(\n" +
-                                "        name = \"bottle_box2\",\n" +
-                                "        type = String.class,\n" +
-                                "        list = true)\n" +
-                                "})\n" +
-                                "@Deprecated(fields = {@DeprecatedField(\n" +
-                                "           field = \"bottle\",\n" +
-                                "           replacedBy = \"bottle2\",\n" +
-                                "           inUse = true), @DeprecatedField(\n" +
-                                "           field = \"bottle_box\",\n" +
-                                "           replacedBy = \"bottle_box2\",\n" +
-                                "           inUse = true)\n" +
-                                "})\n" +
-                                "public class UnsupportedOperationExceptionTest {\n" +
-                                "}"));
+                        .compile(JavaFileObjects.forSourceString("com.kaufland.testModels.UnsupportedOperationExceptionTest", """
+                                package com.kaufland.testModels;
+                                
+                                import java.util.ArrayList;
+                                import com.schwarz.crystalapi.Entity;
+                                import com.schwarz.crystalapi.Field;
+                                import com.schwarz.crystalapi.Fields;
+                                import com.schwarz.crystalapi.MapWrapper;
+                                import com.schwarz.crystalapi.deprecated.Deprecated;
+                                import com.schwarz.crystalapi.deprecated.DeprecatedField;
+                                import java.io.InputStream;
+                                
+                                @Entity(type = Entity.Type.READONLY, database = "hydra_db")
+                                @MapWrapper\
+                                @Fields({@Field(
+                                        name = "type",
+                                        type = String.class,
+                                        defaultValue = "Article",
+                                        readonly = true),
+                                        @Field(
+                                        name = "bottle",
+                                        type = String.class,
+                                        list = true),
+                                        @Field(
+                                        name = "bottle_box",
+                                        type = String.class,
+                                        readonly = false),
+                                        @Field(
+                                        name = "bottle2",
+                                        type = String.class),
+                                        @Field(
+                                        name = "bottle_box2",
+                                        type = String.class,
+                                        list = true)
+                                })
+                                @Deprecated(fields = {@DeprecatedField(
+                                           field = "bottle",
+                                           replacedBy = "bottle2",
+                                           inUse = true), @DeprecatedField(
+                                           field = "bottle_box",
+                                           replacedBy = "bottle_box2",
+                                           inUse = true)
+                                })
+                                public class UnsupportedOperationExceptionTest {
+                                }"""));
 
         if (compilation.status() == Compilation.Status.FAILURE){
             Diagnostic<? extends JavaFileObject> diagnostic = compilation.diagnostics().get(0);

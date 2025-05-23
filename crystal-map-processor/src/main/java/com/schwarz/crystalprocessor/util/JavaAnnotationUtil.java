@@ -6,10 +6,9 @@ import com.schwarz.crystalapi.Entity;
 
 public class JavaAnnotationUtil {
 
-    public static Entity createReadOnlyCopyOfEntityAnnotation(final Entity source)
-    {
-        Entity annotation = new Entity()
-        {
+    public static Entity createReadOnlyCopyOfEntityAnnotation(final Entity source) {
+
+        return new Entity() {
 
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -36,8 +35,6 @@ public class JavaAnnotationUtil {
                 return source.database();
             }
         };
-
-        return annotation;
     }
 
 }
