@@ -1,12 +1,13 @@
-package kaufland.com.couchbaseentityversioningplugin.task
+package com.schwarz.crystalversioningplugin.task
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.schwarz.crystalapi.schema.EntitySchema
-import kaufland.com.couchbaseentityversioningplugin.SchemaValidationLoggerImpl
-import kaufland.com.couchbaseentityversioningplugin.VersioningPluginExtension
+import com.schwarz.crystalversioningplugin.SchemaValidationLoggerImpl
+import com.schwarz.crystalversioningplugin.VersioningPluginExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -44,7 +45,16 @@ open class ValidationTask : DefaultTask() {
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
-        val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(KotlinModule())
+        val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(
+            KotlinModule.Builder()
+                .withReflectionCacheSize(512)
+                .configure(KotlinFeature.NullToEmptyCollection, false)
+                .configure(KotlinFeature.NullToEmptyMap, false)
+                .configure(KotlinFeature.NullIsSameAsDefault, false)
+                .configure(KotlinFeature.SingletonSupport, false)
+                .configure(KotlinFeature.StrictNullChecks, false)
+                .build()
+        )
         return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
     }
 }

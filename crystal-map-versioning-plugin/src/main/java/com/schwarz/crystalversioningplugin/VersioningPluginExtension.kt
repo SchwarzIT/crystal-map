@@ -1,4 +1,4 @@
-package kaufland.com.couchbaseentityversioningplugin
+package com.schwarz.crystalversioningplugin
 
 import com.schwarz.crystalapi.schema.SchemaValidator
 

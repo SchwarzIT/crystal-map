@@ -488,6 +488,8 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         return KotlinCompilation().apply {
             sources = sourceFiles.toList()
 
+            useKapt4 = true
+
             // pass your own instance of an annotation processor
             annotationProcessors = listOf(CoachBaseBinderProcessor())
             correctErrorTypes = true
