@@ -12,7 +12,8 @@ import com.schwarz.crystalcore.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) : IClassModel by sourceElement,
+abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
+    IClassModel by sourceElement,
     ModelHolderWithFields {
 
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()

@@ -2,7 +2,6 @@ package com.schwarz.crystalcore.model.field
 
 import com.schwarz.crystalcore.generation.model.KDocGeneration
 import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
-import com.schwarz.crystalcore.util.ConversionUtil
 import com.squareup.kotlinpoet.*
 
 import java.util.Arrays

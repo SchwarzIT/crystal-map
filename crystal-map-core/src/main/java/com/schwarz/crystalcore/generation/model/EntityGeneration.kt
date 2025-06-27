@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.generation.model
 
-
 import com.schwarz.crystalcore.model.entity.EntityHolder
 import com.schwarz.crystalcore.model.id.DocIdHolder
 import com.schwarz.crystalcore.util.TypeUtil

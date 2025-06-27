@@ -67,7 +67,8 @@ data class SourceModel(override val source: Element) : ISourceModel<Element>, IC
     override val queryAnnotations: List<ISourceQuery> =
         source.getAnnotation(Queries::class.java)?.value?.toList()?.map { SourceQuery(it) } ?: emptyList()
     override val typeConverterImporter: ISourceTypeConverterImporter? = source.getAnnotation(
-        TypeConverterImporter::class.java)?.let { SourceTypeConverterImporter(it) }
+        TypeConverterImporter::class.java
+    )?.let { SourceTypeConverterImporter(it) }
 
     override val abstractParts: Set<String>
     override val kotlinMetadata: Metadata? = source.getAnnotation(Metadata::class.java)
@@ -88,7 +89,6 @@ data class SourceModel(override val source: Element) : ISourceModel<Element>, IC
     }
 
     override val isClassSource: Boolean = source.kind == ElementKind.CLASS
-
 
     override val isInterfaceSource: Boolean = source !is Symbol.ClassSymbol || !source.isInterface
 

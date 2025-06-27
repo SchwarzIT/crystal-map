@@ -19,8 +19,12 @@ import com.schwarz.crystalcore.processing.Worker
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeName
 
-class ModelWorker<T>(override val logger: ILogger<T>, override val codeGenerator: ICodeGenerator,
-                     override val settings: ISettings, override val workSet: ModelWorkSet<T>) :
+class ModelWorker<T>(
+    override val logger: ILogger<T>,
+    override val codeGenerator: ICodeGenerator,
+    override val settings: ISettings,
+    override val workSet: ModelWorkSet<T>
+) :
     Worker<ModelWorkSet<T>, T> {
 
     private var documentationGenerator: DocumentationGenerator? = null
@@ -28,7 +32,6 @@ class ModelWorker<T>(override val logger: ILogger<T>, override val codeGenerator
     private var schemaGenerator: SchemaGenerator? = null
 
     override fun init() {
-
         settings.documentationPath?.let {
             documentationGenerator = DocumentationGenerator(it, settings.documentationFilename ?: "default.html")
         }
@@ -36,11 +39,11 @@ class ModelWorker<T>(override val logger: ILogger<T>, override val codeGenerator
             schemaGenerator = SchemaGenerator(
                 it,
                 settings.schemaFilename ?: "schema.json"
-                )
+            )
         }
 
         settings.entityRelationshipPath?.let {
-            entityRelationshipGenerator = EntityRelationshipGenerator(it,settings.entityRelationshipFilename ?: "default.gv")
+            entityRelationshipGenerator = EntityRelationshipGenerator(it, settings.entityRelationshipFilename ?: "default.gv")
         }
     }
 
@@ -130,7 +133,8 @@ class ModelWorker<T>(override val logger: ILogger<T>, override val codeGenerator
                     holder,
                     useSuspend,
                     typeConvertersByConvertedClass
-                ), settings
+                ),
+                settings
             )
             generatedInterfaces.add(holder.sourceClazzSimpleName)
         }

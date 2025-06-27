@@ -4,7 +4,7 @@ import com.schwarz.crystalapi.deprecated.Deprecated
 
 interface ISourceDeprecated {
 
-    val replacedBy : String
+    val replacedBy: String
 
     val deprecatedAnnotation: Deprecated
 }

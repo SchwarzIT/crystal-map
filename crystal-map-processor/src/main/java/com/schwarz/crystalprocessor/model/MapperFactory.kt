@@ -6,7 +6,6 @@ import com.schwarz.crystalprocessor.model.mapper.type.MapifyElementTypeField
 import com.schwarz.crystalprocessor.model.mapper.type.MapifyElementTypeGetterSetter
 import com.sun.tools.javac.code.Symbol
 import com.schwarz.crystalapi.mapify.Mapify
-import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier

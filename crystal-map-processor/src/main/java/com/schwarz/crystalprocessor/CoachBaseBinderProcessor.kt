@@ -64,18 +64,24 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "crystal.entityframework.useSuspend"
-        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME = "crystal.entityframework.documentation.generated"
-        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.fileName"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.generated"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.fileName"
+        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME =
+            "crystal.entityframework.documentation.generated"
+        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME =
+            "crystal.entityframework.documentation.fileName"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME =
+            "crystal.entityframework.documentation.entityrelationship.generated"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME =
+            "crystal.entityframework.documentation.entityrelationship.fileName"
         const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
         const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
     }
 
     @Synchronized
     override fun init(processingEnvironment: ProcessingEnvironment) {
-        useSuspend = processingEnvironment.options?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")?.toBoolean()
-            ?: false
+        useSuspend =
+            processingEnvironment.options?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")
+                ?.toBoolean()
+                ?: false
         mLogger = Logger(processingEnvironment)
         mCodeGenerator = CodeGenerator(processingEnvironment.filer)
         mSettings = ProcessingEnvironmentWrapper(processingEnvironment)
@@ -88,16 +94,37 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     override fun process(set: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
         ProcessingContext.roundEnv = roundEnv
         workers = setOf(
-            ModelWorker<Element>(mLogger, mCodeGenerator, mSettings, ModelWorkSet(
-                allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java).toSourceModel(),
-                allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java).toSourceModel(),
-                allSchemaClassElements = roundEnv.getElementsAnnotatedWith(SchemaClass::class.java).toSourceModel(),
-                allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java).toSourceModel(),
-                allTypeConverterElements = roundEnv.getElementsAnnotatedWith(TypeConverter::class.java).toSourceModel(),
-                allTypeConverterExporterElements = roundEnv.getElementsAnnotatedWith(TypeConverterExporter::class.java).toSourceModel(),
-                allTypeConverterImporterElements = roundEnv.getElementsAnnotatedWith(TypeConverterImporter::class.java).toSourceModel()
-            )),
-            MapperWorker(mLogger, mCodeGenerator, mSettings, MapperWorkSet(allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)))
+            ModelWorker<Element>(
+                mLogger,
+                mCodeGenerator,
+                mSettings,
+                ModelWorkSet(
+                    allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java)
+                        .toSourceModel(),
+                    allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
+                        .toSourceModel(),
+                    allSchemaClassElements = roundEnv.getElementsAnnotatedWith(SchemaClass::class.java)
+                        .toSourceModel(),
+                    allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
+                        .toSourceModel(),
+                    allTypeConverterElements = roundEnv.getElementsAnnotatedWith(TypeConverter::class.java)
+                        .toSourceModel(),
+                    allTypeConverterExporterElements = roundEnv.getElementsAnnotatedWith(
+                        TypeConverterExporter::class.java
+                    ).toSourceModel(),
+                    allTypeConverterImporterElements = roundEnv.getElementsAnnotatedWith(
+                        TypeConverterImporter::class.java
+                    ).toSourceModel()
+                )
+            ),
+            MapperWorker(
+                mLogger,
+                mCodeGenerator,
+                mSettings,
+                MapperWorkSet(
+                    allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)
+                )
+            )
         )
 
         workers.forEach { it.init() }

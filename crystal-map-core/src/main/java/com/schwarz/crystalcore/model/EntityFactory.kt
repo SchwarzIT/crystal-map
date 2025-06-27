@@ -19,7 +19,6 @@ private const val WRAPPER_SUB_ENTITY_SUFFIX = "Wrapper"
 private const val SCHEMA_SUB_ENTITY_SUFFIX = "Schema"
 object EntityFactory {
 
-
     fun <T>createEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,

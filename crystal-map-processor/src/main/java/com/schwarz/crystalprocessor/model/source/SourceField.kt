@@ -37,12 +37,11 @@ class SourceField(override val fieldAnnotation: Field) : ISourceField {
     override val javaToKotlinType = typeMirror.asTypeName().javaToKotlinType()
     override val baseType: TypeName = typeMirror.asTypeName()
 
-
     override fun parseMetaType(list: Boolean, subEntity: String?): TypeName {
         return parseMetaType(list, true, subEntity)
     }
 
-   private fun parseMetaType(list: Boolean, convertMap: Boolean, subEntity: String?): TypeName {
+    private fun parseMetaType(list: Boolean, convertMap: Boolean, subEntity: String?): TypeName {
         val simpleName = if (subEntity != null && subEntity.contains(simpleName)) subEntity else simpleName
 
         var baseType: TypeName?

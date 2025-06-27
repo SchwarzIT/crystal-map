@@ -11,7 +11,7 @@ private const val RESULT_VAL_NAME = "result"
 
 object EnsureTypesGeneration {
 
-     fun <T>ensureTypes(
+    fun <T>ensureTypes(
         holder: BaseEntityHolder<T>,
         useNullableMap: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>

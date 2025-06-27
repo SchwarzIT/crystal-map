@@ -6,5 +6,5 @@ interface ISourceBasedOn {
 
     val basedOnAnnotation: BasedOn?
 
-    val basedOnFullQualifiedNames : List<String>
+    val basedOnFullQualifiedNames: List<String>
 }

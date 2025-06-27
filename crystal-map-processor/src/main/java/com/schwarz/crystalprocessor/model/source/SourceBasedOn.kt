@@ -9,6 +9,4 @@ class SourceBasedOn(override val basedOnAnnotation: BasedOn) : ISourceBasedOn {
     private val basedOnValues = basedOnAnnotation.let { FieldExtractionUtil.typeMirror(it) }
 
     override val basedOnFullQualifiedNames = basedOnValues.map { it.toString() }
-
-
 }

@@ -1,10 +1,8 @@
 package com.schwarz.crystalcore.processing
 
-
 import com.schwarz.crystalcore.ICodeGenerator
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.ISettings
-import javax.annotation.processing.RoundEnvironment
 
 interface Worker<T : WorkSet<E>, E> {
 
@@ -21,7 +19,6 @@ interface Worker<T : WorkSet<E>, E> {
     fun doWork(workSet: T, useSuspend: Boolean)
 
     fun invoke(useSuspend: Boolean): Boolean {
-
         workSet.preValidate(logger)
 
         if (logger.hasErrors()) {

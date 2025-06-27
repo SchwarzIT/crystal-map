@@ -1,6 +1,5 @@
 package com.schwarz.crystalprocessor.validation.mapper
 
-import com.schwarz.crystalprocessor.Logger
 import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalcore.ILogger

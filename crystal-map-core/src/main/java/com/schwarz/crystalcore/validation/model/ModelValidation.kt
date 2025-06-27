@@ -43,7 +43,7 @@ class ModelValidation<T>(
 
     private fun validateDeprecated(baseEntityHolder: BaseEntityHolder<T>) {
         baseEntityHolder.deprecated?.let { deprecated ->
-            if(deprecated.replacedBy != ""){
+            if (deprecated.replacedBy != "") {
                 deprecated.replacedBy.apply {
                     if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) && !entityModels.containsKey(
                             this

@@ -17,5 +17,4 @@ interface ISourceField {
     val baseType: TypeName
 
     fun parseMetaType(list: Boolean, subEntity: String?): TypeName
-
 }

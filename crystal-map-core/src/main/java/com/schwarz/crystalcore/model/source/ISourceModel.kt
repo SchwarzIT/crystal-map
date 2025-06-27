@@ -1,7 +1,6 @@
 package com.schwarz.crystalcore.model.source
 
 import com.squareup.kotlinpoet.TypeName
-import com.schwarz.crystalapi.BasedOn
 import com.schwarz.crystalapi.Comment
 import com.schwarz.crystalapi.DocId
 import com.schwarz.crystalapi.Entity
@@ -48,7 +47,7 @@ interface ISourceModel<T> : IClassModel {
 
     val isFinalModifier: Boolean
 
-    fun firstNonParameterlessConstructor() : T?
+    fun firstNonParameterlessConstructor(): T?
 
     val isClassSource: Boolean
 

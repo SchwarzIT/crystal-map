@@ -4,5 +4,5 @@ import com.schwarz.crystalapi.Reduce
 
 interface ISourceReduce {
 
-    val reduceAnnotation : Reduce
+    val reduceAnnotation: Reduce
 }

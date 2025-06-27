@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.util
 
-import com.squareup.kotlinpoet.TypeName
 import java.util.regex.Pattern
 
 /**

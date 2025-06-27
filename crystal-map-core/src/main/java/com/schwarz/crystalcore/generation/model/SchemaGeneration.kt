@@ -6,8 +6,6 @@ import com.schwarz.crystalcore.model.entity.SchemaClassHolder
 import com.schwarz.crystalcore.model.field.CblBaseFieldHolder
 import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
-import com.schwarz.crystalcore.util.ConversionUtil
-import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 

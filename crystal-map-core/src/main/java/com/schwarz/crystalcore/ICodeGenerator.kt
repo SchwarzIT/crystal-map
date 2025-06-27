@@ -12,5 +12,4 @@ interface ICodeGenerator {
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
         settings: ISettings
     )
-
 }

@@ -15,7 +15,7 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
     val deprecatedFields: Map<String, DeprecatedField> =
         sourceDeprecated.deprecatedAnnotation.fields.map { it.field to it }.toMap()
 
-    val replacedBy : String = sourceDeprecated.replacedBy
+    val replacedBy: String = sourceDeprecated.replacedBy
 
     init {
         deprecatedFields.forEach {

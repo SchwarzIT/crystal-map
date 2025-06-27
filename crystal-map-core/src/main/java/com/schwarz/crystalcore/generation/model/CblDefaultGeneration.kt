@@ -2,7 +2,6 @@ package com.schwarz.crystalcore.generation.model
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
-import com.schwarz.crystalcore.util.ConversionUtil
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec

@@ -92,7 +92,8 @@ class CommonInterfaceGeneration {
         return Arrays.asList(
             FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
                 .addParameter("obj", holder.representTypeName.copy(nullable = true)).returns(
-                    TypeUtil.mutableMapStringAny())
+                    TypeUtil.mutableMapStringAny()
+                )
                 .addAnnotation(JvmStatic::class)
                 .addCode(nullCheck).addStatement("var result = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
                 .beginControlFlow("obj.mDoc.forEach")

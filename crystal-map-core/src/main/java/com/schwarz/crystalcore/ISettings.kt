@@ -15,7 +15,4 @@ interface ISettings {
     val entityRelationshipPath: String?
 
     val entityRelationshipFilename: String?
-
-
-
 }

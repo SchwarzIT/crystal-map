@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.query
 
-
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.squareup.kotlinpoet.FunSpec
