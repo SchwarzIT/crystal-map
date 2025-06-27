@@ -3,13 +3,14 @@ package com.schwarz.crystalprocessor.validation.mapper
 import com.schwarz.crystalprocessor.Logger
 import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalapi.mapify.Mapifyable
+import com.schwarz.crystalcore.ILogger
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 
 object PreMapperValidation {
 
     @Throws(ClassNotFoundException::class)
-    fun validate(mapperElement: Element, logger: Logger) {
+    fun validate(mapperElement: Element, logger: ILogger<Element>) {
         val getterMap: MutableMap<String, Element> = hashMapOf()
         val setterMap: MutableMap<String, Element> = hashMapOf()
         for (member in mapperElement.enclosedElements) {

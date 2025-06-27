@@ -1,25 +1,34 @@
 package com.schwarz.crystalprocessor.model.source
 
-import com.schwarz.crystalprocessor.Logger
-import com.schwarz.crystalprocessor.javaToKotlinType
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
-import com.sun.tools.javac.code.Symbol
 import com.schwarz.crystalapi.BasedOn
 import com.schwarz.crystalapi.Comment
 import com.schwarz.crystalapi.DocId
 import com.schwarz.crystalapi.DocIdSegment
 import com.schwarz.crystalapi.Entity
-import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.GenerateAccessor
 import com.schwarz.crystalapi.MapWrapper
-import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.Reduces
+import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.query.Queries
-import com.schwarz.crystalapi.query.Query
+import com.schwarz.crystalcore.ILogger
+import com.schwarz.crystalcore.model.source.IClassModel
+import com.schwarz.crystalcore.model.source.ISourceBasedOn
+import com.schwarz.crystalcore.model.source.ISourceDeprecated
+import com.schwarz.crystalcore.model.source.ISourceField
+import com.schwarz.crystalcore.model.source.ISourceModel
+import com.schwarz.crystalcore.model.source.ISourceQuery
+import com.schwarz.crystalcore.model.source.ISourceReduce
+import com.schwarz.crystalcore.model.source.ISourceTypeConverterImporter
+import com.schwarz.crystalcore.model.source.Parameter
+import com.schwarz.crystalcore.model.source.SourceMemberField
+import com.schwarz.crystalcore.model.source.SourceMemberFunction
+import com.schwarz.crystalprocessor.javaToKotlinType
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import com.sun.tools.javac.code.Symbol
 import org.apache.commons.lang3.text.WordUtils
 import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Element
@@ -30,35 +39,63 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
 
-data class SourceModel(private val sourceElement: Element) : ISourceModel, IClassModel {
+data class SourceModel(override val source: Element) : ISourceModel<Element>, IClassModel {
 
     override val sourceClazzSimpleName: String =
-        (sourceElement as Symbol.ClassSymbol).simpleName.toString()
-    override val sourcePackage: String = (sourceElement as Symbol.ClassSymbol).packge().toString()
+        (source as Symbol.ClassSymbol).simpleName.toString()
+    override val sourcePackage: String = (source as Symbol.ClassSymbol).packge().toString()
 
     override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)
 
-    override val entityAnnotation: Entity? = sourceElement.getAnnotation(Entity::class.java)
-    override val typeName: TypeName = sourceElement.asType().asTypeName()
-    override val mapWrapperAnnotation: MapWrapper? =
-        sourceElement.getAnnotation(MapWrapper::class.java)
-    override val commentAnnotation: Comment? = sourceElement.getAnnotation(Comment::class.java)
-    override val deprecatedAnnotation: Deprecated? =
-        sourceElement.getAnnotation(Deprecated::class.java)
-    override val docIdAnnotation: DocId? = sourceElement.getAnnotation(DocId::class.java)
-    override val basedOnAnnotation: BasedOn? = sourceElement.getAnnotation(BasedOn::class.java)
+    override val fullQualifiedName: String
+        get() = source.toString()
 
-    override val reduceAnnotations: List<Reduce> =
-        sourceElement.getAnnotation(Reduces::class.java)?.value?.toList() ?: emptyList()
-    override val fieldAnnotations: List<Field> =
-        sourceElement.getAnnotation(Fields::class.java)?.value?.toList() ?: emptyList()
-    override val queryAnnotations: List<Query> =
-        sourceElement.getAnnotation(Queries::class.java)?.value?.toList() ?: emptyList()
+    override val entityAnnotation: Entity? = source.getAnnotation(Entity::class.java)
+    override val typeName: TypeName = source.asType().asTypeName()
+    override val mapWrapperAnnotation: MapWrapper? =
+        source.getAnnotation(MapWrapper::class.java)
+    override val commentAnnotation: Comment? = source.getAnnotation(Comment::class.java)
+    override val deprecatedSource: ISourceDeprecated? = source.getAnnotation(Deprecated::class.java)?.let { SourceDeprecated(it) }
+    override val docIdAnnotation: DocId? = source.getAnnotation(DocId::class.java)
+    override val basedOnAnnotation: ISourceBasedOn? = source.getAnnotation(BasedOn::class.java)?.let { SourceBasedOn(it) }
+
+    override val reduceAnnotations: List<ISourceReduce> =
+        source.getAnnotation(Reduces::class.java)?.value?.toList()?.map { SourceReduce(it) } ?: emptyList()
+    override val fieldAnnotations: List<ISourceField> =
+        source.getAnnotation(Fields::class.java)?.value?.map { SourceField(it) }?.toList() ?: emptyList()
+
+    override val queryAnnotations: List<ISourceQuery> =
+        source.getAnnotation(Queries::class.java)?.value?.toList()?.map { SourceQuery(it) } ?: emptyList()
+    override val typeConverterImporter: ISourceTypeConverterImporter? = source.getAnnotation(
+        TypeConverterImporter::class.java)?.let { SourceTypeConverterImporter(it) }
 
     override val abstractParts: Set<String>
+    override val kotlinMetadata: Metadata? = source.getAnnotation(Metadata::class.java)
 
-    override fun logError(logger: Logger, message: String) {
-        logger.error(message, sourceElement)
+    override val isFinalModifier: Boolean = source.modifiers.contains(Modifier.FINAL)
+
+    override fun firstNonParameterlessConstructor(): Element? {
+        for (member in source.enclosedElements) {
+            if (member.kind == ElementKind.CONSTRUCTOR) {
+                val constructor = member as Symbol.MethodSymbol
+
+                if (constructor.parameters.size != 0) {
+                    return constructor
+                }
+            }
+        }
+        return null
+    }
+
+    override val isClassSource: Boolean = source.kind == ElementKind.CLASS
+
+
+    override val isInterfaceSource: Boolean = source !is Symbol.ClassSymbol || !source.isInterface
+
+    override val isPrivateModifier: Boolean = source.modifiers.contains(Modifier.PRIVATE)
+
+    override fun logError(logger: ILogger<Element>, message: String) {
+        logger.error(message, source)
     }
 
     override val relevantStaticFunctions: List<SourceMemberFunction>
@@ -66,10 +103,10 @@ data class SourceModel(private val sourceElement: Element) : ISourceModel, IClas
     override val relevantStaticFields: List<SourceMemberField>
 
     init {
-        abstractParts = findPossibleOverrides(sourceElement)
+        abstractParts = findPossibleOverrides(source)
         val relevantStaticsFields = mutableListOf<SourceMemberField>()
         val relevantStaticsFunctions = mutableListOf<SourceMemberFunction>()
-        parseStaticsFromStructure(sourceElement) {
+        parseStaticsFromStructure(source) {
 
             val accessor = it.getAnnotation(GenerateAccessor::class.java)
             val docSegment = it.getAnnotation(DocIdSegment::class.java)

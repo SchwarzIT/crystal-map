@@ -3,11 +3,11 @@ package com.schwarz.crystalprocessor.generation.mapper
 import com.schwarz.crystalprocessor.PostValidationException
 import com.schwarz.crystalprocessor.ProcessingContext
 import com.schwarz.crystalprocessor.ProcessingContext.isAssignable
-import com.schwarz.crystalprocessor.generation.MapifyableImplGeneration
+import com.schwarz.crystalcore.generation.MapifyableImplGeneration
 import com.schwarz.crystalprocessor.model.mapper.MapifyHolder
 import com.schwarz.crystalprocessor.model.mapper.MapperHolder
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
-import com.schwarz.crystalprocessor.util.TypeUtil
+import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.schwarz.crystalapi.mapify.Mapifyable

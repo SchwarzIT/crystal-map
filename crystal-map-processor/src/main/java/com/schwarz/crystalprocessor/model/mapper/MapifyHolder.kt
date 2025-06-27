@@ -6,10 +6,9 @@ import com.schwarz.crystalprocessor.model.mapper.type.MapifyElementType
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalapi.mapify.Mapper
 import java.io.Serializable
-import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 
-class MapifyHolder(val mapifyElement: MapifyElementType, env: ProcessingEnvironment) :
+class MapifyHolder(val mapifyElement: MapifyElementType) :
     MapifyElementType by mapifyElement {
 
     val typeHandleMode: TypeHandleMode = when {

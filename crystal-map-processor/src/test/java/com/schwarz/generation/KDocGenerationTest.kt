@@ -1,6 +1,6 @@
 package com.schwarz.generation
 
-import com.schwarz.crystalprocessor.generation.model.KDocGeneration
+import com.schwarz.crystalcore.generation.model.KDocGeneration
 import org.junit.Test
 
 class KDocGenerationTest {

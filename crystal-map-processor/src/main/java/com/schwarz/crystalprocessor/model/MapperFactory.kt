@@ -13,7 +13,7 @@ import javax.lang.model.element.Modifier
 
 object MapperFactory {
 
-    fun create(env: ProcessingEnvironment, mapperElement: Element): MapperHolder {
+    fun create(mapperElement: Element): MapperHolder {
         val result = MapperHolder(mapperElement)
 
         val getterSetterMap = hashMapOf<String, MapifyElementTypeGetterSetter.GetterSetter>()
@@ -25,8 +25,7 @@ object MapperFactory {
             if (childElement.kind == ElementKind.FIELD) {
                 childElement.getAnnotation(Mapify::class.java)?.apply {
                     result.fields[childElement.simpleName.toString()] = MapifyHolder(
-                        MapifyElementTypeField(childElement, this),
-                        env
+                        MapifyElementTypeField(childElement, this)
                     )
                 }
             }
@@ -56,7 +55,7 @@ object MapperFactory {
         }
 
         getterSetterMap.filter { it.value.getterElement != null && it.value.setterElement != null }?.forEach {
-            result.fields[it.key] = MapifyHolder(MapifyElementTypeGetterSetter(it.value, fieldName = it.key), env)
+            result.fields[it.key] = MapifyHolder(MapifyElementTypeGetterSetter(it.value, fieldName = it.key))
         }
 
         return result
