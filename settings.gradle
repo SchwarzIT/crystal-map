@@ -1,2 +1,3 @@
 include ':crystal-map-versioning-plugin'
 include ':crystal-map-api', ':crystal-map-processor', ':demo', ':dummy', ':crystal-map-couchbase-connector'
+include ':crystal-map-core'

@@ -1,15 +1,14 @@
 package com.schwarz.crystalprocessor.validation.mapper
 
-import com.schwarz.crystalprocessor.Logger
+import com.schwarz.crystalapi.mapify.Mapifyable
+import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalprocessor.model.mapper.MapifyHolder
 import com.schwarz.crystalprocessor.model.mapper.MapperHolder
 import com.schwarz.crystalprocessor.model.mapper.type.MapifyElementTypeField
 import com.schwarz.crystalprocessor.model.mapper.type.MapifyElementTypeGetterSetter
-import com.schwarz.crystalapi.mapify.Mapifyable
-import java.lang.Exception
 import javax.lang.model.element.Element
 
-class MapperValidation(val logger: Logger, val mappers: MutableMap<String, MapperHolder>) {
+class MapperValidation(val logger: ILogger<Element>, val mappers: MutableMap<String, MapperHolder>) {
 
     fun postValidate(): Boolean {
         for (mapper in mappers) {

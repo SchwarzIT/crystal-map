@@ -1,6 +1,6 @@
 package com.schwarz.util;
 
-import com.schwarz.crystalprocessor.util.ConversionUtil;
+import com.schwarz.crystalcore.util.ConversionUtil;
 
 import org.junit.Assert;
 import org.junit.Test;

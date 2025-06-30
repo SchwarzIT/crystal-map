@@ -1,32 +1,30 @@
 package com.schwarz.crystalprocessor.generation
 
-import com.schwarz.crystalprocessor.CoachBaseBinderProcessor
+import com.schwarz.crystalcore.ICodeGenerator
+import com.schwarz.crystalcore.ISettings
+import com.schwarz.crystalcore.model.accessor.CblGenerateAccessorHolder
 import com.schwarz.crystalprocessor.ProcessingContext
-import com.schwarz.crystalprocessor.model.accessor.CblGenerateAccessorHolder
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.OriginatingElementsHolder
 import java.io.File
-
 import java.io.IOException
-
 import javax.annotation.processing.Filer
-import javax.annotation.processing.ProcessingEnvironment
 import javax.tools.StandardLocation
 import kotlin.io.path.createDirectories
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
-class CodeGenerator(private val filer: Filer) {
+class CodeGenerator(private val filer: Filer) : ICodeGenerator {
 
     @Throws(IOException::class)
-    fun generate(entityToGenerate: FileSpec, processingEnvironment: ProcessingEnvironment) {
-        ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
+    override fun generate(entityToGenerate: FileSpec, settings: ISettings) {
+        ClassName(entityToGenerate.packageName, entityToGenerate.name).apply {
             ProcessingContext.createdQualifiedClazzNames.add(this)
         }
 
-        val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]
+        val codePath = settings.kotlinGeneratedPath
         val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
 
         // used for kapt returns null for legacy annotationprocessor declarations
@@ -38,21 +36,21 @@ class CodeGenerator(private val filer: Filer) {
     }
 
     @Throws(IOException::class)
-    fun generateAndFixAccessors(
+    override fun generateAndFixAccessors(
         entityToGenerate: FileSpec,
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
-        processingEnvironment: ProcessingEnvironment
+        settings: ISettings
     ) {
-        ClassName(entityToGenerate.packageName, entityToGenerate.name)?.apply {
+        ClassName(entityToGenerate.packageName, entityToGenerate.name).apply {
             ProcessingContext.createdQualifiedClazzNames.add(this)
         }
 
-        val codePath = processingEnvironment.options[CoachBaseBinderProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME]
+        val codePath = settings.kotlinGeneratedPath
         val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
 
         val fixedFileString = generateAccessors.fold(fileWithHeader.toString()) { acc, generateAccessor ->
-            if (generateAccessor.memberFunction != null && generateAccessor.memberFunction.isSuspend) {
-                acc.replace(Regex("(${generateAccessor.memberFunction.name}\\([^)]*\\)):\\s*Unit(\\s*=)"), "$1$2")
+            if (generateAccessor.memberFunction != null && generateAccessor.memberFunction?.isSuspend == true) {
+                acc.replace(Regex("(${generateAccessor.memberFunction?.name}\\([^)]*\\)):\\s*Unit(\\s*=)"), "$1$2")
             } else {
                 acc
             }

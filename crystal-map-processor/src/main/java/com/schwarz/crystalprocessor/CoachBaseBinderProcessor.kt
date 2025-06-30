@@ -1,6 +1,7 @@
 package com.schwarz.crystalprocessor
 
 import com.google.auto.service.AutoService
+import com.schwarz.crystalapi.BaseModel
 import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.GenerateAccessor
@@ -14,6 +15,7 @@ import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
+import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
@@ -21,9 +23,12 @@ import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_USE_SUSPEND_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.schwarz.crystalprocessor.generation.CodeGenerator
-import com.schwarz.crystalprocessor.processing.Worker
+import com.schwarz.crystalcore.processing.Worker
+import com.schwarz.crystalcore.processing.model.ModelWorkSet
 import com.schwarz.crystalprocessor.processing.mapper.MapperWorker
-import com.schwarz.crystalprocessor.processing.model.ModelWorker
+import com.schwarz.crystalcore.processing.model.ModelWorker
+import com.schwarz.crystalprocessor.model.source.SourceModel
+import com.schwarz.crystalprocessor.processing.mapper.MapperWorkSet
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -31,6 +36,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.annotation.processing.SupportedOptions
 import javax.annotation.processing.SupportedSourceVersion
 import javax.lang.model.SourceVersion
+import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
@@ -51,54 +57,95 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     private var useSuspend: Boolean = false
 
-    private lateinit var workers: Set<Worker<*>>
+    private lateinit var mSettings: ProcessingEnvironmentWrapper
+
+    private lateinit var workers: Set<Worker<*, Element>>
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "crystal.entityframework.useSuspend"
-        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME = "crystal.entityframework.documentation.generated"
-        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.fileName"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.generated"
-        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME = "crystal.entityframework.documentation.entityrelationship.fileName"
+        const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME =
+            "crystal.entityframework.documentation.generated"
+        const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME =
+            "crystal.entityframework.documentation.fileName"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME =
+            "crystal.entityframework.documentation.entityrelationship.generated"
+        const val FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME =
+            "crystal.entityframework.documentation.entityrelationship.fileName"
         const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
         const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
     }
 
     @Synchronized
     override fun init(processingEnvironment: ProcessingEnvironment) {
-        useSuspend = processingEnvironment.options?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")?.toBoolean()
-            ?: false
+        useSuspend =
+            processingEnvironment.options?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")
+                ?.toBoolean()
+                ?: false
         mLogger = Logger(processingEnvironment)
         mCodeGenerator = CodeGenerator(processingEnvironment.filer)
+        mSettings = ProcessingEnvironmentWrapper(processingEnvironment)
 
         ProcessingContext.env = processingEnvironment
-
-        workers = setOf(
-            ModelWorker(mLogger, mCodeGenerator, processingEnvironment),
-            MapperWorker(mLogger, mCodeGenerator, processingEnvironment)
-        )
-
-        workers.forEach { it.init() }
 
         super.init(processingEnvironment)
     }
 
     override fun process(set: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
         ProcessingContext.roundEnv = roundEnv
+        workers = setOf(
+            ModelWorker<Element>(
+                mLogger,
+                mCodeGenerator,
+                mSettings,
+                ModelWorkSet(
+                    allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java)
+                        .toSourceModel(),
+                    allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
+                        .toSourceModel(),
+                    allSchemaClassElements = roundEnv.getElementsAnnotatedWith(SchemaClass::class.java)
+                        .toSourceModel(),
+                    allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
+                        .toSourceModel(),
+                    allTypeConverterElements = roundEnv.getElementsAnnotatedWith(TypeConverter::class.java)
+                        .toSourceModel(),
+                    allTypeConverterExporterElements = roundEnv.getElementsAnnotatedWith(
+                        TypeConverterExporter::class.java
+                    ).toSourceModel(),
+                    allTypeConverterImporterElements = roundEnv.getElementsAnnotatedWith(
+                        TypeConverterImporter::class.java
+                    ).toSourceModel()
+                )
+            ),
+            MapperWorker(
+                mLogger,
+                mCodeGenerator,
+                mSettings,
+                MapperWorkSet(
+                    allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)
+                )
+            )
+        )
+
+        workers.forEach { it.init() }
 
         for (worker in workers) {
             try {
-                if (!worker.invoke(roundEnv, useSuspend)) {
+                if (!worker.invoke(useSuspend)) {
                     // error in worker no further processing
                     return true
                 }
             } catch (e: PostValidationException) {
-                mLogger.abortWithError(e)
+                mLogger.abortWithError(e.message, e.causingElements)
                 return true
             }
         }
 
         return true // no further processing of this annotation type
+    }
+
+    private fun Set<Element>.toSourceModel(): Set<ISourceModel<Element>> {
+        return map { SourceModel(it) }.toSet()
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {

@@ -2,7 +2,7 @@ package com.schwarz.crystalprocessor.model.mapper.type
 
 import com.schwarz.crystalprocessor.ProcessingContext
 import com.schwarz.crystalprocessor.javaToKotlinType
-import com.schwarz.crystalprocessor.util.TypeUtil
+import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.sun.tools.javac.code.Symbol
 import com.schwarz.crystalapi.mapify.Mapify
