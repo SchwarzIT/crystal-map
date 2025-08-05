@@ -24,8 +24,7 @@ import com.schwarz.crystalcore.model.source.ISourceTypeConverterImporter
 import com.schwarz.crystalcore.model.source.Parameter
 import com.schwarz.crystalcore.model.source.SourceMemberField
 import com.schwarz.crystalcore.model.source.SourceMemberFunction
-import com.schwarz.crystalprocessor.javaToKotlinType
-import com.squareup.kotlinpoet.ClassName
+import com.schwarz.crystalcore.javaToKotlinType
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import com.sun.tools.javac.code.Symbol
@@ -39,13 +38,9 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
 
-data class SourceModel(override val source: Element) : ISourceModel<Element>, IClassModel {
-
-    override val sourceClazzSimpleName: String =
-        (source as Symbol.ClassSymbol).simpleName.toString()
-    override val sourcePackage: String = (source as Symbol.ClassSymbol).packge().toString()
-
-    override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)
+data class SourceModel(override val source: Element) :
+    ISourceModel<Element>,
+    IClassModel<Element> by SourceClassModel(source) {
 
     override val fullQualifiedName: String
         get() = source.toString()

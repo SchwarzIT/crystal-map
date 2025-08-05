@@ -13,7 +13,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
 abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
-    IClassModel by sourceElement,
+    IClassModel<T> by sourceElement,
     ModelHolderWithFields {
 
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()

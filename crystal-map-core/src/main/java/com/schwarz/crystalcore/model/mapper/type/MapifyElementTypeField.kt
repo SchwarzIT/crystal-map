@@ -1,26 +1,32 @@
-package com.schwarz.crystalprocessor.model.mapper.type
+package com.schwarz.crystalcore.model.mapper.type
 
-import com.schwarz.crystalprocessor.ProcessingContext
-import com.schwarz.crystalprocessor.ProcessingContext.asDeclaringName
-import com.schwarz.crystalprocessor.javaToKotlinType
-import com.squareup.kotlinpoet.*
 import com.schwarz.crystalapi.mapify.Mapify
+import com.schwarz.crystalcore.model.source.IClassModel
+import com.schwarz.crystalcore.model.source.ISourceDeclaringName
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
 import java.lang.reflect.Field
-import javax.lang.model.element.Element
-import javax.lang.model.element.Modifier
 
-class MapifyElementTypeField(val element: Element, val mapify: Mapify) : MapifyElementType {
-    override val elements: Array<Element> = arrayOf(element)
+class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: Mapify) :
+    MapifyElementType<T> {
 
-    override val fieldName = element.simpleName.toString()
+    override val elements: List<T> = listOf(
+        element.source
+    )
+
+    override val fieldName = element.sourceClazzSimpleName
 
     override val mapName = if (mapify.name.isNotBlank()) mapify.name else fieldName
 
-    override val typeName = element.asType().asTypeName().javaToKotlinType()
+    override val typeName = element.typeName
 
-    override val accessible = element.modifiers.contains(Modifier.PUBLIC)
+    override val accessible = element.accessible
 
-    override val declaringName: ProcessingContext.DeclaringName = element.asDeclaringName(mapify.nullableIndexes.toTypedArray())
+    override val declaringName: ISourceDeclaringName = element.asDeclaringName(mapify.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
         return listOf(

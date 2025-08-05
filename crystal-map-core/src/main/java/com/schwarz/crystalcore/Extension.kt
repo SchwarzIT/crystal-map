@@ -1,4 +1,4 @@
-package com.schwarz.crystalprocessor
+package com.schwarz.crystalcore
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName

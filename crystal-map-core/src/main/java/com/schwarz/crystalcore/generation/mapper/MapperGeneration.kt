@@ -1,23 +1,21 @@
-package com.schwarz.crystalprocessor.generation.mapper
+package com.schwarz.crystalcore.generation.mapper
 
-import com.schwarz.crystalprocessor.PostValidationException
-import com.schwarz.crystalprocessor.ProcessingContext
-import com.schwarz.crystalprocessor.ProcessingContext.isAssignable
+import com.schwarz.crystalapi.mapify.Mapifyable
+import com.schwarz.crystalapi.mapify.Mapper
+import com.schwarz.crystalcore.PostValidationException
 import com.schwarz.crystalcore.generation.MapifyableImplGeneration
-import com.schwarz.crystalprocessor.model.mapper.MapifyHolder
-import com.schwarz.crystalprocessor.model.mapper.MapperHolder
-import com.schwarz.crystalprocessor.util.FieldExtractionUtil
+import com.schwarz.crystalcore.model.mapper.MapifyHolder
+import com.schwarz.crystalcore.model.mapper.MapperHolder
+import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.schwarz.crystalapi.mapify.Mapifyable
-import com.schwarz.crystalapi.mapify.Mapper
 import java.io.Serializable
 import java.util.*
 
-class MapperGeneration {
+class MapperGeneration<T> {
 
-    fun generate(holder: MapperHolder): FileSpec {
+    fun generate(holder: MapperHolder<T>): FileSpec {
         val mapperTypeParam = holder.declaringName.asFullTypeName() ?: holder.sourceClazzTypeName
 
         val typeSpec = TypeSpec.classBuilder(holder.targetMapperSimpleName)
@@ -73,7 +71,7 @@ class MapperGeneration {
                     param.toMapBuilder.endControlFlow()
                     param.toMapBuilder.addStatement("return map")
                 } catch (e: Exception) {
-                    throw PostValidationException(e, *fieldWithTypeParam.elements)
+                    throw PostValidationException(e, fieldWithTypeParam.elements)
                 }
 
                 typeSpec.addType(
@@ -124,7 +122,7 @@ class MapperGeneration {
                     toMap.addCode(resolverParam.toMapBuilder.build())
                 }
             } catch (e: Exception) {
-                throw PostValidationException(e, *field.mapifyElement.elements)
+                throw PostValidationException(e, field.mapifyElement.elements)
             }
         }
 
@@ -136,14 +134,14 @@ class MapperGeneration {
         return FileSpec.get(holder.`package`, typeSpec.build())
     }
 
-    private fun buildHelperClazzName(name: ProcessingContext.DeclaringName): String {
+    private fun buildHelperClazzName(name: ISourceDeclaringName): String {
         return "Helper${name.name.split('.').map { it.capitalize() }.joinToString(separator = "")}"
     }
 
     private data class ResolverParam(val fromMapBuilder: CodeBlock.Builder = CodeBlock.builder(), val toMapBuilder: CodeBlock.Builder = CodeBlock.builder())
 
     @Throws(Exception::class)
-    private fun resolveDeclaringName(name: ProcessingContext.DeclaringName, resolverParam: ResolverParam, accessorName: String, typeParams: List<ProcessingContext.DeclaringName>) {
+    private fun resolveDeclaringName(name: ISourceDeclaringName, resolverParam: ResolverParam, accessorName: String, typeParams: List<ISourceDeclaringName>) {
         if (name.isProcessingType()) {
             resolverParam.fromMapBuilder.addStatement("%T.Mapper().fromMap(it as %T)", name.asTypeName()!!, TypeUtil.mapStringAny())
 
@@ -165,9 +163,10 @@ class MapperGeneration {
                 resolverParam.fromMapBuilder.addStatement("typeParam$it.fromMap(it as %T)", TypeUtil.mapStringAny())
                 resolverParam.toMapBuilder.addStatement("typeParam$it.toMap(it)")
             }
+            return
         }
 
-        if (name.asTypeElement()?.getAnnotation(Mapper::class.java) != null) {
+        if (name.getAnnotation(Mapper::class.java) != null) {
             val mapperTypeName = ClassName.bestGuess("${name.name}Mapper")?.let {
                 if (name.typeParams.isNotEmpty()) {
                     it.parameterizedBy(name.typeParams.mapNotNull { it.asFullTypeName() })
@@ -194,11 +193,11 @@ class MapperGeneration {
             return
         }
 
-        name.asTypeElement()?.apply {
+        name.apply {
             when {
                 getAnnotation(Mapifyable::class.java) != null -> {
-                    FieldExtractionUtil.typeMirror(getAnnotation(Mapifyable::class.java))?.apply {
-                        val fullTypeName = ProcessingContext.DeclaringName(this).asFullTypeName()
+                    typeAsDeclaringName(getAnnotation(Mapifyable::class.java)!!)?.apply {
+                        val fullTypeName = asFullTypeName()
                         resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", fullTypeName!!, TypeUtil.mapStringAny())
 
                         resolverParam.toMapBuilder.addStatement("%T().toMap(it)", fullTypeName!!)

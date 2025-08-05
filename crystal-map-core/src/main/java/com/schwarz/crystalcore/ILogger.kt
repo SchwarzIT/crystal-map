@@ -14,5 +14,5 @@ interface ILogger<T> {
 
     fun hasErrors(): Boolean
 
-    fun abortWithError(msg: String?, elements: List<T>)
+    fun abortWithError(msg: String?, elements: List<T>, ex: Throwable?)
 }
