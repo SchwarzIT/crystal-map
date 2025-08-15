@@ -19,25 +19,25 @@ import org.apache.commons.lang3.text.WordUtils
 abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField) {
 
     open val isIterable: Boolean
-        get() = mField.fieldAnnotation.list
+        get() = mField.list
 
     val isDefault: Boolean
-        get() = mField.fieldAnnotation.defaultValue.isNotEmpty() && !isConstant
+        get() = mField.defaultValue.isNotEmpty() && !isConstant
 
     val isConstant: Boolean
-        get() = mField.fieldAnnotation.readonly
+        get() = mField.readonly
 
     val constantName: String
         get() = ConversionUtil.convertCamelToUnderscore(dbField).uppercase()
 
     val defaultValue: String
-        get() = mField.fieldAnnotation.defaultValue
+        get() = mField.defaultValue
 
     val mandatory: Boolean
-        get() = mField.fieldAnnotation.mandatory
+        get() = mField.mandatory
 
     val comment: Array<String>
-        get() = mField.fieldAnnotation.comment
+        get() = mField.comment
 
     val simpleName: String = mField.simpleName
 

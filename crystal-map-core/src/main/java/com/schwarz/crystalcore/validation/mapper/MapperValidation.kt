@@ -16,7 +16,7 @@ class MapperValidation<T>(val logger: ILogger<T>, val mappers: MutableMap<String
                 val element: IClassModel<T> = (field.value.mapifyElement as? MapifyElementTypeField)?.let { it.element } ?: (field.value.mapifyElement as? MapifyElementTypeGetterSetter)?.let { it.getterSetter.getterElement } ?: throw Exception("unknown kind")
 
                 if (field.value.typeHandleMode == MapifyHolder.TypeHandleMode.UNKNOWN) {
-                    logger.error("the field is not ${Mapifyable::class.java.simpleName} or plain or any other parseable type. ", element.source)
+                    logger.error("the field ${field.key} is not ${Mapifyable::class.java.simpleName} or plain or any other parseable type. ", element.source)
                 }
             }
         }

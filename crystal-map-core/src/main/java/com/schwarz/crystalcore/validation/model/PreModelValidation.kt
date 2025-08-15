@@ -7,7 +7,6 @@ import com.schwarz.crystalapi.TypeConverterExporter
 import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.source.ISourceModel
-import com.schwarz.crystalcore.model.typeconverter.getTypeConverterInterface
 
 object PreModelValidation {
 
@@ -27,7 +26,7 @@ object PreModelValidation {
 
         val names = ArrayList<String>()
 
-        for (fieldAnnotation in fields.map { it.fieldAnnotation }) {
+        for (fieldAnnotation in fields) {
             if (names.contains(fieldAnnotation.name)) {
                 logger.warn("duplicated field name", entityElement.source)
             }
@@ -65,7 +64,7 @@ object PreModelValidation {
                 typeConverterElement.source
             )
         }
-        if (typeConverterElement.kotlinMetadata?.getTypeConverterInterface() == null) {
+        if (typeConverterElement.typeConverterInterface == null) {
             logger.error(
                 "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface",
                 typeConverterElement.source

@@ -7,6 +7,7 @@ import com.schwarz.crystalcore.generation.MapifyableImplGeneration
 import com.schwarz.crystalcore.model.mapper.MapifyHolder
 import com.schwarz.crystalcore.model.mapper.MapperHolder
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
+import com.schwarz.crystalcore.model.source.ISourceMapifyable
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -24,15 +25,15 @@ class MapperGeneration<T> {
         if (holder.typeParams.isNotEmpty()) {
             val constructorBuilder = FunSpec.constructorBuilder()
 
-            holder.typeParams.forEachIndexed { index, typeVariableSymbol ->
-                typeSpec.addTypeVariable(TypeVariableName(typeVariableSymbol.name))
+            holder.typeParams.forEachIndexed { index, typeVariableName ->
+                typeSpec.addTypeVariable(TypeVariableName(typeVariableName))
                 typeSpec.addProperty(
-                    PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
+                    PropertySpec.builder("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableName).copy(nullable = true)))
                         .initializer("typeParam$index")
                         .addModifiers(KModifier.PRIVATE)
                         .build()
                 )
-                constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableSymbol.name).copy(nullable = true)))
+                constructorBuilder.addParameter("typeParam$index", TypeUtil.iMapifyable(TypeVariableName(typeVariableName).copy(nullable = true)))
             }
             typeSpec.primaryConstructor(constructorBuilder.build())
         }
@@ -141,11 +142,12 @@ class MapperGeneration<T> {
     private data class ResolverParam(val fromMapBuilder: CodeBlock.Builder = CodeBlock.builder(), val toMapBuilder: CodeBlock.Builder = CodeBlock.builder())
 
     @Throws(Exception::class)
-    private fun resolveDeclaringName(name: ISourceDeclaringName, resolverParam: ResolverParam, accessorName: String, typeParams: List<ISourceDeclaringName>) {
+    private fun resolveDeclaringName(name: ISourceDeclaringName, resolverParam: ResolverParam, accessorName: String, typeParams: List<String>) {
         if (name.isProcessingType()) {
-            resolverParam.fromMapBuilder.addStatement("%T.Mapper().fromMap(it as %T)", name.asTypeName()!!, TypeUtil.mapStringAny())
+            val typeNameNotNullable = name.asTypeName()!!.copy(nullable = false)
+            resolverParam.fromMapBuilder.addStatement("%T.Mapper().fromMap(it as %T)", typeNameNotNullable, TypeUtil.mapStringAny())
 
-            resolverParam.toMapBuilder.addStatement("%T.Mapper().toMap(it)", name.asTypeName()!!)
+            resolverParam.toMapBuilder.addStatement("%T.Mapper().toMap(it)", typeNameNotNullable)
             return
         }
 
@@ -159,14 +161,14 @@ class MapperGeneration<T> {
         }
 
         if (name.isTypeVar()) {
-            typeParams.indexOfFirst { it.name == name.name }?.let {
+            typeParams.indexOfFirst { it == name.name }?.let {
                 resolverParam.fromMapBuilder.addStatement("typeParam$it.fromMap(it as %T)", TypeUtil.mapStringAny())
                 resolverParam.toMapBuilder.addStatement("typeParam$it.toMap(it)")
             }
             return
         }
 
-        if (name.getAnnotation(Mapper::class.java) != null) {
+        if (name.isAnnotationPresent(Mapper::class.java)) {
             val mapperTypeName = ClassName.bestGuess("${name.name}Mapper")?.let {
                 if (name.typeParams.isNotEmpty()) {
                     it.parameterizedBy(name.typeParams.mapNotNull { it.asFullTypeName() })
@@ -195,15 +197,17 @@ class MapperGeneration<T> {
 
         name.apply {
             when {
-                getAnnotation(Mapifyable::class.java) != null -> {
-                    typeAsDeclaringName(getAnnotation(Mapifyable::class.java)!!)?.apply {
-                        val fullTypeName = asFullTypeName()
+                isAnnotationPresent(Mapifyable::class.java) -> {
+
+                    getAnnotationRepresent<Mapifyable, ISourceMapifyable>(Mapifyable::class.java)?.apply {
+                        val valueDeclaring = this.valueDeclaringName
+                        val fullTypeName = valueDeclaring.asFullTypeName()
                         resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", fullTypeName!!, TypeUtil.mapStringAny())
 
                         resolverParam.toMapBuilder.addStatement("%T().toMap(it)", fullTypeName!!)
                     }
                 }
-                isAssignable(List::class.java) -> {
+                isAssignable(List::class) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")
                     val mapFun = if (name.typeParams[0].isNullable()) "map" else "mapNotNull"
                     resolverParam.fromMapBuilder.beginControlFlow(
@@ -216,7 +220,7 @@ class MapperGeneration<T> {
                     resolverParam.toMapBuilder.endControlFlow()
                     resolverParam.fromMapBuilder.endControlFlow()
                 }
-                isAssignable(Map::class.java) -> {
+                isAssignable(Map::class) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")
                     resolverParam.toMapBuilder.beginControlFlow("(it.key.let")
                     resolverParam.fromMapBuilder.beginControlFlow("(it as? %T)?.map", TypeUtil.mapAnyAny())
@@ -237,7 +241,7 @@ class MapperGeneration<T> {
                     resolverParam.fromMapBuilder.endControlFlow()
                     resolverParam.fromMapBuilder.addStatement("?.toMap()")
                 }
-                isAssignable(Serializable::class.java) -> {
+                isAssignable(Serializable::class) -> {
                     resolverParam.fromMapBuilder.addStatement("%T().fromMap(it as %T)", TypeUtil.serializableMapifyable(name.asFullTypeName()!!.copy(nullable = false)), TypeUtil.mapStringAny())
                     resolverParam.toMapBuilder.addStatement("%T().toMap(it)", TypeUtil.serializableMapifyable(name.asFullTypeName()!!.copy(nullable = false)))
                 }

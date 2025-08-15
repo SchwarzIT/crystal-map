@@ -4,11 +4,12 @@ import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.squareup.kotlinpoet.*
 import com.schwarz.crystalapi.DocId
+import com.schwarz.crystalcore.model.source.ISourceDocId
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
 import java.util.regex.Pattern
 
-class DocIdHolder(docId: DocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
+class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
 
     private val docIdSegmentCallPattern = Pattern.compile("\\((.+?)\\)")
 

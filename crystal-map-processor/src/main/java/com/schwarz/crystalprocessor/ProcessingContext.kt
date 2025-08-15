@@ -1,8 +1,11 @@
 package com.schwarz.crystalprocessor
 
+import com.schwarz.crystalapi.BasedOn
+import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
+import com.schwarz.crystalprocessor.model.source.SourceMapifyable
 import com.schwarz.crystalprocessor.util.ElementUtil
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 import com.squareup.kotlinpoet.ClassName
@@ -23,6 +26,7 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 import javax.lang.model.type.PrimitiveType
 import javax.tools.Diagnostic
+import kotlin.reflect.KClass
 
 private val plainTypes = listOf(String::class.java.canonicalName, Int::class.java.canonicalName, "java.lang.Integer", "java.lang.Double", "java.lang.Boolean", Double::class.java.canonicalName, Long::class.java.canonicalName, BigDecimal::class.java.canonicalName, Boolean::class.java.canonicalName)
 
@@ -79,23 +83,26 @@ object ProcessingContext {
             return createdQualifiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
         }
 
-        override fun isAssignable(clazz: Class<*>) = env.let {
+        override fun isAssignable(clazz: KClass<*>) = env.let {
             return@let asTypeElement()?.let {
-                env.typeUtils.isAssignable(it.asType(), env.elementUtils.getTypeElement(clazz.canonicalName).asType())
+                env.typeUtils.isAssignable(it.asType(), env.elementUtils.getTypeElement(clazz.java.canonicalName).asType())
             } ?: false
         }
 
-        override fun <A : Annotation?> getAnnotation(annotationType: Class<A>?): A? {
+        override fun <A : Annotation?, B> getAnnotationRepresent(annotationType: Class<A>?): B? {
             env.let {
-                return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)
+                return when(annotationType){
+                    Mapifyable::class.java -> SourceMapifyable(it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)) as B
+                    else -> throw NotImplementedError("Unsupported annotation type: ${annotationType?.canonicalName}")
+                }
+                //return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)
             }
         }
 
-        override fun typeAsDeclaringName(mapifyable: Mapifyable): ISourceDeclaringName? {
-            FieldExtractionUtil.typeMirror(mapifyable)?.apply {
-                return DeclaringName(this)
+        override fun <A : Annotation?> isAnnotationPresent(annotationType: Class<A>): Boolean {
+            env.let {
+                return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType) != null
             }
-            return null
         }
 
         private fun asTypeElement(): TypeElement? = (typeMirror as? PrimitiveType?)?.let { env.typeUtils.boxedClass(it) } ?: env.elementUtils.getTypeElement(ElementUtil.splitGenericIfNeeded(typeMirror.toString())[0]) ?: env.elementUtils.getTypeElement(name)

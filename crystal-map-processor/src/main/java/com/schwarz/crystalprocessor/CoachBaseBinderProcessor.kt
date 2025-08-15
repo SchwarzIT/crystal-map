@@ -16,7 +16,7 @@ import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
 import com.schwarz.crystalcore.PostValidationException
-import com.schwarz.crystalcore.model.source.ISourceMapper
+import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
@@ -29,7 +29,7 @@ import com.schwarz.crystalcore.processing.Worker
 import com.schwarz.crystalcore.processing.model.ModelWorkSet
 import com.schwarz.crystalcore.processing.mapper.MapperWorker
 import com.schwarz.crystalcore.processing.model.ModelWorker
-import com.schwarz.crystalprocessor.model.source.SourceMapper
+import com.schwarz.crystalprocessor.model.source.SourceMapperModel
 import com.schwarz.crystalprocessor.model.source.SourceModel
 import com.schwarz.crystalcore.processing.mapper.MapperWorkSet
 import com.schwarz.crystalprocessor.validation.mapper.PreMapperValidation
@@ -161,8 +161,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         return map { SourceModel(it) }.toSet()
     }
 
-    private fun Set<Element>.toMapperSourceModel(): Set<ISourceMapper<Element>> {
-        return map { SourceMapper(it) }.toSet()
+    private fun Set<Element>.toMapperSourceModel(): Set<ISourceMapperModel<Element>> {
+        return map { SourceMapperModel(it) }.toSet()
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {

@@ -21,7 +21,7 @@ import org.apache.commons.lang3.text.WordUtils
 class CblQueryHolder(private val mQuerySource: ISourceQuery) {
 
     val fields: Array<String>
-        get() = mQuerySource.queryAnnotations.fields
+        get() = mQuerySource.fields
 
     fun <T>queryFun(
         dbName: String,

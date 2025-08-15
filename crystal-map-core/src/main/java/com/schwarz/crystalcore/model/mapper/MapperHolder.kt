@@ -1,18 +1,18 @@
 package com.schwarz.crystalcore.model.mapper
 
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
-import com.schwarz.crystalcore.model.source.ISourceMapper
+import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-class MapperHolder<T>(val sourceElement: ISourceMapper<T>) {
+class MapperHolder<T>(val sourceElement: ISourceMapperModel<T>) {
 
     val fields: MutableMap<String, MapifyHolder<T>> = mutableMapOf()
 
     val sourceClazzSimpleName: String
         get() = sourceElement.sourceClazzSimpleName
 
-    val typeParams: List<ISourceDeclaringName> = sourceElement.typeParams
+    val typeParams: List<String> = sourceElement.typeParams
 
     val sourceClazzTypeName: TypeName = sourceElement.sourceClazzTypeName
 

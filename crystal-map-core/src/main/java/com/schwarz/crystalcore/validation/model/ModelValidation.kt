@@ -7,6 +7,7 @@ import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.EntityHolder
 import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
+import com.schwarz.crystalcore.model.source.ISourceDeprecated
 import com.schwarz.crystalcore.model.typeconverter.ImportedTypeConverterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
@@ -66,7 +67,7 @@ class ModelValidation<T>(
     }
 
     private fun validateDeprecatedFields(
-        deprecatedFields: Map<String, DeprecatedField>,
+        deprecatedFields: Map<String, ISourceDeprecated.ISourceDeprecatedField>,
         replacingModel: String?,
         model: BaseEntityHolder<T>
     ) {

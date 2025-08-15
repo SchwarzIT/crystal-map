@@ -12,6 +12,7 @@ buildscript {
 
 apply plugin: 'kotlin'
 apply plugin: 'kotlin-kapt'
+apply plugin: "com.google.devtools.ksp"
 
 kapt {
     correctErrorTypes = true
@@ -27,6 +28,7 @@ kapt {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':crystal-map-api')
-    kapt project(path: ':crystal-map-processor')
+    //kapt project(path: ':crystal-map-processor')
+    ksp ksp(project(':crystal-map-ksp',))
     compileOnly project(path: ':crystal-map-processor')
 }

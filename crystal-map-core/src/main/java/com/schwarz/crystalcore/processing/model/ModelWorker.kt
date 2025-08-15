@@ -78,7 +78,8 @@ class ModelWorker<T>(
 
         documentationGenerator?.generate()
         entityRelationshipGenerator?.generate()
-        schemaGenerator?.generate()
+        //TODO add again and fix
+        //schemaGenerator?.generate()
     }
 
     private fun process(schemaModels: List<SchemaClassHolder<T>>, generate: (SchemaClassHolder<T>) -> FileSpec) {

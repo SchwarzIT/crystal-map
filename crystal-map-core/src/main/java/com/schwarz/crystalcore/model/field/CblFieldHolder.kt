@@ -13,7 +13,7 @@ import com.squareup.kotlinpoet.TypeName
 import org.apache.commons.lang3.StringUtils
 
 class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, subEntityNameSuffix: String) :
-    CblBaseFieldHolder(field.fieldAnnotation.name, field) {
+    CblBaseFieldHolder(field.name, field) {
 
     private var subEntityPackage: String? = null
 
@@ -38,9 +38,9 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
 
             subEntitySimpleName = field.simpleName + subEntityNameSuffix
             subEntityPackage = field.packageName
-            isSubEntityIsTypeParam = field.fieldAnnotation.list
+            isSubEntityIsTypeParam = field.list
         }
-        if (field.fieldAnnotation.list) {
+        if (field.list) {
             isIterable = true
         }
     }

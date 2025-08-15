@@ -3,11 +3,11 @@ package com.schwarz.crystalcore.processing.mapper
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.MapperFactory
 import com.schwarz.crystalcore.model.mapper.MapperHolder
-import com.schwarz.crystalcore.model.source.ISourceMapper
+import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalcore.processing.WorkSet
 import com.schwarz.crystalcore.validation.mapper.MapperValidation
 
-class MapperWorkSet<T>(val allMapperElements: Set<ISourceMapper<T>>, private val preValidate: (ISourceMapper<T>, ILogger<T>) -> Unit) : WorkSet<T> {
+class MapperWorkSet<T>(val allMapperElements: Set<ISourceMapperModel<T>>, private val preValidate: (ISourceMapperModel<T>, ILogger<T>) -> Unit) : WorkSet<T> {
 
     private val mapperModels: MutableMap<String, MapperHolder<T>> = HashMap()
 

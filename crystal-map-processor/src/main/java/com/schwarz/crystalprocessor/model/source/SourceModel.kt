@@ -1,12 +1,14 @@
 package com.schwarz.crystalprocessor.model.source
 
 import com.schwarz.crystalapi.BasedOn
+import com.schwarz.crystalapi.ClassNameDefinition
 import com.schwarz.crystalapi.Comment
 import com.schwarz.crystalapi.DocId
 import com.schwarz.crystalapi.DocIdSegment
 import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.GenerateAccessor
+import com.schwarz.crystalapi.ITypeConverter
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.Reduces
 import com.schwarz.crystalapi.TypeConverterImporter
@@ -25,6 +27,13 @@ import com.schwarz.crystalcore.model.source.Parameter
 import com.schwarz.crystalcore.model.source.SourceMemberField
 import com.schwarz.crystalcore.model.source.SourceMemberFunction
 import com.schwarz.crystalcore.javaToKotlinType
+import com.schwarz.crystalcore.model.source.ISourceComment
+import com.schwarz.crystalcore.model.source.ISourceDocId
+import com.schwarz.crystalcore.model.source.ISourceEntity
+import com.schwarz.crystalcore.model.source.ISourceMapWrapper
+import com.schwarz.crystalcore.model.source.ISourceMetaData
+import com.schwarz.crystalcore.model.source.TypeConverterInterface
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import com.sun.tools.javac.code.Symbol
@@ -37,6 +46,12 @@ import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 import kotlin.coroutines.Continuation
+import kotlin.metadata.KmClass
+import kotlin.metadata.KmClassifier
+import kotlin.metadata.KmType
+import kotlin.metadata.KmTypeProjection
+import kotlin.metadata.isNullable
+import kotlin.metadata.jvm.KotlinClassMetadata
 
 data class SourceModel(override val source: Element) :
     ISourceModel<Element>,
@@ -45,13 +60,13 @@ data class SourceModel(override val source: Element) :
     override val fullQualifiedName: String
         get() = source.toString()
 
-    override val entityAnnotation: Entity? = source.getAnnotation(Entity::class.java)
+    override val entityAnnotation: ISourceEntity? = source.getAnnotation(Entity::class.java)?.let { SourceEntity(it) }
     override val typeName: TypeName = source.asType().asTypeName()
-    override val mapWrapperAnnotation: MapWrapper? =
-        source.getAnnotation(MapWrapper::class.java)
-    override val commentAnnotation: Comment? = source.getAnnotation(Comment::class.java)
+    override val mapWrapperAnnotation: ISourceMapWrapper? =
+        source.getAnnotation(MapWrapper::class.java)?.let { SourceMapWrapper(it) }
+    override val commentAnnotation: ISourceComment? = source.getAnnotation(Comment::class.java)?.let { SourceComment(it) }
     override val deprecatedSource: ISourceDeprecated? = source.getAnnotation(Deprecated::class.java)?.let { SourceDeprecated(it) }
-    override val docIdAnnotation: DocId? = source.getAnnotation(DocId::class.java)
+    override val docIdAnnotation: ISourceDocId? = source.getAnnotation(DocId::class.java)?.let { SourceDocId(it) }
     override val basedOnAnnotation: ISourceBasedOn? = source.getAnnotation(BasedOn::class.java)?.let { SourceBasedOn(it) }
 
     override val reduceAnnotations: List<ISourceReduce> =
@@ -66,7 +81,51 @@ data class SourceModel(override val source: Element) :
     )?.let { SourceTypeConverterImporter(it) }
 
     override val abstractParts: Set<String>
-    override val kotlinMetadata: Metadata? = source.getAnnotation(Metadata::class.java)
+
+    private val typeConverterKmClass = ITypeConverter::class.java.getAnnotation(Metadata::class.java).toKmClass()
+
+    override val typeConverterInterface: TypeConverterInterface? = source.getTypeConverterInterface()?.let {
+        val (domainClassType, mapClassType) = it.arguments
+
+        TypeConverterInterface(        domainClassType.resolveToString().toClassName(),
+            mapClassType.resolveToString().toClassName(),
+            mapClassType.getGenericClassNames())
+
+    }
+
+    private fun Element.getTypeConverterInterface(): KmType? {
+        val kmClass = getAnnotation(Metadata::class.java).toKmClass()
+        return kmClass.supertypes.find {
+            val classifier = it.classifier
+            classifier is KmClassifier.Class && typeConverterKmClass.name == classifier.name
+        }
+    }
+
+
+
+    private fun Metadata.toKmClass() : KmClass = (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
+
+    private fun String.toClassName(): ClassName = split('.').let {
+        ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
+    }
+
+    private fun KmTypeProjection.resolveToString(): String {
+        val classifier = type!!.classifier as KmClassifier.Class
+        val typeName = classifier.name.replace('/', '.')
+        return typeName
+    }
+
+    private fun KmTypeProjection.getGenericClassNames(): List<ClassNameDefinition> =
+        type!!.arguments.fold(emptyList()) { classNameDefinitions, generic ->
+            val type = generic.resolveToString().toClassName()
+            classNameDefinitions + ClassNameDefinition(
+                type.packageName,
+                type.simpleName,
+                generic.getGenericClassNames(),
+                nullable = generic.type!!.isNullable
+            )
+        }
+
 
     override val isFinalModifier: Boolean = source.modifiers.contains(Modifier.FINAL)
 
@@ -103,8 +162,8 @@ data class SourceModel(override val source: Element) :
         val relevantStaticsFunctions = mutableListOf<SourceMemberFunction>()
         parseStaticsFromStructure(source) {
 
-            val accessor = it.getAnnotation(GenerateAccessor::class.java)
-            val docSegment = it.getAnnotation(DocIdSegment::class.java)
+            val accessor = it.getAnnotation(GenerateAccessor::class.java)?.let { SourceGenerateAccessor(it) }
+            val docSegment = it.getAnnotation(DocIdSegment::class.java)?.let{ SourceDocIdSegment(it) }
 
             if (accessor != null || docSegment != null) {
 

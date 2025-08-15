@@ -7,14 +7,14 @@ apply plugin: 'java'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.squareup:kotlinpoet:1.15.0'
-    implementation 'com.squareup:kotlinpoet-metadata:1.15.0'
+    implementation 'com.squareup:kotlinpoet:2.1.0'
+    implementation 'com.squareup:kotlinpoet-metadata:2.1.0'
     implementation project(path: ':crystal-map-api', configuration: 'default')
     implementation project(path: ':crystal-map-core', configuration: 'default')
     implementation 'org.apache.commons:commons-lang3:3.17.0'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3"
     implementation 'com.j2html:j2html:1.6.0'
-    implementation "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0"
+    implementation "org.jetbrains.kotlin:kotlin-metadata-jvm:2.1.0"
     testImplementation 'com.google.testing.compile:compile-testing:0.21.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'dev.zacsweers.kctfork:core:0.7.0'

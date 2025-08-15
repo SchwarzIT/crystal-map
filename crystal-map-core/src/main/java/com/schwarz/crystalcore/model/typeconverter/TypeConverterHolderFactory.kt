@@ -5,32 +5,29 @@ import com.schwarz.crystalapi.ITypeConverterExporter
 import com.schwarz.crystalapi.TypeConverterImportable
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
-import kotlinx.metadata.KmClassifier
-import kotlinx.metadata.KmTypeProjection
-import kotlinx.metadata.isNullable
+import kotlin.metadata.KmClassifier
+import kotlin.metadata.KmTypeProjection
+import kotlin.metadata.isNullable
 
 object TypeConverterHolderFactory {
 
     fun <T>typeConverterHolder(source: ISourceModel<T>): TypeConverterHolder {
         val sourcePackageName = source.sourcePackage
         val className = source.sourceClazzSimpleName
-        val typeConverterKmType = source.kotlinMetadata?.getTypeConverterInterface()!!
-        val (domainClassType, mapClassType) = typeConverterKmType.arguments
+        val typeConverter = source.typeConverterInterface!!
+
         return TypeConverterHolder(
             ClassName(sourcePackageName, className),
             ClassName(sourcePackageName, className + "Instance"),
-            domainClassType.resolveToString().toClassName(),
-            mapClassType.resolveToString().toClassName(),
-            mapClassType.getGenericClassNames()
+            typeConverter.domainClassTypeName,
+            typeConverter.mapClassTypeName,
+            typeConverter.genericTypeNames
         )
     }
 
     fun <T>importedTypeConverterHolders(source: ISourceModel<T>): List<ImportedTypeConverterHolder> {
-        val typeConverterExporterClassName = source.typeConverterImporter?.exporterClassName
-        val typeConverterExporterClazz = javaClass.classLoader.loadClass(typeConverterExporterClassName)
-        val importables = (typeConverterExporterClazz.constructors[0].newInstance() as ITypeConverterExporter)
-            .typeConverterImportables
-        return importables.map { importedTypeConverterHolder(it) }
+        val importables = source.typeConverterImporter?.typeConverterImportable
+        return importables?.map { importedTypeConverterHolder(it) } ?: listOf()
     }
 
     private fun importedTypeConverterHolder(typeConverterImportable: TypeConverterImportable) =

@@ -8,9 +8,19 @@ interface ISourceField {
     val simpleName: String
     val packageName: String
 
-    val fullQualifiedName: String
+    val readonly: Boolean
 
-    val fieldAnnotation: Field
+    val name: String
+
+    val list: Boolean
+
+    val defaultValue: String
+
+    val mandatory: Boolean
+
+    val comment: Array<String>
+
+    val fullQualifiedName: String
 
     val javaToKotlinType: TypeName
 

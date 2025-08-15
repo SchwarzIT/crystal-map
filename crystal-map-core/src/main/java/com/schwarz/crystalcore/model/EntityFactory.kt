@@ -151,14 +151,13 @@ object EntityFactory {
     ): List<ReducedModelHolder<T>> {
         sourceModel.reduceAnnotations.let { reduce ->
             return reduce.map {
-                val annotation = it.reduceAnnotation
                 ReducedModelHolder(
-                    annotation.namePrefix,
-                    annotation.include.asList(),
-                    annotation.includeQueries,
-                    annotation.includeAccessors,
-                    annotation.includeDocId,
-                    annotation.includeBasedOn,
+                    it.namePrefix,
+                    it.include.asList(),
+                    it.includeQueries,
+                    it.includeAccessors,
+                    it.includeDocId,
+                    it.includeBasedOn,
                     content
                 )
             }
@@ -201,11 +200,11 @@ object EntityFactory {
         subEntityNameSuffix: String
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
-            if (cblField.fieldAnnotation.readonly) {
-                content.fieldConstants[cblField.fieldAnnotation.name] = CblConstantHolder(cblField)
+            if (cblField.readonly) {
+                content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
                 val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNameSuffix)
-                content.fields[cblField.fieldAnnotation.name] = cblFieldHolder
+                content.fields[cblField.name] = cblFieldHolder
             }
         }
     }

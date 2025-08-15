@@ -6,7 +6,7 @@ import com.schwarz.crystalcore.model.source.ISourceMapifyable
 import com.schwarz.crystalprocessor.ProcessingContext
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 
-class SourceMapifyable(override val mapifyableAnnotations: Mapifyable) : ISourceMapifyable {
+class SourceMapifyable(private val mapifyableAnnotations: Mapifyable) : ISourceMapifyable {
 
     private val valueTypeMirror = mapifyableAnnotations.let { FieldExtractionUtil.typeMirror(it) }
 

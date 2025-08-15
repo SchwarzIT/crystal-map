@@ -10,10 +10,10 @@ import com.squareup.kotlinpoet.TypeSpec
 
 class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
 
-    val deprecationType: DeprecationType = sourceDeprecated.deprecatedAnnotation.type
+    val deprecationType: DeprecationType = sourceDeprecated.type
 
-    val deprecatedFields: Map<String, DeprecatedField> =
-        sourceDeprecated.deprecatedAnnotation.fields.map { it.field to it }.toMap()
+    val deprecatedFields: Map<String, ISourceDeprecated.ISourceDeprecatedField> =
+        sourceDeprecated.fields.map { it.field to it }.toMap()
 
     val replacedBy: String = sourceDeprecated.replacedBy
 

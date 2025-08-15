@@ -3,6 +3,7 @@ package com.schwarz.crystalcore.model.mapper.type
 import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
+import com.schwarz.crystalcore.model.source.ISourceMapify
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -11,7 +12,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.lang.reflect.Field
 
-class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: Mapify) :
+class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISourceMapify) :
     MapifyElementType<T> {
 
     override val elements: List<T> = listOf(

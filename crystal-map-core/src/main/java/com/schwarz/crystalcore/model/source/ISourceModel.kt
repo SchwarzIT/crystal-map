@@ -3,22 +3,23 @@ package com.schwarz.crystalcore.model.source
 import com.schwarz.crystalapi.Comment
 import com.schwarz.crystalapi.DocId
 import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.ITypeConverterExporter
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalcore.ILogger
 
 interface ISourceModel<T> : IClassModel<T> {
 
-    val entityAnnotation: Entity?
+    val entityAnnotation: ISourceEntity?
 
     val fullQualifiedName: String
 
-    val mapWrapperAnnotation: MapWrapper?
+    val mapWrapperAnnotation: ISourceMapWrapper?
 
-    val commentAnnotation: Comment?
+    val commentAnnotation: ISourceComment?
 
     val deprecatedSource: ISourceDeprecated?
 
-    val docIdAnnotation: DocId?
+    val docIdAnnotation: ISourceDocId?
 
     val basedOnAnnotation: ISourceBasedOn?
 
@@ -36,7 +37,7 @@ interface ISourceModel<T> : IClassModel<T> {
 
     val abstractParts: Set<String>
 
-    val kotlinMetadata: Metadata?
+    val typeConverterInterface: TypeConverterInterface?
 
     fun logError(logger: ILogger<T>, message: String)
 

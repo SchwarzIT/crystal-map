@@ -12,7 +12,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import javax.lang.model.type.TypeMirror
 
-class SourceField(override val fieldAnnotation: Field) : ISourceField {
+class SourceField(val fieldAnnotation: Field) : ISourceField {
 
     private val typeMirror: TypeMirror = FieldExtractionUtil.typeMirror(fieldAnnotation)
 
@@ -30,6 +30,12 @@ class SourceField(override val fieldAnnotation: Field) : ISourceField {
         get() = getSimpleName(typeMirror)
     override val packageName: String
         get() = getPackage(typeMirror)
+    override val readonly: Boolean = fieldAnnotation.readonly
+    override val name: String = fieldAnnotation.name
+    override val list: Boolean = fieldAnnotation.list
+    override val defaultValue: String = fieldAnnotation.defaultValue
+    override val mandatory: Boolean = fieldAnnotation.mandatory
+    override val comment: Array<String> = fieldAnnotation.comment
 
     override val fullQualifiedName: String
         get() = typeMirror.toString()

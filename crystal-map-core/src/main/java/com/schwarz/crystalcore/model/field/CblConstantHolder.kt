@@ -15,9 +15,9 @@ import com.schwarz.crystalcore.model.typeconverter.TypeConverterProcessingExcept
  * Created by sbra0902 on 21.06.17.
  */
 
-class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(field.fieldAnnotation.name, field) {
+class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(field.name, field) {
 
-    val constantValue: String = field.fieldAnnotation.defaultValue
+    val constantValue: String = field.defaultValue
 
     val constantValueAccessorName = "DOC_$constantName"
 
