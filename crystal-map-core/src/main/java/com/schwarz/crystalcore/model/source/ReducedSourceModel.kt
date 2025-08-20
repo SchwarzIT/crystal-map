@@ -11,8 +11,7 @@ data class ReducedSourceModel<T>(
     private val sourceModel: ISourceModel<T>,
     private val reducedModelHolder: ReducedModelHolder<T>
 ) :
-    ISourceModel<T> by sourceModel,
-    IClassModel by sourceModel {
+    ISourceModel<T> by sourceModel {
 
     override val sourceClazzSimpleName: String =
         "${reducedModelHolder.namePrefix}${sourceModel.sourceClazzSimpleName.capitalize()}"

@@ -42,13 +42,16 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogge
         return hasErrors
     }
 
-    override fun abortWithError(msg: String?, elements: List<Element>) {
+    override fun abortWithError(msg: String?, elements: List<Element>, ex: Throwable?) {
         if (elements.isNotEmpty()) {
             for (causingElement in elements) {
                 error(msg ?: "unknown", causingElement)
             }
         } else {
             error(msg ?: "unknown", null)
+        }
+        if (ex != null) {
+            throw ex
         }
         throw Exception("Validation failed")
     }

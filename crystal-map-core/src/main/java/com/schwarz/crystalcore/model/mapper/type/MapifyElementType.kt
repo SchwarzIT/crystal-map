@@ -1,14 +1,13 @@
-package com.schwarz.crystalprocessor.model.mapper.type
+package com.schwarz.crystalcore.model.mapper.type
 
-import com.schwarz.crystalprocessor.ProcessingContext
+import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
-import javax.lang.model.element.Element
 
-interface MapifyElementType {
+interface MapifyElementType<T> {
 
-    val elements: Array<Element>
+    val elements: List<T>
 
     val fieldName: String
 
@@ -18,7 +17,7 @@ interface MapifyElementType {
 
     val accessible: Boolean
 
-    val declaringName: ProcessingContext.DeclaringName
+    val declaringName: ISourceDeclaringName
 
     val reflectedFieldName: String
         get() = "a${fieldName.capitalize()}"

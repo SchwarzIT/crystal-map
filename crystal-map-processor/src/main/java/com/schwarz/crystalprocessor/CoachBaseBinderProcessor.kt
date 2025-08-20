@@ -15,6 +15,8 @@ import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
+import com.schwarz.crystalcore.PostValidationException
+import com.schwarz.crystalcore.model.source.ISourceMapper
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
@@ -25,10 +27,12 @@ import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.KAPT_KOTL
 import com.schwarz.crystalprocessor.generation.CodeGenerator
 import com.schwarz.crystalcore.processing.Worker
 import com.schwarz.crystalcore.processing.model.ModelWorkSet
-import com.schwarz.crystalprocessor.processing.mapper.MapperWorker
+import com.schwarz.crystalcore.processing.mapper.MapperWorker
 import com.schwarz.crystalcore.processing.model.ModelWorker
+import com.schwarz.crystalprocessor.model.source.SourceMapper
 import com.schwarz.crystalprocessor.model.source.SourceModel
-import com.schwarz.crystalprocessor.processing.mapper.MapperWorkSet
+import com.schwarz.crystalcore.processing.mapper.MapperWorkSet
+import com.schwarz.crystalprocessor.validation.mapper.PreMapperValidation
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -122,7 +126,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                 mCodeGenerator,
                 mSettings,
                 MapperWorkSet(
-                    allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java)
+                    allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java).toMapperSourceModel(),
+                    PreMapperValidation::validate
                 )
             )
         )
@@ -136,7 +141,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                     return true
                 }
             } catch (e: PostValidationException) {
-                mLogger.abortWithError(e.message, e.causingElements)
+                mLogger.abortWithError(e.message ?: "", unboxError(e.causingElements), e)
                 return true
             }
         }
@@ -144,8 +149,20 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         return true // no further processing of this annotation type
     }
 
+    private fun unboxError(value: Any?): List<Element> {
+        return when (value) {
+            is List<*> -> value.map { it as Element }
+            is Element -> listOf(value as Element)
+            else -> emptyList()
+        }
+    }
+
     private fun Set<Element>.toSourceModel(): Set<ISourceModel<Element>> {
         return map { SourceModel(it) }.toSet()
+    }
+
+    private fun Set<Element>.toMapperSourceModel(): Set<ISourceMapper<Element>> {
+        return map { SourceMapper(it) }.toSet()
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {

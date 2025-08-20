@@ -1,17 +1,14 @@
 package com.schwarz.crystalcore.model.source
 
-import com.squareup.kotlinpoet.TypeName
 import com.schwarz.crystalapi.Comment
 import com.schwarz.crystalapi.DocId
 import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalcore.ILogger
 
-interface ISourceModel<T> : IClassModel {
+interface ISourceModel<T> : IClassModel<T> {
 
     val entityAnnotation: Entity?
-
-    val typeName: TypeName
 
     val fullQualifiedName: String
 
@@ -52,6 +49,4 @@ interface ISourceModel<T> : IClassModel {
     val isClassSource: Boolean
 
     val isInterfaceSource: Boolean
-
-    val source: T
 }

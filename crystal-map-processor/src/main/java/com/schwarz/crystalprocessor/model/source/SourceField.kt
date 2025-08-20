@@ -2,7 +2,7 @@ package com.schwarz.crystalprocessor.model.source
 
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalcore.model.source.ISourceField
-import com.schwarz.crystalprocessor.javaToKotlinType
+import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 import com.schwarz.crystalcore.util.TypeUtil.list
 import com.schwarz.crystalcore.util.TypeUtil.map

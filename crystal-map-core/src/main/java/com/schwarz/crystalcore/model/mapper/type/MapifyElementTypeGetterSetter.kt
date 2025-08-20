@@ -1,53 +1,27 @@
-package com.schwarz.crystalprocessor.model.mapper.type
+package com.schwarz.crystalcore.model.mapper.type
 
-import com.schwarz.crystalprocessor.ProcessingContext
-import com.schwarz.crystalprocessor.javaToKotlinType
+import com.schwarz.crystalcore.javaToKotlinType
+import com.schwarz.crystalcore.model.mapper.GetterSetter
+import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.*
-import com.sun.tools.javac.code.Symbol
-import com.schwarz.crystalapi.mapify.Mapify
 import java.lang.reflect.Method
-import javax.lang.model.element.Element
-import javax.lang.model.element.Modifier
 
-class MapifyElementTypeGetterSetter(val getterSetter: GetterSetter, override val fieldName: String) :
-    MapifyElementType {
+class MapifyElementTypeGetterSetter<T>(val getterSetter: GetterSetter<T>, override val fieldName: String) :
+    MapifyElementType<T> {
 
-    class GetterSetter() {
-        var getterElement: Symbol.MethodSymbol? = null
-        var setterElement: Symbol.MethodSymbol? = null
-        var mapify: Mapify? = null
-
-        fun getterName(): String {
-            return getterElement!!.name.toString()
-        }
-
-        fun getterInternalAccessor(): String {
-            return "a${getterName().capitalize()}"
-        }
-
-        fun setterName(): String {
-            return setterElement!!.name.toString()
-        }
-
-        fun setterInternalAccessor(): String {
-            return "a${setterName().capitalize()}"
-        }
-    }
-
-    override val elements: Array<Element> = arrayOf(getterSetter.getterElement, getterSetter.setterElement).map { it as? Element }
-        .filterNotNull()
-        .toTypedArray()
+    override val elements: List<T> =
+        listOfNotNull(getterSetter.getterElement?.source, getterSetter.setterElement?.source)
 
     override val mapName = getterSetter.mapify?.name?.let { if (it.isNotBlank()) it else null } ?: fieldName
 
-    override val typeName = getterSetter.setterElement!!.params()[0]!!.asType().asTypeName().javaToKotlinType()
+    override val typeName = getterSetter.setterElement!!.typeName
 
     override val accessible = getterSetter.let {
-        it.getterElement?.modifiers?.contains(Modifier.PUBLIC) == true && it.setterElement?.modifiers?.contains(Modifier.PUBLIC) == true
+        it.getterElement?.accessible == true && it.setterElement?.accessible == true
     } ?: false
 
-    override val declaringName: ProcessingContext.DeclaringName = ProcessingContext.DeclaringName(getterSetter.setterElement!!.params()[0]!!.asType(), 0, getterSetter.mapify!!.nullableIndexes.toTypedArray())
+    override val declaringName: ISourceDeclaringName = getterSetter.setterElement!!.asDeclaringName(getterSetter.mapify!!.nullableIndexes.toTypedArray())
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
         return listOf(
