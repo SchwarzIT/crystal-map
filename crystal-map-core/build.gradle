@@ -29,7 +29,6 @@ dependencies {
     implementation 'com.squareup:kotlinpoet-metadata:2.1.0'
     implementation project(path: ':crystal-map-api', configuration: 'default')
     implementation 'org.apache.commons:commons-lang3:3.17.0'
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation 'com.j2html:j2html:1.6.0'
     implementation "org.jetbrains.kotlin:kotlin-metadata-jvm:2.1.0"
