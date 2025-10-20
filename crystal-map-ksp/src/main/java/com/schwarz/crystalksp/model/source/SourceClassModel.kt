@@ -4,22 +4,17 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeParameter
 import com.google.devtools.ksp.symbol.Modifier
+import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
-import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.util.TypeUtil
-import com.schwarz.crystalksp.ProcessingContext.asDeclaringName
+import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.ProcessingContext.resolveTypeNameWithProcessingTypes
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.toTypeName
-import com.sun.tools.javac.code.Symbol
-import javax.lang.model.element.Element
 
 class SourceClassModel(override val source: KSDeclaration) : IClassModel<KSNode> {
 
@@ -30,9 +25,9 @@ class SourceClassModel(override val source: KSDeclaration) : IClassModel<KSNode>
     override val typeName: TypeName = when (source) {
         is KSClassDeclaration -> source.toClassName().javaToKotlinType()
         is KSPropertyDeclaration -> {
-            if(source.type.resolve().declaration is KSTypeParameter){
+            if (source.type.resolve().declaration is KSTypeParameter) {
                 TypeUtil.star()
-            }else{
+            } else {
                 source.type.resolveTypeNameWithProcessingTypes().javaToKotlinType()
             }
         }
@@ -41,10 +36,6 @@ class SourceClassModel(override val source: KSDeclaration) : IClassModel<KSNode>
     override val accessible: Boolean = source.modifiers.contains(Modifier.PUBLIC)
 
     override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName {
-        return when (source) {
-            is KSClassDeclaration -> source.asDeclaringName(optinalIndexes)
-            is KSPropertyDeclaration -> source.asDeclaringName(optinalIndexes)
-            else -> throw IllegalArgumentException("Unsupported type ${source::class.java.simpleName}")
-        }
+        return ProcessingContext.DeclaringName(source, 0, optinalIndexes)
     }
 }

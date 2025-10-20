@@ -1,7 +1,6 @@
 package com.schwarz.crystalksp.model.source
 
 import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.javaToKotlinType
@@ -11,7 +10,6 @@ import com.schwarz.crystalcore.util.TypeUtil.mapStringAnyNullable
 import com.schwarz.crystalksp.util.getArgument
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toClassName
 
 class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
@@ -22,7 +20,7 @@ class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
         get() = classArgument.declaration.simpleName.asString()
     override val packageName: String
         get() = classArgument.declaration.packageName.asString()
-    override val readonly: Boolean=fieldAnnotation.getArgument<Boolean>("readonly") ?: false
+    override val readonly: Boolean = fieldAnnotation.getArgument<Boolean>("readonly") ?: false
     override val name: String = fieldAnnotation.getArgument<String>("name") ?: ""
     override val list: Boolean = fieldAnnotation.getArgument<Boolean>("list") ?: false
     override val defaultValue: String = fieldAnnotation.getArgument<String>("defaultValue") ?: ""

@@ -8,7 +8,7 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 
 class SourceBasedOn(private val basedOnAnnotation: KSAnnotation) : ISourceBasedOn {
 
-    private val basedOnValues = basedOnAnnotation.let {  basedOnAnnotation.getArgument<List<KSType>>("value") }
+    private val basedOnValues = basedOnAnnotation.let { basedOnAnnotation.getArgument<List<KSType>>("value") }
 
     override val basedOnFullQualifiedNames = basedOnValues?.map { it.toTypeName().toString() } ?: listOf()
 }

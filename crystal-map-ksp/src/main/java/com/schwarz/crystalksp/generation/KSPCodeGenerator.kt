@@ -15,9 +15,8 @@ class KSPCodeGenerator(private val generator: CodeGenerator) : ICodeGenerator {
 
     @Throws(IOException::class)
     fun generate(toGenerate: FileSpec, containingFile: List<KSFile>, aggregating: Boolean = false) {
-
         ClassName(toGenerate.packageName, toGenerate.name).apply {
-          ProcessingContext.createdQualifiedClassNames.add(this)
+            ProcessingContext.createdQualifiedClassNames.add(this)
         }
 
         val fileWithHeader = toGenerate.toBuilder().addFileComment(HEADER).build()
@@ -52,7 +51,7 @@ class KSPCodeGenerator(private val generator: CodeGenerator) : ICodeGenerator {
         settings: ISettings
     ) {
         ClassName(entityToGenerate.packageName, entityToGenerate.name).apply {
-           ProcessingContext.createdQualifiedClassNames.add(this)
+            ProcessingContext.createdQualifiedClassNames.add(this)
         }
 
         val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()

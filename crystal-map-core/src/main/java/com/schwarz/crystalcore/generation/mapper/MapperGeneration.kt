@@ -198,7 +198,6 @@ class MapperGeneration<T> {
         name.apply {
             when {
                 isAnnotationPresent(Mapifyable::class.java) -> {
-
                     getAnnotationRepresent<Mapifyable, ISourceMapifyable>(Mapifyable::class.java)?.apply {
                         val valueDeclaring = this.valueDeclaringName
                         val fullTypeName = valueDeclaring.asFullTypeName()
@@ -219,6 +218,7 @@ class MapperGeneration<T> {
                     resolveDeclaringName(name.typeParams[0], resolverParam, accessorName, typeParams)
                     resolverParam.toMapBuilder.endControlFlow()
                     resolverParam.fromMapBuilder.endControlFlow()
+                    resolverParam.fromMapBuilder.addStatement("?.toMutableList()")
                 }
                 isAssignable(Map::class) -> {
                     resolverParam.toMapBuilder.beginControlFlow("it.map")

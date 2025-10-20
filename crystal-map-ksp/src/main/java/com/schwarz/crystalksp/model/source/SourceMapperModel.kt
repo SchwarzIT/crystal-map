@@ -9,18 +9,15 @@ import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.util.getAnnotation
-import com.schwarz.crystalksp.model.source.SourceClassModel
-import com.schwarz.crystalksp.model.source.SourceGetterSetterModel
-import com.schwarz.crystalksp.model.source.SourceMapify
 
 class SourceMapperModel(source: KSClassDeclaration) :
     IClassModel<KSNode> by SourceClassModel(source), ISourceMapperModel<KSNode> {
 
     override val typeParams: List<String> = source.typeParameters.map {
-       it.name.getShortName()
+        it.name.getShortName()
     }.toList()
 
-    override val declaringName = ProcessingContext.DeclaringName(source.asStarProjectedType())
+    override val declaringName = ProcessingContext.DeclaringName(source)
     override val fields: HashMap<String, Field<KSNode>> = HashMap()
 
     override val getterSetters: HashMap<String, GetterSetter<KSNode>> = HashMap()
@@ -55,8 +52,8 @@ class SourceMapperModel(source: KSClassDeclaration) :
 
         for (field in source.getAllProperties()) {
             field.getAnnotation(Mapify::class)?.apply {
-                    fields[field.simpleName.asString()] = Field(SourceClassModel(field), SourceMapify(this))
-                }
+                fields[field.simpleName.asString()] = Field(SourceClassModel(field), SourceMapify(this))
+            }
         }
     }
 }

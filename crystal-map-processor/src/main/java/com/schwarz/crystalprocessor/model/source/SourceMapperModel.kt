@@ -4,17 +4,13 @@ import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.mapper.Field
 import com.schwarz.crystalcore.model.mapper.GetterSetter
 import com.schwarz.crystalcore.model.source.IClassModel
-import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.model.source.ISourceMapperModel
-import com.schwarz.crystalprocessor.ProcessingContext
 import com.schwarz.crystalprocessor.ProcessingContext.DeclaringName
 import com.schwarz.crystalprocessor.util.ElementUtil
 import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
-import javax.lang.model.type.TypeMirror
 
 class SourceMapperModel(source: Element) :
     IClassModel<Element> by SourceClassModel(source), ISourceMapperModel<Element> {
@@ -24,7 +20,7 @@ class SourceMapperModel(source: Element) :
             ElementUtil.splitGenericIfNeeded(it.asType().toString())[0]
         }
 
-    override val declaringName = ProcessingContext.DeclaringName(source.asType())
+    override val declaringName = DeclaringName(source.asType())
     override val fields: HashMap<String, Field<Element>> = HashMap()
 
     override val getterSetters: HashMap<String, GetterSetter<Element>> = HashMap()

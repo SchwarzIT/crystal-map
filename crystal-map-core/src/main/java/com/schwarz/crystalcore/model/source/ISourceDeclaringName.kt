@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.source
 
-import com.schwarz.crystalapi.mapify.Mapifyable
 import com.squareup.kotlinpoet.TypeName
 import kotlin.reflect.KClass
 

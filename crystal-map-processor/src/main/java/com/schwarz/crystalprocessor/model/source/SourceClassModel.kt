@@ -12,11 +12,8 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 class SourceClassModel(override val source: Element) : IClassModel<Element> {
-    override val sourceClazzSimpleName: String = if (source is Symbol.ClassSymbol) {
-        source.simpleName.toString()
-    } else {
-        source.simpleName.toString()
-    }
+    override val sourceClazzSimpleName: String = source.simpleName.toString()
+
     override val sourcePackage: String = if (source is Symbol.ClassSymbol) source.packge().toString() else ""
 
     override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)

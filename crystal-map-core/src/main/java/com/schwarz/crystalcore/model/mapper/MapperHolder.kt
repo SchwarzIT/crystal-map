@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.mapper
 
-import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName

@@ -7,22 +7,17 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSNode
-import com.google.devtools.ksp.symbol.KSType
 import com.schwarz.crystalapi.BaseModel
 import com.schwarz.crystalapi.Entity
-import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.TypeConverter
 import com.schwarz.crystalapi.TypeConverterExporter
 import com.schwarz.crystalapi.TypeConverterImporter
-import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.mapify.Mapper
 import com.schwarz.crystalcore.PostValidationException
-import com.schwarz.crystalcore.model.source.ISourceMapper
 import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalcore.processing.Worker
@@ -31,13 +26,9 @@ import com.schwarz.crystalcore.processing.mapper.MapperWorker
 import com.schwarz.crystalcore.processing.model.ModelWorkSet
 import com.schwarz.crystalcore.processing.model.ModelWorker
 import com.schwarz.crystalksp.model.source.SourceMapperModel
-import com.schwarz.crystalksp.util.getAnnotation
-import com.schwarz.crystalksp.util.getArgument
 import com.schwarz.crystalksp.validation.mapper.PreMapperValidation
 import com.schwarz.crystalksp.generation.KSPCodeGenerator
 import com.schwarz.crystalksp.model.source.SourceModel
-import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.toTypeName
 import kotlin.metadata.ClassName
 
 class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val processingEnvironmentWrapper: ProcessingEnvironmentWrapper) : SymbolProcessor {
@@ -55,8 +46,8 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
     private val mCodeGenerator = KSPCodeGenerator(codeGenerator)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-
         ProcessingContext.resolver = resolver
+        ProcessingContext.logger = mLogger
 
         workers = setOf(
             ModelWorker<KSNode>(
@@ -118,10 +109,9 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
     }
 
     private fun Sequence<KSAnnotated>.toEntitySourceModel(): Set<ISourceModel<KSNode>> {
-
         return map {
             val clazz = it as KSClassDeclaration
-            ProcessingContext.processingTypes[clazz.simpleName.asString()+"Entity"] = com.squareup.kotlinpoet.ClassName(clazz.packageName.asString(), clazz.simpleName.asString()+"Entity")
+            ProcessingContext.processingTypes[clazz.simpleName.asString() + "Entity"] = com.squareup.kotlinpoet.ClassName(clazz.packageName.asString(), clazz.simpleName.asString() + "Entity")
             SourceModel(it as KSClassDeclaration)
         }.toSet()
     }
@@ -148,7 +138,6 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
         const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
         const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
     }
-
 }
 
 class CrystalProcessorProvider : SymbolProcessorProvider {

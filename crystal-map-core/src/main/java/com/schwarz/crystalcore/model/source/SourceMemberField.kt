@@ -1,8 +1,6 @@
 package com.schwarz.crystalcore.model.source
 
 import com.squareup.kotlinpoet.TypeName
-import com.schwarz.crystalapi.DocIdSegment
-import com.schwarz.crystalapi.GenerateAccessor
 
 data class SourceMemberField(val name: String, val type: TypeName, val docIdSegment: ISourceDocIdSegment?, val generateAccessor: ISourceGenerateAccessor?)
 

@@ -18,7 +18,15 @@ class MapifyHolder<T>(val mapifyElement: MapifyElementType<T>) :
     }
 
     private fun isMapifyable(declaringName: ISourceDeclaringName): Boolean {
-        return (declaringName.isProcessingType() || declaringName.isPlainType() || declaringName.isAssignable(List::class) || declaringName.isAssignable(Map::class) || declaringName.isAssignable(Serializable::class) || declaringName.isAnnotationPresent(Mapifyable::class.java)) && declaringName.typeParams.all { isMapifyable(it) }
+        return (
+            declaringName.isProcessingType() ||
+                declaringName.isPlainType() ||
+                declaringName.isAssignable(List::class) ||
+                declaringName.isAssignable(Map::class) ||
+                declaringName.isAssignable(Serializable::class) ||
+                declaringName.isAnnotationPresent(Mapifyable::class.java) ||
+                declaringName.isAnnotationPresent(Mapper::class.java) || declaringName.isTypeVar()
+            ) && declaringName.typeParams.all { isMapifyable(it) }
     }
 
     enum class TypeHandleMode {

@@ -1,9 +1,9 @@
 package com.schwarz.crystalksp
 
 import com.google.devtools.ksp.getClassDeclarationByName
-import com.google.devtools.ksp.getConstructors
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.FunctionKind
+import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
@@ -11,37 +11,23 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeParameter
 import com.google.devtools.ksp.symbol.KSTypeReference
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
-import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.mapify.Mapifyable
-import com.schwarz.crystalapi.query.Query
 import com.schwarz.crystalcore.ILogger
-import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.util.TypeUtil
-import com.schwarz.crystalksp.util.getArgument
 import com.schwarz.crystalksp.model.source.SourceMapifyable
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeVariableName
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
-import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
+import com.squareup.kotlinpoet.ksp.toTypeVariableName
 import java.math.BigDecimal
-import javax.annotation.processing.ProcessingEnvironment
-import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeElement
-import javax.lang.model.type.PrimitiveType
-import javax.lang.model.type.TypeMirror
-import kotlin.metadata.KmType
 import kotlin.reflect.KClass
 
 private val plainTypeNames = setOf(
@@ -53,7 +39,7 @@ private val plainTypeNames = setOf(
     Double::class.qualifiedName,
     Long::class.qualifiedName,
     BigDecimal::class.qualifiedName,
-    Boolean::class.qualifiedName,
+    Boolean::class.qualifiedName
 )
 
 object ProcessingContext {
@@ -68,16 +54,9 @@ object ProcessingContext {
 
     val createdQualifiedClassNames: MutableSet<ClassName> = hashSetOf()
 
-    /**
-     * Converts a KSDeclaration to a DeclaringName with optional nullable indexes.
-     */
-    fun KSClassDeclaration.asDeclaringName(optionalIndexes: Array<Int>): DeclaringName {
-        return DeclaringName(this.asStarProjectedType(), 0, optionalIndexes)
-    }
-
-    fun KSPropertyDeclaration.asDeclaringName(optionalIndexes: Array<Int>): DeclaringName {
-        return DeclaringName(this.type!!.resolve(), 0, optionalIndexes)
-    }
+//    fun KSPropertyDeclaration.asDeclaringName(optionalIndexes: Array<Int>): DeclaringName {
+//        return DeclaringName(this.type!!.resolve(), 0, optionalIndexes)
+//    }
 
     fun KSTypeReference.resolveTypeNameWithProcessingTypes(): TypeName {
         return this.resolve().resolveTypeNameWithProcessingTypes()
@@ -91,11 +70,19 @@ object ProcessingContext {
         } catch (e: NoSuchElementException) {
             if (this.declaration is KSTypeParameter) {
                 // Its a TypeParam
-                TypeVariableName(this.toString())
-
+                (this.declaration as KSTypeParameter).toNullableSafeTypeVariableName()
             } else {
                 hackyResolving(this.toString())
             }
+        }
+    }
+
+    private fun KSTypeParameter.toNullableSafeTypeVariableName(): TypeName {
+        val nullable = this.name.asString().endsWith("?")
+        return if (nullable) {
+            TypeVariableName(this.name.asString().removeSuffix("?")).copy(nullable)
+        } else {
+            TypeVariableName(this.name.asString())
         }
     }
 
@@ -105,7 +92,7 @@ object ProcessingContext {
         var isList = false
         for (item in splitted) {
             if (item == "INVARIANT" || item == "ERROR" || item == "TYPE:" || item.trim()
-                    .isEmpty()
+                .isEmpty()
             ) {
                 continue
             }
@@ -114,7 +101,6 @@ object ProcessingContext {
                 continue
             }
             return if (isList) {
-                System.out.println("value " + item)
                 TypeUtil.list(processingTypes[item]!!)
             } else {
                 processingTypes[item]!!
@@ -123,32 +109,87 @@ object ProcessingContext {
         throw IllegalArgumentException("unknown type $stringValue")
     }
 
+//    private fun KSClassDeclaration.toKSTypeRecursive() : KSType{
+//        val typeArguments = typeParameters.map { typeParameter ->
+//            resolver.getTypeArgument(resolver.createKSTypeReferenceFromKSType(typeParameter.bounds.first().resolve()), Variance.INVARIANT)
+//        }
+//        return asType(typeArguments)
+//    }
+
+    private fun KSClassDeclaration.toKSTypeRecursive(): KSType {
+        val typeArguments = typeParameters.map { typeParameter ->
+            val resolvedType = typeParameter.bounds.first().resolve()
+
+            // Recursively handle nested type parameters
+            val resolvedKSType = resolvedType.declaration.let { declaration ->
+                if (declaration is KSClassDeclaration && declaration.typeParameters.isNotEmpty()) {
+                    declaration.toKSTypeRecursive()
+                } else {
+                    resolvedType
+                }
+            }
+
+            // Use the correct method to create a KSTypeArgument
+            resolver.getTypeArgument(
+                resolver.createKSTypeReferenceFromKSType(resolvedKSType),
+                typeParameter.variance
+            )
+        }
+        return asType(typeArguments)
+    }
+
     data class DeclaringName(
-        private val ksType: KSType,
+        private val declaration: KSAnnotated,
         private val relevantIndex: Int = 0,
         private val nullableIndexes: Array<Int> = emptyArray()
     ) : ISourceDeclaringName {
-        val declaration: KSDeclaration = ksType.declaration
-        val realTypeName = ksType.resolveTypeNameWithProcessingTypes()
+        constructor(
+            declaration: KSValueParameter,
+            relevantIndex: Int,
+            nullableIndexes: Array<Int>
+        ) : this(resolver.getClassDeclarationByName(declaration.name!!)!!, relevantIndex, nullableIndexes)
+
+        val ksType = when (declaration) {
+            is KSPropertyDeclaration -> declaration.type!!.resolve()
+            is KSClassDeclaration -> declaration.toKSTypeRecursive()
+            is KSTypeParameter -> null // dont resolve KSTypeParameter since it will be resolved to any
+            is KSTypeReference -> declaration.resolve()
+            else -> throw IllegalArgumentException("Unsupported type ${declaration::class.java.simpleName}")
+        }
+
+        val realTypeName = ksType?.resolveTypeNameWithProcessingTypes() ?: (declaration as KSTypeParameter).toNullableSafeTypeVariableName()
 
         override val name: String = realTypeName.copy(nullable = false).toString().let {
             if (it.contains("<")) {
                 it.substring(0, it.indexOf("<")).trim { it <= ' ' }
-            }else{
+            } else {
                 it
             }
         }
         override val typeParams: List<DeclaringName> =
-            ksType.arguments.mapIndexedNotNull { index, typeArgument ->
-
-                if (typeArgument.type == null) {
-                    return@mapIndexedNotNull null
+            when (declaration) {
+                is KSPropertyDeclaration -> declaration.type.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
+                    DeclaringName(
+                        declaration = typeArgument.type!!,
+                        relevantIndex = relevantIndex + index + 1,
+                        nullableIndexes = nullableIndexes
+                    )
                 }
-                DeclaringName(
-                    ksType = typeArgument.type!!.resolve(),
-                    relevantIndex = relevantIndex + index + 1,
-                    nullableIndexes = nullableIndexes
-                )
+                is KSDeclaration -> declaration.typeParameters.mapIndexedNotNull { index, typeArgument ->
+                    DeclaringName(
+                        declaration = typeArgument,
+                        relevantIndex = relevantIndex + index + 1,
+                        nullableIndexes = nullableIndexes
+                    )
+                }
+                is KSTypeReference -> declaration.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
+                    DeclaringName(
+                        declaration = typeArgument.type!!,
+                        relevantIndex = relevantIndex + index + 1,
+                        nullableIndexes = nullableIndexes
+                    )
+                }
+                else -> throw IllegalArgumentException("Unsupported type ${declaration::class.java.simpleName}")
             }
 
         override fun asTypeName(): TypeName? {
@@ -159,12 +200,14 @@ object ProcessingContext {
             }
 
             return when (declaration) {
-                is KSTypeParameter -> TypeVariableName(declaration.name.asString()).copy(nullable = isNullable())
+                is KSTypeParameter -> declaration.toTypeVariableName().copy(nullable = isNullable())
                 is KSClassDeclaration -> declaration.toClassName().copy(nullable = isNullable())
+                is KSPropertyDeclaration -> declaration.type.resolveTypeNameWithProcessingTypes().copy(isNullable())
+                is KSTypeReference -> declaration.resolveTypeNameWithProcessingTypes().copy(isNullable())
                 else -> {
                     logger.error(
-                        "Unsupported declaration type for type name: ${declaration.qualifiedName}",
-                        ksType.declaration
+                        "Unsupported declaration type for type name: ${declaration::class.qualifiedName}",
+                        ksType!!.declaration
                     )
                     null
                 }
@@ -173,9 +216,11 @@ object ProcessingContext {
 
         override fun asFullTypeName(): TypeName? = asTypeName()?.let {
             if (it is ClassName && typeParams.isNotEmpty()) {
-                it.parameterizedBy(typeParams.mapNotNull { if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() }).also {
-                    System.out.println("##" + it + typeParams.map { it.ksType })
-                }
+                it.parameterizedBy(
+                    typeParams.mapNotNull {
+                        if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName()
+                    }
+                )
             } else {
                 it
             }
@@ -186,9 +231,9 @@ object ProcessingContext {
 
             return declaration.declarations.any {
                 it is KSFunctionDeclaration && it.functionKind == FunctionKind.MEMBER &&
-                        it.simpleName.asString() == "<init>" &&
-                        it.parameters.isEmpty() &&
-                        it.modifiers.none { modifier -> modifier == Modifier.PRIVATE }
+                    it.simpleName.asString() == "<init>" &&
+                    it.parameters.isEmpty() &&
+                    it.modifiers.none { modifier -> modifier == Modifier.PRIVATE }
             }
         }
 
@@ -197,40 +242,35 @@ object ProcessingContext {
         }
 
         override fun isTypeVar(): Boolean {
-            return declaration is KSTypeParameter
+            return declaration is KSTypeParameter || (declaration is KSPropertyDeclaration && declaration.type.resolve().declaration is KSTypeParameter)
         }
 
         override fun isNullable(): Boolean {
-            return ksType.isMarkedNullable || nullableIndexes.contains(relevantIndex)
+            return realTypeName.isNullable || nullableIndexes.contains(relevantIndex)
         }
 
         override fun isProcessingType(): Boolean {
             return createdQualifiedClassNames.any { it.canonicalName == name } &&
-                    (name
+                (
+                    name
                         .endsWith("Wrapper") || name
-                        .endsWith("Entity"))
+                        .endsWith("Entity")
+                    )
         }
 
         override fun isAssignable(clazz: KClass<*>): Boolean {
             val otherType =
                 resolver.getClassDeclarationByName(clazz.qualifiedName!!)?.asStarProjectedType()
-            //val thisBaseType = if(typeParams.isNotEmpty()) ksType.replace(listOf()) else ksType
-            System.out.println(clazz.qualifiedName!!)
-            System.out.println(otherType?.toClassName()?.canonicalName)
-            System.out.println(
-                ksType.toTypeName().toString() + otherType!!.isAssignableFrom(
-                    ksType
-                )
-            )
-            if(clazz.qualifiedName!! == "java.io.Serializable" && ksType.toTypeName().toString() == "com.schwarz.crystaldemo.mapper.DummyMapperSource.TestSerializable?") {
-                System.out.println("##" + ksType.toTypeName().toString() + otherType!!.isAssignableFrom(
-                    ksType
-                ))
 
+            return if (ksType != null) {
+                return otherType.let {
+                    otherType?.isAssignableFrom(
+                        ksType.makeNotNullable()
+                    ) == true
+                }
+            } else {
+                false
             }
-            return otherType.let { otherType.isAssignableFrom(
-                ksType.makeNotNullable()
-            ) }
         }
 
         override fun <A : Annotation?, B> getAnnotationRepresent(annotationType: Class<A>?): B? {
@@ -245,7 +285,7 @@ object ProcessingContext {
         }
 
         private fun <A : Annotation?> getAnnotation(annotationType: Class<A>): KSAnnotation? {
-            return declaration.annotations.firstOrNull { annotation ->
+            return ksType?.declaration?.annotations?.firstOrNull { annotation ->
                 val annotationDeclaration = annotation.annotationType.resolve().declaration
                 val annotationName =
                     (annotationDeclaration as? KSClassDeclaration)?.qualifiedName?.asString()

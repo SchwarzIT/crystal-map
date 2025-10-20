@@ -2,8 +2,8 @@ package com.schwarz.crystalksp.model.source
 
 import com.google.devtools.ksp.getAllSuperTypes
 import com.google.devtools.ksp.getConstructors
+import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.isPrivate
-import com.google.devtools.ksp.symbol.FunctionKind
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
@@ -44,15 +44,6 @@ import com.schwarz.crystalcore.model.source.ISourceEntity
 import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.TypeConverterInterface
 import com.schwarz.crystalksp.ProcessingContext.resolveTypeNameWithProcessingTypes
-import com.schwarz.crystalksp.model.source.SourceBasedOn
-import com.schwarz.crystalksp.model.source.SourceComment
-import com.schwarz.crystalksp.model.source.SourceDeprecated
-import com.schwarz.crystalksp.model.source.SourceDocId
-import com.schwarz.crystalksp.model.source.SourceDocIdSegment
-import com.schwarz.crystalksp.model.source.SourceEntity
-import com.schwarz.crystalksp.model.source.SourceField
-import com.schwarz.crystalksp.model.source.SourceGenerateAccessor
-import com.schwarz.crystalksp.model.source.SourceMapWrapper
 import com.schwarz.crystalksp.util.getAnnotation
 import com.schwarz.crystalksp.util.getArgument
 import com.squareup.kotlinpoet.ClassName
@@ -84,9 +75,11 @@ data class SourceModel(override val source: KSClassDeclaration) :
     private val typeConverterClazzName = ITypeConverter::class.qualifiedName
     override val typeConverterInterface: TypeConverterInterface? = source.getAllSuperTypes().firstOrNull { it.toClassName().toString() == typeConverterClazzName }?.let {
         val (domainClassType, mapClassType) = it.arguments
-        TypeConverterInterface(        domainClassType.resolveToString().toClassName(),
+        TypeConverterInterface(
+            domainClassType.resolveToString().toClassName(),
             mapClassType.resolveToString().toClassName(),
-            mapClassType.getGenericClassNames())
+            mapClassType.getGenericClassNames()
+        )
     }
 
     private fun String.toClassName(): ClassName = split('.').let {
@@ -109,7 +102,7 @@ data class SourceModel(override val source: KSClassDeclaration) :
             )
         }
 
-    override val isFinalModifier: Boolean = Modifier.FINAL in source.modifiers
+    override val isFinalModifier: Boolean = !source.isOpen()
 
     override fun firstNonParameterlessConstructor(): KSFunctionDeclaration? {
         return source.getConstructors().firstOrNull { it.parameters.isNotEmpty() }
@@ -186,13 +179,11 @@ data class SourceModel(override val source: KSClassDeclaration) :
     // KSP equivalent of the helper functions
     private fun parseStaticsFromStructure(cblEntityElement: KSClassDeclaration, mapper: (KSDeclaration) -> Unit) {
         for (childElement in cblEntityElement.declarations) {
-
-            if(childElement is KSClassDeclaration && childElement.isCompanionObject){
+            if (childElement is KSClassDeclaration && childElement.isCompanionObject) {
                 childElement.declarations.forEach { companionMember ->
                     mapper.invoke(companionMember)
                 }
                 continue
-
             }
             if (Modifier.JAVA_STATIC in childElement.modifiers) {
                 mapper.invoke(childElement)

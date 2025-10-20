@@ -17,14 +17,13 @@ data class ReducedSourceModel<T>(
     override val sourcePackage: String = sourceModel.sourcePackage
 
     override val entityAnnotation: ISourceEntity? = sourceModel.entityAnnotation?.let {
-        object : ISourceEntity{
+        object : ISourceEntity {
             override val modifierOpen: Boolean
                 get() = it.modifierOpen
             override val type: Entity.Type
                 get() = Entity.Type.READONLY
             override val database: String
                 get() = it.database
-
         }
     }
 

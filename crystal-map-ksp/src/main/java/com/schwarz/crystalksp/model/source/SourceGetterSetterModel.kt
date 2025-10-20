@@ -2,20 +2,16 @@ package com.schwarz.crystalksp.model.source
 
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
-import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Modifier
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalksp.ProcessingContext
 import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toTypeName
-import com.sun.tools.javac.code.Symbol
-import javax.lang.model.element.Element
 
 class SourceGetterSetterModel(private val element: KSFunctionDeclaration) : IClassModel<KSNode> {
-    override val sourceClazzSimpleName: String = element.qualifiedName?.asString() ?:""
+    override val sourceClazzSimpleName: String = element.qualifiedName?.asString() ?: ""
     override val sourceClazzTypeName: TypeName
         get() = throw NotImplementedError("$sourceClazzSimpleName -> sourceClazzTypeName")
     override val sourcePackage: String
@@ -27,6 +23,6 @@ class SourceGetterSetterModel(private val element: KSFunctionDeclaration) : ICla
     override val accessible: Boolean = element.modifiers.contains(Modifier.PUBLIC)
 
     override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName {
-        return ProcessingContext.DeclaringName(element.parameters[0]!!.type.resolve(), 0, optinalIndexes)
+        return ProcessingContext.DeclaringName(element.parameters[0], 0, optinalIndexes)
     }
 }

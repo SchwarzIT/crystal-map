@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.source
 
-import com.schwarz.crystalapi.Field
 import com.squareup.kotlinpoet.TypeName
 
 interface ISourceField {

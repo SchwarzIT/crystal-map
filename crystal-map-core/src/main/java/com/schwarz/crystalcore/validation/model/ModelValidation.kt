@@ -2,7 +2,6 @@ package com.schwarz.crystalcore.validation.model
 
 import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalapi.TypeConverter
-import com.schwarz.crystalapi.deprecated.DeprecatedField
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.EntityHolder

@@ -31,7 +31,6 @@ import com.schwarz.crystalcore.model.source.ISourceComment
 import com.schwarz.crystalcore.model.source.ISourceDocId
 import com.schwarz.crystalcore.model.source.ISourceEntity
 import com.schwarz.crystalcore.model.source.ISourceMapWrapper
-import com.schwarz.crystalcore.model.source.ISourceMetaData
 import com.schwarz.crystalcore.model.source.TypeConverterInterface
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
@@ -87,23 +86,22 @@ data class SourceModel(override val source: Element) :
     override val typeConverterInterface: TypeConverterInterface? = source.getTypeConverterInterface()?.let {
         val (domainClassType, mapClassType) = it.arguments
 
-        TypeConverterInterface(        domainClassType.resolveToString().toClassName(),
+        TypeConverterInterface(
+            domainClassType.resolveToString().toClassName(),
             mapClassType.resolveToString().toClassName(),
-            mapClassType.getGenericClassNames())
-
+            mapClassType.getGenericClassNames()
+        )
     }
 
     private fun Element.getTypeConverterInterface(): KmType? {
-        val kmClass = getAnnotation(Metadata::class.java).toKmClass()
-        return kmClass.supertypes.find {
+        val kmClass = getAnnotation(Metadata::class.java)?.toKmClass()
+        return kmClass?.supertypes?.find {
             val classifier = it.classifier
             classifier is KmClassifier.Class && typeConverterKmClass.name == classifier.name
         }
     }
 
-
-
-    private fun Metadata.toKmClass() : KmClass = (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
+    private fun Metadata.toKmClass(): KmClass = (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
 
     private fun String.toClassName(): ClassName = split('.').let {
         ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
@@ -125,7 +123,6 @@ data class SourceModel(override val source: Element) :
                 nullable = generic.type!!.isNullable
             )
         }
-
 
     override val isFinalModifier: Boolean = source.modifiers.contains(Modifier.FINAL)
 
@@ -163,7 +160,7 @@ data class SourceModel(override val source: Element) :
         parseStaticsFromStructure(source) {
 
             val accessor = it.getAnnotation(GenerateAccessor::class.java)?.let { SourceGenerateAccessor(it) }
-            val docSegment = it.getAnnotation(DocIdSegment::class.java)?.let{ SourceDocIdSegment(it) }
+            val docSegment = it.getAnnotation(DocIdSegment::class.java)?.let { SourceDocIdSegment(it) }
 
             if (accessor != null || docSegment != null) {
 

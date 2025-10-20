@@ -1,6 +1,7 @@
 apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 apply plugin: 'java'
+apply plugin: 'kotlinx-serialization'
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -29,6 +30,7 @@ dependencies {
     implementation project(path: ':crystal-map-api', configuration: 'default')
     implementation 'org.apache.commons:commons-lang3:3.17.0'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation 'com.j2html:j2html:1.6.0'
     implementation "org.jetbrains.kotlin:kotlin-metadata-jvm:2.1.0"
     testImplementation 'com.google.testing.compile:compile-testing:0.21.0'

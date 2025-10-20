@@ -1,7 +1,6 @@
 package com.schwarz.crystalksp.model.source
 
 import com.google.devtools.ksp.symbol.KSAnnotation
-import com.schwarz.crystalapi.Reduce
 import com.schwarz.crystalcore.model.source.ISourceReduce
 import com.schwarz.crystalksp.util.getArgument
 

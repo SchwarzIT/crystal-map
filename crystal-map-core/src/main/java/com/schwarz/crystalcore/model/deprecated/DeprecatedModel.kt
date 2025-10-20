@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.deprecated
 
-import com.schwarz.crystalapi.deprecated.DeprecatedField
 import com.schwarz.crystalapi.deprecated.DeprecationType
 import com.schwarz.crystalcore.model.source.ISourceDeprecated
 import com.squareup.kotlinpoet.AnnotationSpec

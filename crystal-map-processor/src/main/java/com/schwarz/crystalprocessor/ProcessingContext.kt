@@ -1,13 +1,10 @@
 package com.schwarz.crystalprocessor
 
-import com.schwarz.crystalapi.BasedOn
-import com.schwarz.crystalapi.Entity
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalprocessor.model.source.SourceMapifyable
 import com.schwarz.crystalprocessor.util.ElementUtil
-import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
@@ -25,7 +22,6 @@ import com.sun.tools.javac.code.Type
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 import javax.lang.model.type.PrimitiveType
-import javax.tools.Diagnostic
 import kotlin.reflect.KClass
 
 private val plainTypes = listOf(String::class.java.canonicalName, Int::class.java.canonicalName, "java.lang.Integer", "java.lang.Double", "java.lang.Boolean", Double::class.java.canonicalName, Long::class.java.canonicalName, BigDecimal::class.java.canonicalName, Boolean::class.java.canonicalName)
@@ -91,11 +87,11 @@ object ProcessingContext {
 
         override fun <A : Annotation?, B> getAnnotationRepresent(annotationType: Class<A>?): B? {
             env.let {
-                return when(annotationType){
+                return when (annotationType) {
                     Mapifyable::class.java -> SourceMapifyable(it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)) as B
                     else -> throw NotImplementedError("Unsupported annotation type: ${annotationType?.canonicalName}")
                 }
-                //return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)
+                // return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)
             }
         }
 

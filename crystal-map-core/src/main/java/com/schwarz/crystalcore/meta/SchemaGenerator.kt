@@ -1,14 +1,12 @@
 package com.schwarz.crystalcore.meta
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.schwarz.crystalapi.deprecated.DeprecationType
 import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblBaseFieldHolder
 import com.schwarz.crystalcore.model.query.CblQueryHolder
 import com.schwarz.crystalapi.schema.*
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class SchemaGenerator(path: String, val fileName: String) {
@@ -18,18 +16,12 @@ class SchemaGenerator(path: String, val fileName: String) {
     private val jsonEntitySegments = mutableMapOf<String, EntitySchema>()
 
     fun generate() {
+        if (jsonEntitySegments.isEmpty()) {
+            return
+        }
         path.mkdirs()
-        val mapper = ObjectMapper().registerModule(
-            KotlinModule.Builder()
-                .withReflectionCacheSize(512)
-                .configure(KotlinFeature.NullToEmptyCollection, false)
-                .configure(KotlinFeature.NullToEmptyMap, false)
-                .configure(KotlinFeature.NullIsSameAsDefault, false)
-                .configure(KotlinFeature.SingletonSupport, false)
-                .configure(KotlinFeature.StrictNullChecks, false)
-                .build()
-        )
-        File(path, fileName).writeText(mapper.writeValueAsString(jsonEntitySegments.values))
+
+        File(path, fileName).writeText(Json.encodeToString(jsonEntitySegments.values.toList()))
     }
 
     fun <T> addEntity(entityHolder: BaseEntityHolder<T>) {

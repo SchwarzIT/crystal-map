@@ -1,6 +1,5 @@
 package com.schwarz.crystalcore.model.mapper.type
 
-import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalcore.model.source.ISourceMapify

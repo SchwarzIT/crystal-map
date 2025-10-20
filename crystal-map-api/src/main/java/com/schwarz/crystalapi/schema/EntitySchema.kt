@@ -1,13 +1,71 @@
 package com.schwarz.crystalapi.schema
 
-data class EntitySchema(val name: String, val fields: List<Fields>, val basedOn: List<String>, val queries: List<Queries>, val docId: DocId?, val deprecatedSchema: DeprecatedSchema?)
+import kotlinx.serialization.Serializable
 
-data class Fields(val dbField: String, val fieldType: String, val isIterable: Boolean, val isConstant: Boolean, val defaultValue: String, val mandatory: Boolean?)
+@Serializable
+data class EntitySchema(val name: String, val fields: List<Fields>, val basedOn: List<String>, val queries: List<Queries>, val docId: DocId?, val deprecatedSchema: DeprecatedSchema?) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "name" to name,
+            "fields" to fields.map { it.toMap() },
+            "basedOn" to basedOn,
+            "queries" to queries.map { it.fields },
+            "docId" to docId?.toMap(),
+            "deprecatedSchema" to deprecatedSchema?.toMap()
+        )
+    }
+}
 
-data class DeprecatedSchema(val replacedBy: String?, val inUse: Boolean, val deprecatedFields: List<DeprecatedFields>)
+@Serializable
+data class Fields(val dbField: String, val fieldType: String, val isIterable: Boolean, val isConstant: Boolean, val defaultValue: String, val mandatory: Boolean?) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "dbField" to dbField,
+            "fieldType" to fieldType,
+            "isIterable" to isIterable,
+            "isConstant" to isConstant,
+            "defaultValue" to defaultValue,
+            "mandatory" to mandatory
+        )
+    }
+}
 
-data class DeprecatedFields(val field: String, val replacedBy: String?, val inUse: Boolean)
+@Serializable
+data class DeprecatedSchema(val replacedBy: String?, val inUse: Boolean, val deprecatedFields: List<DeprecatedFields>) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "replacedBy" to replacedBy,
+            "inUse" to inUse,
+            "deprecatedFields" to deprecatedFields.map { it.toMap() }
+        )
+    }
+}
 
-data class Queries(val fields: List<String>)
+@Serializable
+data class DeprecatedFields(val field: String, val replacedBy: String?, val inUse: Boolean) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "field" to field,
+            "replacedBy" to replacedBy,
+            "inUse" to inUse
+        )
+    }
+}
 
-data class DocId(val scheme: String)
+@Serializable
+data class Queries(val fields: List<String>) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "fields" to fields
+        )
+    }
+}
+
+@Serializable
+data class DocId(val scheme: String) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "scheme" to scheme
+        )
+    }
+}

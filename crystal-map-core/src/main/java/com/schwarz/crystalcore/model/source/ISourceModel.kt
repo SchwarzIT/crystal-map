@@ -1,10 +1,5 @@
 package com.schwarz.crystalcore.model.source
 
-import com.schwarz.crystalapi.Comment
-import com.schwarz.crystalapi.DocId
-import com.schwarz.crystalapi.Entity
-import com.schwarz.crystalapi.ITypeConverterExporter
-import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalcore.ILogger
 
 interface ISourceModel<T> : IClassModel<T> {

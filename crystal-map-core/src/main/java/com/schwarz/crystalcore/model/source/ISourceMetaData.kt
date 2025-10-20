@@ -1,4 +1,3 @@
 package com.schwarz.crystalcore.model.source
 
-interface ISourceMetaData {
-}
+interface ISourceMetaData

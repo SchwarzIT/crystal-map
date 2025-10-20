@@ -51,7 +51,6 @@ object TypeConverterExporterObjectGeneration {
     }
 
     private fun getAnnotations(typeConverters: List<TypeConverterHolder>): List<AnnotationSpec> {
-
         val exportConvertersAnnotation = AnnotationSpec.builder(ExportConverters::class)
         val importableConvertersAnnotation = AnnotationSpec.builder(ImportableConverters::class)
 
@@ -97,10 +96,10 @@ object TypeConverterExporterObjectGeneration {
             if (importableGenericDeclarations.isNotEmpty()) {
                 importableBuilder.append(
                     "genericsTargetDefinitions = [${
-                        importableGenericDeclarations.joinToString(
-                            separator = ","
-                        )
-                    }]",
+                    importableGenericDeclarations.joinToString(
+                        separator = ","
+                    )
+                    }]"
                 )
             } else {
                 importableBuilder.append("genericsTargetDefinitions = []")
@@ -110,19 +109,20 @@ object TypeConverterExporterObjectGeneration {
         }
         exportConvertersAnnotation.addMember(
             "value = [${
-                exportConverterDeclarations.joinToString(
-                    separator = ","
-                )
-            }]", *exportConverterVars.toTypedArray()
+            exportConverterDeclarations.joinToString(
+                separator = ","
+            )
+            }]",
+            *exportConverterVars.toTypedArray()
         )
         importableConvertersAnnotation.addMember(
             "value = [${
-                importableConverterDeclarations.joinToString(
-                    separator = ","
-                )
-            }]", *importableConverterVars.toTypedArray()
+            importableConverterDeclarations.joinToString(
+                separator = ","
+            )
+            }]",
+            *importableConverterVars.toTypedArray()
         )
-
 
         return listOf(exportConvertersAnnotation.build(), importableConvertersAnnotation.build())
     }

@@ -1,7 +1,6 @@
 package com.schwarz.crystalksp
 
 import com.schwarz.crystalcore.ISettings
-import javax.annotation.processing.ProcessingEnvironment
 
 class ProcessingEnvironmentWrapper(private val options: Map<String, String>) :
     ISettings {
@@ -15,4 +14,4 @@ class ProcessingEnvironmentWrapper(private val options: Map<String, String>) :
     override val entityRelationshipFilename: String? = options[CrystalProcessor.FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME]
 
     val useSuspend: Boolean? = options[CrystalProcessor.FRAMEWORK_USE_SUSPEND_OPTION_NAME]?.toBoolean()
-    }
+}

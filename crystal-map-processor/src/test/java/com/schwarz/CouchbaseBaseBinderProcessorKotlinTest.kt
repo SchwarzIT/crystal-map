@@ -10,7 +10,6 @@ import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Assert
 import org.junit.Test
-import java.io.File
 
 @OptIn(ExperimentalCompilerApi::class)
 class CouchbaseBaseBinderProcessorKotlinTest {
@@ -213,7 +212,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinSchemaGeneration() {
-        val expected = File("src/test/resources/ExpectedSchema.txt").readLines()
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSchema.txt").readAllBytes()).lines()
         val testObject = SourceFile.kotlin(
             "TestObject.kt",
             PACKAGE_HEADER +
@@ -262,7 +261,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinSchemaGenerationWithBasedOn() {
-        val expected = File("src/test/resources/ExpectedSubSchema.txt").readLines()
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSubSchema.txt").readAllBytes()).lines()
         val testObject = SourceFile.kotlin(
             "TestObject.kt",
             PACKAGE_HEADER +
@@ -366,7 +365,8 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testTypeConverterGeneration() {
-        val expected = File("src/test/resources/ExpectedTypeConverter.txt").readLines()
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverter.txt").readAllBytes()).lines()
+
         val typeConverter = SourceFile.kotlin(
             "DateTypeConverter.kt",
             PACKAGE_HEADER +
@@ -429,7 +429,8 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testTypeConverterExporterGeneration() {
-        val expected = File("src/test/resources/ExpectedTypeConverterExporter.txt").readLines().map { it.trim() }
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporter.txt").readAllBytes()).lines().map { it.trim() }
+
         val sourceFileContents = PACKAGE_HEADER +
             TYPE_CONVERTER_EXPORTER_HEADER +
             TYPE_CONVERTER_HEADER +
@@ -456,7 +457,8 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testTypeConverterExporterGenerationWithGenericTypes() {
-        val expected = File("src/test/resources/ExpectedTypeConverterExporterGenerics.txt").readLines().map { it.trim() }
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporterGenerics.txt").readAllBytes()).lines().map { it.trim() }
+
         val sourceFileContents = PACKAGE_HEADER +
             TYPE_CONVERTER_EXPORTER_HEADER +
             TYPE_CONVERTER_HEADER +
@@ -478,6 +480,7 @@ class CouchbaseBaseBinderProcessorKotlinTest {
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual = compilation.generatedFiles.find { it.name == "TestTypeConvertersGenericInstance.kt" }
             ?.readLines()?.map { it.trim() }
+
         Assert.assertEquals(expected, actual)
     }
 

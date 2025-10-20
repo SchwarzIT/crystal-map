@@ -1,7 +1,6 @@
 package com.schwarz.crystalprocessor.model.source
 
 import com.schwarz.crystalapi.deprecated.Deprecated
-import com.schwarz.crystalapi.deprecated.DeprecatedField
 import com.schwarz.crystalapi.deprecated.DeprecationType
 import com.schwarz.crystalcore.model.source.ISourceDeprecated
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
@@ -19,6 +18,6 @@ class SourceDeprecated(private val deprecatedAnnotation: Deprecated) : ISourceDe
             ""
         }
     } ?: ""
-    override val type: DeprecationType= deprecatedAnnotation.type
+    override val type: DeprecationType = deprecatedAnnotation.type
     override val fields: Array<ISourceDeprecated.ISourceDeprecatedField> = deprecatedAnnotation.fields.map { ISourceDeprecated.ISourceDeprecatedField(it.field, it.replacedBy, it.inUse) }.toTypedArray()
 }

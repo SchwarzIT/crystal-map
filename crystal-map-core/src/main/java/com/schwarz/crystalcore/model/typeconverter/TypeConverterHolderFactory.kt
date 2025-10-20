@@ -1,7 +1,6 @@
 package com.schwarz.crystalcore.model.typeconverter
 
 import com.schwarz.crystalapi.ClassNameDefinition
-import com.schwarz.crystalapi.ITypeConverterExporter
 import com.schwarz.crystalapi.TypeConverterImportable
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName

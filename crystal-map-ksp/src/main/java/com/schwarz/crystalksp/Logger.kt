@@ -3,10 +3,6 @@ package com.schwarz.crystalksp
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSNode
 import com.schwarz.crystalcore.ILogger
-import javax.annotation.processing.Messager
-import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.tools.Diagnostic
 
 class Logger internal constructor(private val logger: KSPLogger) : ILogger<KSNode> {
 
@@ -21,7 +17,7 @@ class Logger internal constructor(private val logger: KSPLogger) : ILogger<KSNod
     }
 
     override fun warn(msg: String, e: KSNode?) {
-      logger.warn(msg, e)
+        logger.warn(msg, e)
     }
 
     override fun error(msg: String, e: KSNode?) {
