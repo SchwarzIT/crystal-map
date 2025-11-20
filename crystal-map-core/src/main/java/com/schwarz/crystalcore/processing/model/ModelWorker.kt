@@ -127,7 +127,7 @@ class ModelWorker<T>(
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
-        if (generatedInterfaces.contains(holder.sourceClazzSimpleName).not()) {
+        if (generatedInterfaces.contains("${holder.sourcePackage}.${holder.sourceClazzSimpleName}").not()) {
             codeGenerator.generate(
                 CommonInterfaceGeneration().generateModel(
                     holder,
@@ -136,7 +136,7 @@ class ModelWorker<T>(
                 ),
                 settings
             )
-            generatedInterfaces.add(holder.sourceClazzSimpleName)
+            generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }
     }
 }

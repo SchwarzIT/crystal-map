@@ -1,6 +1,7 @@
 package com.schwarz.crystalksp.model.source
 
 import com.google.devtools.ksp.symbol.KSAnnotation
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.javaToKotlinType
@@ -11,6 +12,7 @@ import com.schwarz.crystalksp.util.getArgument
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeName
 
 class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
 
@@ -28,10 +30,12 @@ class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
     override val comment: Array<String> = fieldAnnotation.getArgument<List<String>>("comment")?.toTypedArray() ?: arrayOf()
 
     override val fullQualifiedName: String
-        get() = classArgument.declaration.qualifiedName!!.asString()
+        get() {
+            return classArgument.declaration.qualifiedName!!.asString()
+        }
 
-    override val javaToKotlinType = classArgument.toClassName().javaToKotlinType()
-    override val baseType: TypeName = classArgument.toClassName()
+    override val javaToKotlinType = if(classArgument is KSClassDeclaration) (classArgument as KSType).toClassName().javaToKotlinType() else classArgument.toTypeName().javaToKotlinType()
+    override val baseType: TypeName = if(classArgument is KSClassDeclaration) (classArgument as KSType).toClassName() else classArgument.toTypeName()
 
     override fun parseMetaType(list: Boolean, subEntity: String?): TypeName {
         return parseMetaType(list, true, subEntity)

@@ -44,19 +44,12 @@ private val plainTypeNames = setOf(
 
 object ProcessingContext {
 
-    // KSP provides a Resolver and Logger directly to the SymbolProcessor.
-    // These should not be late-init properties in an object, but rather passed in.
-    // For this example, we'll keep the structure but you should pass these through your processor.
     lateinit var resolver: Resolver
     lateinit var logger: ILogger<KSNode>
 
     val processingTypes: HashMap<String, TypeName> = hashMapOf()
 
     val createdQualifiedClassNames: MutableSet<ClassName> = hashSetOf()
-
-//    fun KSPropertyDeclaration.asDeclaringName(optionalIndexes: Array<Int>): DeclaringName {
-//        return DeclaringName(this.type!!.resolve(), 0, optionalIndexes)
-//    }
 
     fun KSTypeReference.resolveTypeNameWithProcessingTypes(): TypeName {
         return this.resolve().resolveTypeNameWithProcessingTypes()

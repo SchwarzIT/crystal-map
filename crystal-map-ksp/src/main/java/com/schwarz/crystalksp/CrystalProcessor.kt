@@ -58,7 +58,7 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
                     allEntityElements = resolver.getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
                         .toEntitySourceModel(),
                     allWrapperElements = resolver.getSymbolsWithAnnotation(MapWrapper::class.qualifiedName!!)
-                        .toSourceModel(),
+                        .toWrapperSourceModel(),
                     allSchemaClassElements = resolver.getSymbolsWithAnnotation(SchemaClass::class.qualifiedName!!)
                         .toSourceModel(),
                     allBaseModelElements = resolver.getSymbolsWithAnnotation(BaseModel::class.qualifiedName!!)
@@ -110,14 +110,32 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
 
     private fun Sequence<KSAnnotated>.toEntitySourceModel(): Set<ISourceModel<KSNode>> {
         return map {
-            val clazz = it as KSClassDeclaration
-            ProcessingContext.processingTypes[clazz.simpleName.asString() + "Entity"] = com.squareup.kotlinpoet.ClassName(clazz.packageName.asString(), clazz.simpleName.asString() + "Entity")
+            addProcessingTypes(it, "Entity")
             SourceModel(it as KSClassDeclaration)
         }.toSet()
     }
 
+    private fun Sequence<KSAnnotated>.toWrapperSourceModel(): Set<ISourceModel<KSNode>> {
+        return map {
+            addProcessingTypes(it, "Wrapper")
+            SourceModel(it as KSClassDeclaration)
+        }.toSet()
+    }
+
+    private fun addProcessingTypes(type: KSAnnotated, suffix: String) {
+        val clazz = type as KSClassDeclaration
+        val className = com.squareup.kotlinpoet.ClassName(clazz.packageName.asString(), clazz.simpleName.asString() + suffix)
+        if(ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) && className.toString() != ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()){
+            logger.error("Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()}")
+        }
+        ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
+    }
+
     private fun Sequence<KSAnnotated>.toSourceModel(): Set<ISourceModel<KSNode>> {
-        return map { SourceModel(it as KSClassDeclaration) }.toSet()
+        return map {
+            addProcessingTypes(it, "Wrapper")
+            SourceModel(it as KSClassDeclaration)
+        }.toSet()
     }
 
     private fun Sequence<KSAnnotated>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> {
