@@ -125,8 +125,8 @@ class CrystalProcessor(codeGenerator: CodeGenerator, val logger: KSPLogger, val 
     private fun addProcessingTypes(type: KSAnnotated, suffix: String) {
         val clazz = type as KSClassDeclaration
         val className = com.squareup.kotlinpoet.ClassName(clazz.packageName.asString(), clazz.simpleName.asString() + suffix)
-        if(ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) && className.toString() != ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()){
-            logger.error("Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()}")
+        if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) && className.toString() != ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()) {
+            logger.error("Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}")
         }
         ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
     }

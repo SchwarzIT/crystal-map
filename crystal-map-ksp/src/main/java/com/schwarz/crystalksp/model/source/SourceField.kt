@@ -3,6 +3,7 @@ package com.schwarz.crystalksp.model.source
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeAlias
 import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.util.TypeUtil.list
@@ -16,7 +17,13 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 
 class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
 
-    private val classArgument = fieldAnnotation.getArgument<KSType>("type")!!
+    private val classArgument = fieldAnnotation.getArgument<KSType>("type")!!.let {
+        if (it.declaration is KSTypeAlias) {
+            (it.declaration as KSTypeAlias).type.resolve()
+        } else {
+            it
+        }
+    }
 
     override val simpleName: String
         get() = classArgument.declaration.simpleName.asString()
@@ -34,8 +41,8 @@ class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
             return classArgument.declaration.qualifiedName!!.asString()
         }
 
-    override val javaToKotlinType = if(classArgument is KSClassDeclaration) (classArgument as KSType).toClassName().javaToKotlinType() else classArgument.toTypeName().javaToKotlinType()
-    override val baseType: TypeName = if(classArgument is KSClassDeclaration) (classArgument as KSType).toClassName() else classArgument.toTypeName()
+    override val javaToKotlinType = if (classArgument is KSClassDeclaration) (classArgument as KSType).toClassName().javaToKotlinType() else classArgument.toTypeName().javaToKotlinType()
+    override val baseType: TypeName = if (classArgument is KSClassDeclaration) (classArgument as KSType).toClassName() else classArgument.toTypeName()
 
     override fun parseMetaType(list: Boolean, subEntity: String?): TypeName {
         return parseMetaType(list, true, subEntity)
