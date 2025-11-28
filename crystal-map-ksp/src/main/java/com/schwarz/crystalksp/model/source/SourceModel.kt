@@ -43,13 +43,13 @@ import com.schwarz.crystalcore.model.source.ISourceDocId
 import com.schwarz.crystalcore.model.source.ISourceEntity
 import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.TypeConverterInterface
+import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.ProcessingContext.resolveTypeNameWithProcessingTypes
 import com.schwarz.crystalksp.util.getAnnotation
 import com.schwarz.crystalksp.util.getArgument
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.toTypeName
 
 data class SourceModel(override val source: KSClassDeclaration) :
     ISourceModel<KSNode>,
@@ -133,7 +133,7 @@ data class SourceModel(override val source: KSClassDeclaration) :
                         relevantStaticsFields.add(
                             SourceMemberField(
                                 declaration.simpleName.asString(),
-                                declaration.type.toTypeName(),
+                                declaration.type.resolveTypeNameWithProcessingTypes(),
                                 docSegment,
                                 accessor
                             )
@@ -143,13 +143,14 @@ data class SourceModel(override val source: KSClassDeclaration) :
                         var isSuspend = declaration.modifiers.contains(Modifier.SUSPEND)
                         val parameter = mutableListOf<Parameter>()
                         declaration.parameters.forEach {
-                            if (it.type.toTypeName().toString().contains("kotlin.coroutines.Continuation")) {
+                            val typeName = it.type.resolveTypeNameWithProcessingTypes()
+                            if (typeName.toString().contains("kotlin.coroutines.Continuation")) {
                                 isSuspend = true
                             } else {
                                 parameter.add(
                                     Parameter(
                                         it.name?.asString() ?: "",
-                                        it.type.toTypeName()
+                                        typeName
                                     )
                                 )
                             }
