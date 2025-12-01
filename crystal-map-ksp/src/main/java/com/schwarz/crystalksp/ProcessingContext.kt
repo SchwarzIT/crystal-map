@@ -93,11 +93,15 @@ object ProcessingContext {
                 isList = true
                 continue
             }
-            return if (isList) {
-                TypeUtil.list(processingTypes[item]!!)
-            } else {
-                processingTypes[item]!!
-            }
+
+            return processingTypes[item]?.let {
+                if(isList){
+                    TypeUtil.list(it)
+                }else{
+                    it
+                }
+            } ?: throw IllegalArgumentException("unknown type for $stringValue [$item]")
+
         }
         throw IllegalArgumentException("unknown type $stringValue")
     }
