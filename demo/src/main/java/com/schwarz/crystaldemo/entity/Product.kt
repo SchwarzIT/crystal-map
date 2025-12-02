@@ -55,14 +55,17 @@ import java.time.LocalDate
     Query(fields = ["type", "category"])
 )
 @Reduces(
-    Reduce(namePrefix = "Light", include = ["name", "type", "category", "image"]),
+    Reduce(namePrefix = "Light", include = ["name", "type", "category", "image", "top_comment"]),
     Reduce(namePrefix = "Lighter", include = ["name"], includeQueries = false, includeDocId = false)
 )
-@DocId("myProduct:%type%:%name%:%custom(name)%")
+@DocId("myProduct:%type%:%name%:%custom(name)%:%custom2(top_comment)%")
 open class Product {
 
     companion object {
         @DocIdSegment
         fun custom(name: String?): String = "${name}blub"
+
+        @DocIdSegment
+        fun custom2(topComment: UserCommentWrapper?): String = topComment?.user ?: "anonymous"
     }
 }
