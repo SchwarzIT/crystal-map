@@ -14,11 +14,11 @@ fun KSDeclaration.getAnnotation(annotationClass: KClass<out Annotation>): KSAnno
     }
 }
 
-fun <T>KSAnnotation.getArgument(argumentName: String): T? {
+fun <T> KSAnnotation.getArgument(argumentName: String): T? {
     return this.arguments.firstOrNull { it.name?.getShortName() == argumentName }?.value as? T
 }
 
-inline fun <reified T : Enum<T>>KSAnnotation.getEnumArgument(argumentName: String): T? {
+inline fun <reified T : Enum<T>> KSAnnotation.getEnumArgument(argumentName: String): T? {
     val argument = this.getArgument<Any>(argumentName)
     return when (argument) {
         is KSType -> {
@@ -37,6 +37,8 @@ inline fun <reified T : Enum<T>>KSAnnotation.getEnumArgument(argumentName: Strin
             }
             return null
         }
-        else -> { null }
+        else -> {
+            null
+        }
     }
 }

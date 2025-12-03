@@ -13,7 +13,6 @@ import com.schwarz.crystalksp.util.getArgument
 import com.squareup.kotlinpoet.ksp.toClassName
 
 class SourceTypeConverterImporter(val typeConverterImporterAnnotation: KSAnnotation) : ISourceTypeConverterImporter {
-
     private val typeMirrorExporter = typeConverterImporterAnnotation.getArgument<KSType>("typeConverterExporter")
 
     private val exporterClassName: String
@@ -29,9 +28,18 @@ class SourceTypeConverterImporter(val typeConverterImporterAnnotation: KSAnnotat
 
                     result.add(
                         TypeConverterImportable(
-                            ClassNameDefinition(typeConverterInstance?.getArgument<String>("pkg") ?: "", typeConverterInstance?.getArgument<String>("name") ?: ""),
-                            ClassNameDefinition(domainTargetDefinition?.getArgument<String>("pkg") ?: "", domainTargetDefinition?.getArgument<String>("name") ?: ""),
-                            ClassNameDefinition(mapTargetDefinition?.getArgument<String>("pkg") ?: "", mapTargetDefinition?.getArgument<String>("name") ?: ""),
+                            ClassNameDefinition(
+                                typeConverterInstance?.getArgument<String>("pkg") ?: "",
+                                typeConverterInstance?.getArgument<String>("name") ?: ""
+                            ),
+                            ClassNameDefinition(
+                                domainTargetDefinition?.getArgument<String>("pkg") ?: "",
+                                domainTargetDefinition?.getArgument<String>("name") ?: ""
+                            ),
+                            ClassNameDefinition(
+                                mapTargetDefinition?.getArgument<String>("pkg") ?: "",
+                                mapTargetDefinition?.getArgument<String>("name") ?: ""
+                            ),
                             it.getArgument<List<KSAnnotation>>("genericsTargetDefinitions")?.map {
                                 ClassNameDefinition(it.getArgument<String>("pkg") ?: "", it.getArgument<String>("name") ?: "")
                             } ?: listOf()

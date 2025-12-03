@@ -4,12 +4,12 @@ import com.squareup.kotlinpoet.TypeName
 import kotlin.reflect.KClass
 
 interface ISourceDeclaringName {
-
     val name: String
 
     val typeParams: List<ISourceDeclaringName>
 
     fun asTypeName(): TypeName?
+
     fun asFullTypeName(): TypeName?
 
     fun hasEmptyConstructor(): Boolean

@@ -17,7 +17,6 @@ import org.apache.commons.lang3.text.WordUtils
  */
 
 abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField) {
-
     open val isIterable: Boolean
         get() = mField.list
 
@@ -63,7 +62,10 @@ abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField)
         )
     }
 
-    abstract fun interfaceProperty(isOverride: Boolean = false, deprecated: DeprecatedModel?): PropertySpec
+    abstract fun interfaceProperty(
+        isOverride: Boolean = false,
+        deprecated: DeprecatedModel?
+    ): PropertySpec
 
     abstract fun property(
         dbName: String?,

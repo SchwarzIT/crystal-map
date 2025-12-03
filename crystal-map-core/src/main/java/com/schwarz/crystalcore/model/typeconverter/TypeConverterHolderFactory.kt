@@ -9,8 +9,7 @@ import kotlin.metadata.KmTypeProjection
 import kotlin.metadata.isNullable
 
 object TypeConverterHolderFactory {
-
-    fun <T>typeConverterHolder(source: ISourceModel<T>): TypeConverterHolder {
+    fun <T> typeConverterHolder(source: ISourceModel<T>): TypeConverterHolder {
         val sourcePackageName = source.sourcePackage
         val className = source.sourceClazzSimpleName
         val typeConverter = source.typeConverterInterface!!
@@ -24,7 +23,7 @@ object TypeConverterHolderFactory {
         )
     }
 
-    fun <T>importedTypeConverterHolders(source: ISourceModel<T>): List<ImportedTypeConverterHolder> {
+    fun <T> importedTypeConverterHolders(source: ISourceModel<T>): List<ImportedTypeConverterHolder> {
         val importables = source.typeConverterImporter?.typeConverterImportable
         return importables?.map { importedTypeConverterHolder(it) } ?: listOf()
     }
@@ -39,9 +38,10 @@ object TypeConverterHolderFactory {
 
     private fun ClassNameDefinition.toClassName() = ClassName(packageName, className)
 
-    private fun String.toClassName(): ClassName = split('.').let {
-        ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
-    }
+    private fun String.toClassName(): ClassName =
+        split('.').let {
+            ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
+        }
 
     private fun KmTypeProjection.resolveToString(): String {
         val classifier = type!!.classifier as KmClassifier.Class
@@ -52,11 +52,12 @@ object TypeConverterHolderFactory {
     private fun KmTypeProjection.getGenericClassNames(): List<ClassNameDefinition> =
         type!!.arguments.fold(emptyList()) { classNameDefinitions, generic ->
             val type = generic.resolveToString().toClassName()
-            classNameDefinitions + ClassNameDefinition(
-                type.packageName,
-                type.simpleName,
-                generic.getGenericClassNames(),
-                nullable = generic.type!!.isNullable
-            )
+            classNameDefinitions +
+                ClassNameDefinition(
+                    type.packageName,
+                    type.simpleName,
+                    generic.getGenericClassNames(),
+                    nullable = generic.type!!.isNullable
+                )
         }
 }

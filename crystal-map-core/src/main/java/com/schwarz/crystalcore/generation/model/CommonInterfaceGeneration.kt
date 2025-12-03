@@ -8,9 +8,13 @@ import com.squareup.kotlinpoet.*
 import java.util.*
 
 private const val GENERATED_REPRESENT_NAME = "Represent"
-class CommonInterfaceGeneration {
 
-    fun <T>generateModel(holder: BaseEntityHolder<T>, useSuspend: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FileSpec {
+class CommonInterfaceGeneration {
+    fun <T> generateModel(
+        holder: BaseEntityHolder<T>,
+        useSuspend: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FileSpec {
         val interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
 
@@ -21,9 +25,10 @@ class CommonInterfaceGeneration {
         val companionSpec = TypeSpec.companionObjectBuilder()
 
         for (fieldHolder in holder.allFields) {
-            val isBaseField = holder.collectAllSuperInterfaceFields().any {
-                it.hasFieldWithName(fieldHolder.dbField) || it.hasFieldConstantWithName(fieldHolder.dbField)
-            }
+            val isBaseField =
+                holder.collectAllSuperInterfaceFields().any {
+                    it.hasFieldWithName(fieldHolder.dbField) || it.hasFieldConstantWithName(fieldHolder.dbField)
+                }
             val propertySpec = fieldHolder.interfaceProperty(isBaseField, holder.deprecated)
             interfaceSpec.addProperty(propertySpec)
 
@@ -39,28 +44,34 @@ class CommonInterfaceGeneration {
         return FileSpec.get(holder.sourcePackage, interfaceSpec.build())
     }
 
-    private fun <T>generateRepresent(holder: BaseModelHolder<T>, parent: TypeSpec.Builder, useSuspend: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>) {
-        val typeBuilder = TypeSpec.classBuilder(GENERATED_REPRESENT_NAME)
-            .addSuperinterface(TypeUtil.mapSupport())
-            .addModifiers(KModifier.PRIVATE)
-            .addSuperinterface(holder.interfaceTypeName)
-            .addFunction(
-                EnsureTypesGeneration.ensureTypes(
-                    holder,
-                    true,
-                    typeConvertersByConvertedClass
+    private fun <T> generateRepresent(
+        holder: BaseModelHolder<T>,
+        parent: TypeSpec.Builder,
+        useSuspend: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ) {
+        val typeBuilder =
+            TypeSpec.classBuilder(GENERATED_REPRESENT_NAME)
+                .addSuperinterface(TypeUtil.mapSupport())
+                .addModifiers(KModifier.PRIVATE)
+                .addSuperinterface(holder.interfaceTypeName)
+                .addFunction(
+                    EnsureTypesGeneration.ensureTypes(
+                        holder,
+                        true,
+                        typeConvertersByConvertedClass
+                    )
                 )
-            )
-            .addFunction(CblConstantGeneration.addConstants(holder, true))
-            .addFunction(SetAllMethodGeneration().generate(holder, false))
-            .addFunction(MapSupportGeneration.toMap(holder))
-            .addProperty(
-                PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(
-                    KModifier.PRIVATE
-                ).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
-            )
-            .addFunction(constructorMap())
-            .superclass(holder.sourceElement.typeName)
+                .addFunction(CblConstantGeneration.addConstants(holder, true))
+                .addFunction(SetAllMethodGeneration().generate(holder, false))
+                .addFunction(MapSupportGeneration.toMap(holder))
+                .addProperty(
+                    PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(
+                        KModifier.PRIVATE
+                    ).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
+                )
+                .addFunction(constructorMap())
+                .superclass(holder.sourceElement.typeName)
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
@@ -69,7 +80,9 @@ class CommonInterfaceGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-            typeBuilder.addProperty(fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass))
+            typeBuilder.addProperty(
+                fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass)
+            )
         }
 
         val companionSpec = TypeSpec.companionObjectBuilder()
@@ -82,11 +95,16 @@ class CommonInterfaceGeneration {
     }
 
     private fun constructorMap(): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("mDoc = ensureTypes(doc).toMutableMap()").build()
+        return FunSpec.constructorBuilder().addModifiers(
+            KModifier.PUBLIC
+        ).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("mDoc = ensureTypes(doc).toMutableMap()").build()
     }
 
-    private fun <T>toMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
-        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return mutableMapOf()").endControlFlow().build()
+    private fun <T> toMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
+        val nullCheck =
+            CodeBlock.builder().beginControlFlow(
+                "if(obj == null)"
+            ).addStatement("return mutableMapOf()").endControlFlow().build()
         val nullCheckList = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return listOf()").endControlFlow().build()
 
         return Arrays.asList(
@@ -100,7 +118,6 @@ class CommonInterfaceGeneration {
                 .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
                 .endControlFlow()
                 .addStatement("return result").build(),
-
             FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
                 .addParameter("obj", TypeUtil.list(holder.representTypeName).copy(nullable = true)).addAnnotation(JvmStatic::class)
                 .returns(TypeUtil.listWithMutableMapStringAny()).addCode(nullCheckList)
@@ -116,7 +133,7 @@ class CommonInterfaceGeneration {
         )
     }
 
-    private fun <T>fromMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
+    private fun <T> fromMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
         val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
 
         return Arrays.asList(
@@ -124,7 +141,6 @@ class CommonInterfaceGeneration {
                 .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
                 .returns(holder.representTypeName.copy(nullable = true)).addCode(nullCheck)
                 .addStatement("return %T(obj)", holder.representTypeName).build(),
-
             FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
                 .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
                 .returns(TypeUtil.list(holder.representTypeName).copy(nullable = true)).addCode(nullCheck)
@@ -137,7 +153,7 @@ class CommonInterfaceGeneration {
         )
     }
 
-    private fun <T>fromMap(holder: BaseModelHolder<T>): List<FunSpec> {
+    private fun <T> fromMap(holder: BaseModelHolder<T>): List<FunSpec> {
         val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
 
         return Arrays.asList(
@@ -145,7 +161,6 @@ class CommonInterfaceGeneration {
                 .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
                 .returns(holder.interfaceTypeName.copy(nullable = true)).addCode(nullCheck)
                 .addStatement("return %N.fromMap(obj)", GENERATED_REPRESENT_NAME).build(),
-
             FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
                 .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
                 .returns(TypeUtil.list(holder.interfaceTypeName).copy(nullable = true)).addCode(nullCheck)

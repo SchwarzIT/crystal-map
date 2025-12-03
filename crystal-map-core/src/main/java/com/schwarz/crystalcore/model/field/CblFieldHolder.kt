@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils
 
 class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, subEntityNameSuffix: String) :
     CblBaseFieldHolder(field.name, field) {
-
     private var subEntityPackage: String? = null
 
     var subEntitySimpleName: String? = null
@@ -76,12 +75,13 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
             returnType = returnType.copy(nullable = true)
         }
 
-        val propertyBuilder = PropertySpec.builder(
-            accessorSuffix(),
-            returnType,
-            KModifier.PUBLIC,
-            KModifier.OVERRIDE
-        ).mutable(true)
+        val propertyBuilder =
+            PropertySpec.builder(
+                accessorSuffix(),
+                returnType,
+                KModifier.PUBLIC,
+                KModifier.OVERRIDE
+            ).mutable(true)
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)

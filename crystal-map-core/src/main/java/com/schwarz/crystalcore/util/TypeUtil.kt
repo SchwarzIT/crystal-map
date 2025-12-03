@@ -17,7 +17,6 @@ import com.squareup.kotlinpoet.WildcardTypeName
 import com.squareup.kotlinpoet.asTypeName
 
 object TypeUtil {
-
     fun string(): TypeName {
         return ClassName("kotlin", "String")
     }
@@ -82,7 +81,10 @@ object TypeUtil {
         return ClassName("kotlin.collections", "List").parameterizedBy(typeName)
     }
 
-    fun crystalCreator(valueType: TypeName, type: TypeName): ParameterizedTypeName {
+    fun crystalCreator(
+        valueType: TypeName,
+        type: TypeName
+    ): ParameterizedTypeName {
         return CrystalCreator::class.asTypeName().parameterizedBy(listOf(type, valueType))
     }
 

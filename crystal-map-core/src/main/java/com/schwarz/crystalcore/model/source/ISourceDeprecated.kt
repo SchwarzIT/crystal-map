@@ -3,7 +3,6 @@ package com.schwarz.crystalcore.model.source
 import com.schwarz.crystalapi.deprecated.DeprecationType
 
 interface ISourceDeprecated {
-
     val replacedBy: String
 
     val type: DeprecationType

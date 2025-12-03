@@ -8,14 +8,14 @@ import java.io.Serializable
 
 class MapifyHolder<T>(val mapifyElement: MapifyElementType<T>) :
     MapifyElementType<T> by mapifyElement {
-
-    val typeHandleMode: TypeHandleMode = when {
-        declaringName.isPlainType() -> TypeHandleMode.PLAIN
-        declaringName.isAnnotationPresent(Mapper::class.java) -> TypeHandleMode.MAPPER
-        declaringName.isTypeVar() -> TypeHandleMode.TYPEVAR
-        isMapifyable(declaringName) -> TypeHandleMode.MAPIFYABLE
-        else -> TypeHandleMode.UNKNOWN
-    }
+    val typeHandleMode: TypeHandleMode =
+        when {
+            declaringName.isPlainType() -> TypeHandleMode.PLAIN
+            declaringName.isAnnotationPresent(Mapper::class.java) -> TypeHandleMode.MAPPER
+            declaringName.isTypeVar() -> TypeHandleMode.TYPEVAR
+            isMapifyable(declaringName) -> TypeHandleMode.MAPIFYABLE
+            else -> TypeHandleMode.UNKNOWN
+        }
 
     private fun isMapifyable(declaringName: ISourceDeclaringName): Boolean {
         return (

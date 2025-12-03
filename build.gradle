@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '2.1.0'
+    ext.kotlin_version = '2.1.21'
     ext.groupName = 'com.github.SchwarzIT'
     repositories {
         google()
@@ -11,8 +11,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:8.9.1")
-        classpath("com.android.application:com.android.application.gradle.plugin:8.9.1")
+        classpath("com.android.library:com.android.library.gradle.plugin:8.13.1")
+        classpath("com.android.application:com.android.application.gradle.plugin:8.13.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:11.5.1"
         classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.1.21-2.0.2"

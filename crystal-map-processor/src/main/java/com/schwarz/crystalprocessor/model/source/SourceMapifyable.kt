@@ -7,7 +7,6 @@ import com.schwarz.crystalprocessor.ProcessingContext
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 
 class SourceMapifyable(private val mapifyableAnnotations: Mapifyable) : ISourceMapifyable {
-
     private val valueTypeMirror = mapifyableAnnotations.let { FieldExtractionUtil.typeMirror(it) }
 
     override val valueDeclaringName: ISourceDeclaringName

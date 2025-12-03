@@ -10,22 +10,22 @@ data class ReducedSourceModel<T>(
     private val reducedModelHolder: ReducedModelHolder<T>
 ) :
     ISourceModel<T> by sourceModel {
-
     override val sourceClazzSimpleName: String =
         "${reducedModelHolder.namePrefix}${sourceModel.sourceClazzSimpleName.capitalize()}"
 
     override val sourcePackage: String = sourceModel.sourcePackage
 
-    override val entityAnnotation: ISourceEntity? = sourceModel.entityAnnotation?.let {
-        object : ISourceEntity {
-            override val modifierOpen: Boolean
-                get() = it.modifierOpen
-            override val type: Entity.Type
-                get() = Entity.Type.READONLY
-            override val database: String
-                get() = it.database
+    override val entityAnnotation: ISourceEntity? =
+        sourceModel.entityAnnotation?.let {
+            object : ISourceEntity {
+                override val modifierOpen: Boolean
+                    get() = it.modifierOpen
+                override val type: Entity.Type
+                    get() = Entity.Type.READONLY
+                override val database: String
+                    get() = it.database
+            }
         }
-    }
 
     override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)
 

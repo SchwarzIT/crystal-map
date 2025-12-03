@@ -15,7 +15,6 @@ private const val TASK_ADD_SCHEMA = "addSchema"
 private const val PARAM_VERSION = "entity-version"
 
 class VersioningPlugin : Plugin<Project> {
-
     override fun apply(project: Project) {
         val extension = project.extensions.create(EXTENSION_NAME, VersioningPluginExtension::class.java)
 
@@ -33,12 +32,17 @@ class VersioningPlugin : Plugin<Project> {
         }
     }
 
-    private fun markCurrentSchemaAsReleased(project: Project, extension: VersioningPluginExtension, task: Task) {
+    private fun markCurrentSchemaAsReleased(
+        project: Project,
+        extension: VersioningPluginExtension,
+        task: Task
+    ) {
         task.dependsOn("build").doLast {
-            val version: String = when {
-                project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
-                else -> System.console().readLine("insert version of release")
-            }
+            val version: String =
+                when {
+                    project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
+                    else -> System.console().readLine("insert version of release")
+                }
 
             val currentVersionFile = File(extension.currentSchema)
 
@@ -55,12 +59,17 @@ class VersioningPlugin : Plugin<Project> {
         }
     }
 
-    private fun removeSchema(project: Project, extension: VersioningPluginExtension, task: Task) {
+    private fun removeSchema(
+        project: Project,
+        extension: VersioningPluginExtension,
+        task: Task
+    ) {
         task.doLast {
-            val version: String = when {
-                project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
-                else -> System.console().readLine("insert version to remove")
-            }
+            val version: String =
+                when {
+                    project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
+                    else -> System.console().readLine("insert version to remove")
+                }
 
             val target = File(extension.versionedSchemaPath, "$version.json")
             try {

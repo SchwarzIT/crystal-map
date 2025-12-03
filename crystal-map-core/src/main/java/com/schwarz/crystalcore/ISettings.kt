@@ -1,7 +1,6 @@
 package com.schwarz.crystalcore
 
 interface ISettings {
-
     val kotlinGeneratedPath: String?
 
     val documentationPath: String?

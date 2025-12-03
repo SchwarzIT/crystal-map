@@ -8,7 +8,6 @@ import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.util.getArgument
 
 class SourceMapifyable(val mapifyableAnnotations: KSAnnotation) : ISourceMapifyable {
-
     override val valueDeclaringName: ISourceDeclaringName
         get() = ProcessingContext.DeclaringName(mapifyableAnnotations.getArgument<KSType>("value")!!.declaration)
 }

@@ -10,7 +10,6 @@ import java.math.BigDecimal
 
 @Mapper
 class DummyMapperSource(simple: String = "test123") {
-
     @Mapify
     private val myPrivateValWithAVeryVeryVeryVeryLongName: String? = simple
 
@@ -60,7 +59,6 @@ class DummyMapperSource(simple: String = "test123") {
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
     class MyMapifyableTest(val myString: String) {
-
         class Mapper : IMapifyable<MyMapifyableTest> {
             override fun fromMap(map: Map<String, Any>): MyMapifyableTest {
                 return MyMapifyableTest(map["test"] as String)

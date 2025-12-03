@@ -5,7 +5,6 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
 class MapperHolder<T>(val sourceElement: ISourceMapperModel<T>) {
-
     val fields: MutableMap<String, MapifyHolder<T>> = mutableMapOf()
 
     val sourceClazzSimpleName: String

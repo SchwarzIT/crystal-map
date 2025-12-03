@@ -7,7 +7,6 @@ import java.util.regex.Pattern
  */
 
 object ConversionUtil {
-
     fun convertCamelToUnderscore(words: String): String {
         val m = Pattern.compile("(?<=[a-z])[A-Z]").matcher(words)
 

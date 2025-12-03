@@ -1,17 +1,17 @@
 package com.schwarz.crystalcore.model.query
 
-import com.schwarz.crystalcore.model.entity.BaseEntityHolder
-import com.schwarz.crystalcore.model.field.CblFieldHolder
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.jvm.throws
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystalcore.generation.model.CblReduceGeneration
+import com.schwarz.crystalcore.model.entity.BaseEntityHolder
+import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.source.ISourceQuery
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.jvm.throws
 import org.apache.commons.lang3.text.WordUtils
 
 /**
@@ -19,21 +19,21 @@ import org.apache.commons.lang3.text.WordUtils
  */
 
 class CblQueryHolder(private val mQuerySource: ISourceQuery) {
-
     val fields: Array<String>
         get() = mQuerySource.fields
 
-    fun <T>queryFun(
+    fun <T> queryFun(
         dbName: String,
         entityHolder: BaseEntityHolder<T>,
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ): FunSpec {
-        val builder = FunSpec.builder(queryFunName)
-            .addModifiers(KModifier.PUBLIC)
-            .addAnnotation(JvmStatic::class)
-            .throws(PersistenceException::class)
-            .returns(TypeUtil.list(entityHolder.entityTypeName))
+        val builder =
+            FunSpec.builder(queryFunName)
+                .addModifiers(KModifier.PUBLIC)
+                .addAnnotation(JvmStatic::class)
+                .throws(PersistenceException::class)
+                .returns(TypeUtil.list(entityHolder.entityTypeName))
 
         if (useSuspend) {
             builder.addModifiers(KModifier.SUSPEND)
@@ -92,7 +92,6 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
                 fieldHolder.constantName,
                 typeConvertersByConvertedClass.get(fieldHolder.fieldType)!!.instanceClassTypeName,
                 value
-
             )
         }
     }
@@ -104,7 +103,6 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
     }"
 
     companion object {
-
         private fun queryDocumentMethod(useSuspend: Boolean): String {
             return "${if (useSuspend) "suspendingConnector" else "connector"}.queryDoc"
         }

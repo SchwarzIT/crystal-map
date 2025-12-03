@@ -21,16 +21,16 @@ class ModelValidation<T>(
     val typeConverterModels: List<TypeConverterHolder>,
     val importedTypeConverterModels: List<ImportedTypeConverterHolder>
 ) {
-
     private val allTypeConverterModels: List<TypeConverterHolderForEntityGeneration> =
         typeConverterModels + importedTypeConverterModels
 
     private fun validateQuery(baseEntityHolder: BaseEntityHolder<T>) {
         for (query in baseEntityHolder.queries) {
             for (field in query.fields) {
-                if (!baseEntityHolder.fields.containsKey(field) && !baseEntityHolder.fieldConstants.containsKey(
-                        field
-                    )
+                if (!baseEntityHolder.fields.containsKey(field) &&
+                    !baseEntityHolder.fieldConstants.containsKey(
+                            field
+                        )
                 ) {
                     baseEntityHolder.sourceElement.logError(
                         logger,
@@ -45,9 +45,10 @@ class ModelValidation<T>(
         baseEntityHolder.deprecated?.let { deprecated ->
             if (deprecated.replacedBy != "") {
                 deprecated.replacedBy.apply {
-                    if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) && !entityModels.containsKey(
-                            this
-                        )
+                    if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) &&
+                        !entityModels.containsKey(
+                                this
+                            )
                     ) {
                         baseEntityHolder.sourceElement.logError(
                             logger,
@@ -70,9 +71,10 @@ class ModelValidation<T>(
         replacingModel: String?,
         model: BaseEntityHolder<T>
     ) {
-        val replacingModel: BaseEntityHolder<T>? = replacingModel?.let {
-            wrapperModels[it] ?: entityModels[it]
-        }
+        val replacingModel: BaseEntityHolder<T>? =
+            replacingModel?.let {
+                wrapperModels[it] ?: entityModels[it]
+            }
 
         val fieldsAccessorsDocId: List<String> =
             model.docId?.distinctFieldAccessors(model) ?: emptyList()
@@ -87,15 +89,17 @@ class ModelValidation<T>(
             field.value.replacedBy?.let { replacement ->
                 if (replacement.isNotEmpty()) {
                     val replacingIncludedInModel =
-                        model.fields.containsKey(replacement) || model.fieldConstants.containsKey(
-                            replacement
-                        )
-                    val replacementIncludedReplacingModel = replacingModel?.let {
-                        it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(
-                            replacement
-                        ) == true
-                    }
-                        ?: false
+                        model.fields.containsKey(replacement) ||
+                            model.fieldConstants.containsKey(
+                                replacement
+                            )
+                    val replacementIncludedReplacingModel =
+                        replacingModel?.let {
+                            it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(
+                                replacement
+                            ) == true
+                        }
+                            ?: false
 
                     if (!replacingIncludedInModel && !replacementIncludedReplacingModel && model.isReduced.not()) {
                         model.sourceElement.logError(
@@ -127,9 +131,10 @@ class ModelValidation<T>(
 
             for (segment in it.segments) {
                 for (field in segment.fields) {
-                    if (!baseEntityHolder.fieldConstants.containsKey(field) && !baseEntityHolder.fields.containsKey(
-                            field
-                        )
+                    if (!baseEntityHolder.fieldConstants.containsKey(field) &&
+                        !baseEntityHolder.fields.containsKey(
+                                field
+                            )
                     ) {
                         baseEntityHolder.sourceElement.logError(
                             logger,
@@ -147,9 +152,10 @@ class ModelValidation<T>(
                 }
 
                 if (segment.customSegment == null && (
-                    segment.segment.contains('(') || segment.segment.contains(
-                            ')'
-                        )
+                    segment.segment.contains('(') ||
+                        segment.segment.contains(
+                                ')'
+                            )
                     )
                 ) {
                     baseEntityHolder.sourceElement.logError(

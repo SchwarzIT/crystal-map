@@ -4,7 +4,6 @@ import com.schwarz.crystalcore.model.mapper.Field
 import com.schwarz.crystalcore.model.mapper.GetterSetter
 
 interface ISourceMapperModel<T> : IClassModel<T> {
-
     val typeParams: List<String>
 
     val declaringName: ISourceDeclaringName

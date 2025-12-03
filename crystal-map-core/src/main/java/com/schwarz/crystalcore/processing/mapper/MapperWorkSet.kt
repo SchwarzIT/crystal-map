@@ -8,7 +8,6 @@ import com.schwarz.crystalcore.processing.WorkSet
 import com.schwarz.crystalcore.validation.mapper.MapperValidation
 
 class MapperWorkSet<T>(val allMapperElements: Set<ISourceMapperModel<T>>, private val preValidate: (ISourceMapperModel<T>, ILogger<T>) -> Unit) : WorkSet<T> {
-
     private val mapperModels: MutableMap<String, MapperHolder<T>> = HashMap()
 
     override fun preValidate(logger: ILogger<T>) {

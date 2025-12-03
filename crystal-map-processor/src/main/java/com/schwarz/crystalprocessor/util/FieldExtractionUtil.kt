@@ -1,17 +1,15 @@
 package com.schwarz.crystalprocessor.util
 
 import com.schwarz.crystalapi.BasedOn
-import javax.lang.model.type.MirroredTypeException
-import javax.lang.model.type.TypeMirror
-
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.TypeConverterImporter
-import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalapi.deprecated.Deprecated
+import com.schwarz.crystalapi.mapify.Mapifyable
+import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.MirroredTypesException
+import javax.lang.model.type.TypeMirror
 
 object FieldExtractionUtil {
-
     fun typeMirror(annotation: Field): TypeMirror {
         try {
             annotation.type

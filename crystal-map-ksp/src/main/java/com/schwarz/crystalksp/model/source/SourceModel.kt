@@ -29,8 +29,12 @@ import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceBasedOn
+import com.schwarz.crystalcore.model.source.ISourceComment
 import com.schwarz.crystalcore.model.source.ISourceDeprecated
+import com.schwarz.crystalcore.model.source.ISourceDocId
+import com.schwarz.crystalcore.model.source.ISourceEntity
 import com.schwarz.crystalcore.model.source.ISourceField
+import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalcore.model.source.ISourceQuery
 import com.schwarz.crystalcore.model.source.ISourceReduce
@@ -38,12 +42,7 @@ import com.schwarz.crystalcore.model.source.ISourceTypeConverterImporter
 import com.schwarz.crystalcore.model.source.Parameter
 import com.schwarz.crystalcore.model.source.SourceMemberField
 import com.schwarz.crystalcore.model.source.SourceMemberFunction
-import com.schwarz.crystalcore.model.source.ISourceComment
-import com.schwarz.crystalcore.model.source.ISourceDocId
-import com.schwarz.crystalcore.model.source.ISourceEntity
-import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.TypeConverterInterface
-import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.ProcessingContext.resolveTypeNameWithProcessingTypes
 import com.schwarz.crystalksp.util.getAnnotation
 import com.schwarz.crystalksp.util.getArgument
@@ -54,7 +53,6 @@ import com.squareup.kotlinpoet.ksp.toClassName
 data class SourceModel(override val source: KSClassDeclaration) :
     ISourceModel<KSNode>,
     IClassModel<KSNode> by SourceClassModel(source) {
-
     override val fullQualifiedName: String
         get() = source.qualifiedName?.asString() ?: ""
 
@@ -65,41 +63,56 @@ data class SourceModel(override val source: KSClassDeclaration) :
     override val deprecatedSource: ISourceDeprecated? = source.getAnnotation(Deprecated::class)?.let { SourceDeprecated(it) }
     override val docIdAnnotation: ISourceDocId? = source.getAnnotation(DocId::class)?.let { SourceDocId(it) }
     override val basedOnAnnotation: ISourceBasedOn? = source.getAnnotation(BasedOn::class)?.let { SourceBasedOn(it) }
-    override val reduceAnnotations: List<ISourceReduce> = source.getAnnotation(Reduces::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map { SourceReduce(it) } ?: emptyList()
-    override val fieldAnnotations: List<ISourceField> = source.getAnnotation(Fields::class)?.getArgument<List<KSAnnotation>>("value")?.map { SourceField(it) }?.toList() ?: emptyList()
-    override val queryAnnotations: List<ISourceQuery> = source.getAnnotation(Queries::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map { SourceQuery(it) } ?: emptyList()
-    override val typeConverterImporter: ISourceTypeConverterImporter? = source.getAnnotation(TypeConverterImporter::class)?.let { SourceTypeConverterImporter(it) }
+    override val reduceAnnotations: List<ISourceReduce> =
+        source.getAnnotation(Reduces::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map {
+            SourceReduce(it)
+        } ?: emptyList()
+    override val fieldAnnotations: List<ISourceField> =
+        source.getAnnotation(Fields::class)?.getArgument<List<KSAnnotation>>("value")?.map {
+            SourceField(it)
+        }?.toList() ?: emptyList()
+    override val queryAnnotations: List<ISourceQuery> =
+        source.getAnnotation(Queries::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map {
+            SourceQuery(it)
+        } ?: emptyList()
+    override val typeConverterImporter: ISourceTypeConverterImporter? =
+        source.getAnnotation(TypeConverterImporter::class)?.let {
+            SourceTypeConverterImporter(it)
+        }
 
     override val abstractParts: Set<String>
 
     private val typeConverterClazzName = ITypeConverter::class.qualifiedName
-    override val typeConverterInterface: TypeConverterInterface? = source.getAllSuperTypes().firstOrNull { it.toClassName().toString() == typeConverterClazzName }?.let {
-        val (domainClassType, mapClassType) = it.arguments
-        TypeConverterInterface(
-            domainClassType.resolveToString().toClassName(),
-            mapClassType.resolveToString().toClassName(),
-            mapClassType.getGenericClassNames()
-        )
-    }
+    override val typeConverterInterface: TypeConverterInterface? =
+        source.getAllSuperTypes().firstOrNull { it.declaration.qualifiedName?.asString() == typeConverterClazzName }?.let {
+            val (domainClassType, mapClassType) = it.arguments
+            TypeConverterInterface(
+                domainClassType.resolveToString().toClassName(),
+                mapClassType.resolveToString().toClassName(),
+                mapClassType.getGenericClassNames()
+            )
+        }
 
-    private fun String.toClassName(): ClassName = split('.').let {
-        ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
-    }
+    private fun String.toClassName(): ClassName =
+        split('.').let {
+            ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
+        }
 
     private fun KSTypeArgument.resolveToString(): String {
-        val typeName = this.type?.resolve()?.toClassName().toString().replace('/', '.')
+        val typeName = this.type?.resolve()?.declaration?.qualifiedName?.asString()?.replace('/', '.') ?: ""
         return typeName
     }
 
     private fun KSTypeArgument.getGenericClassNames(): List<ClassNameDefinition> =
         type!!.resolve().arguments.fold(emptyList()) { classNameDefinitions, generic ->
             val type = generic.resolveToString().toClassName()
-            classNameDefinitions + ClassNameDefinition(
-                type.packageName,
-                type.simpleName,
-                generic.getGenericClassNames(),
-                nullable = generic.type!!.resolve().isMarkedNullable
-            )
+            classNameDefinitions +
+                ClassNameDefinition(
+                    type.packageName,
+                    type.simpleName,
+                    generic.getGenericClassNames(),
+                    nullable = generic.type!!.resolve().isMarkedNullable
+                )
         }
 
     override val isFinalModifier: Boolean = !source.isOpen()
@@ -112,7 +125,10 @@ data class SourceModel(override val source: KSClassDeclaration) :
     override val isInterfaceSource: Boolean = false
     override val isPrivateModifier: Boolean = source.isPrivate()
 
-    override fun logError(logger: ILogger<KSNode>, message: String) {
+    override fun logError(
+        logger: ILogger<KSNode>,
+        message: String
+    ) {
         logger.error(message, source)
     }
 
@@ -178,7 +194,10 @@ data class SourceModel(override val source: KSClassDeclaration) :
     }
 
     // KSP equivalent of the helper functions
-    private fun parseStaticsFromStructure(cblEntityElement: KSClassDeclaration, mapper: (KSDeclaration) -> Unit) {
+    private fun parseStaticsFromStructure(
+        cblEntityElement: KSClassDeclaration,
+        mapper: (KSDeclaration) -> Unit
+    ) {
         for (childElement in cblEntityElement.declarations) {
             if (childElement is KSClassDeclaration && childElement.isCompanionObject) {
                 childElement.declarations.forEach { companionMember ->
@@ -197,11 +216,12 @@ data class SourceModel(override val source: KSClassDeclaration) :
         for (enclosedElement in cblEntityElement.declarations) {
             if (Modifier.ABSTRACT in enclosedElement.modifiers) {
                 val name = enclosedElement.simpleName.asString()
-                val propertyName = when {
-                    name.startsWith("set") -> name.replace("set", "").replaceFirstChar { it.lowercase() }
-                    name.startsWith("get") -> name.replace("get", "").replaceFirstChar { it.lowercase() }
-                    else -> name
-                }
+                val propertyName =
+                    when {
+                        name.startsWith("set") -> name.replace("set", "").replaceFirstChar { it.lowercase() }
+                        name.startsWith("get") -> name.replace("get", "").replaceFirstChar { it.lowercase() }
+                        else -> name
+                    }
                 abstractSet.add(propertyName)
             }
         }

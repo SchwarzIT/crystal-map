@@ -1,13 +1,13 @@
 
 buildscript {
-    ext.kotlin_version = '2.1.0'
+    ext.kotlin_version = '2.1.21'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:8.5.2")
-        classpath("com.android.application:com.android.application.gradle.plugin:8.5.2")
+        classpath("com.android.library:com.android.library.gradle.plugin:8.13.1")
+        classpath("com.android.application:com.android.application.gradle.plugin:8.13.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin

@@ -30,20 +30,20 @@ import com.squareup.kotlinpoet.ksp.toTypeVariableName
 import java.math.BigDecimal
 import kotlin.reflect.KClass
 
-private val plainTypeNames = setOf(
-    String::class.qualifiedName,
-    Int::class.qualifiedName,
-    "java.lang.Integer",
-    "java.lang.Double",
-    "java.lang.Boolean",
-    Double::class.qualifiedName,
-    Long::class.qualifiedName,
-    BigDecimal::class.qualifiedName,
-    Boolean::class.qualifiedName
-)
+private val plainTypeNames =
+    setOf(
+        String::class.qualifiedName,
+        Int::class.qualifiedName,
+        "java.lang.Integer",
+        "java.lang.Double",
+        "java.lang.Boolean",
+        Double::class.qualifiedName,
+        Long::class.qualifiedName,
+        BigDecimal::class.qualifiedName,
+        Boolean::class.qualifiedName
+    )
 
 object ProcessingContext {
-
     lateinit var resolver: Resolver
     lateinit var logger: ILogger<KSNode>
 
@@ -84,8 +84,9 @@ object ProcessingContext {
         val splitted = stringValue.replace('<', ' ').replace('>', ' ').split(" ")
         var isList = false
         for (item in splitted) {
-            if (item == "INVARIANT" || item == "ERROR" || item == "TYPE:" || item.trim()
-                .isEmpty()
+            if (item == "INVARIANT" || item == "ERROR" || item == "TYPE:" ||
+                item.trim()
+                    .isEmpty()
             ) {
                 continue
             }
@@ -95,13 +96,12 @@ object ProcessingContext {
             }
 
             return processingTypes[item]?.let {
-                if(isList){
+                if (isList) {
                     TypeUtil.list(it)
-                }else{
+                } else {
                     it
                 }
             } ?: throw IllegalArgumentException("unknown type for $stringValue [$item]")
-
         }
         throw IllegalArgumentException("unknown type $stringValue")
     }
@@ -114,24 +114,26 @@ object ProcessingContext {
 //    }
 
     private fun KSClassDeclaration.toKSTypeRecursive(): KSType {
-        val typeArguments = typeParameters.map { typeParameter ->
-            val resolvedType = typeParameter.bounds.first().resolve()
+        val typeArguments =
+            typeParameters.map { typeParameter ->
+                val resolvedType = typeParameter.bounds.first().resolve()
 
-            // Recursively handle nested type parameters
-            val resolvedKSType = resolvedType.declaration.let { declaration ->
-                if (declaration is KSClassDeclaration && declaration.typeParameters.isNotEmpty()) {
-                    declaration.toKSTypeRecursive()
-                } else {
-                    resolvedType
-                }
+                // Recursively handle nested type parameters
+                val resolvedKSType =
+                    resolvedType.declaration.let { declaration ->
+                        if (declaration is KSClassDeclaration && declaration.typeParameters.isNotEmpty()) {
+                            declaration.toKSTypeRecursive()
+                        } else {
+                            resolvedType
+                        }
+                    }
+
+                // Use the correct method to create a KSTypeArgument
+                resolver.getTypeArgument(
+                    resolver.createKSTypeReferenceFromKSType(resolvedKSType),
+                    typeParameter.variance
+                )
             }
-
-            // Use the correct method to create a KSTypeArgument
-            resolver.getTypeArgument(
-                resolver.createKSTypeReferenceFromKSType(resolvedKSType),
-                typeParameter.variance
-            )
-        }
         return asType(typeArguments)
     }
 
@@ -146,46 +148,51 @@ object ProcessingContext {
             nullableIndexes: Array<Int>
         ) : this(resolver.getClassDeclarationByName(declaration.name!!)!!, relevantIndex, nullableIndexes)
 
-        val ksType = when (declaration) {
-            is KSPropertyDeclaration -> declaration.type!!.resolve()
-            is KSClassDeclaration -> declaration.toKSTypeRecursive()
-            is KSTypeParameter -> null // dont resolve KSTypeParameter since it will be resolved to any
-            is KSTypeReference -> declaration.resolve()
-            else -> throw IllegalArgumentException("Unsupported type ${declaration::class.java.simpleName}")
-        }
+        val ksType =
+            when (declaration) {
+                is KSPropertyDeclaration -> declaration.type!!.resolve()
+                is KSClassDeclaration -> declaration.toKSTypeRecursive()
+                is KSTypeParameter -> null // dont resolve KSTypeParameter since it will be resolved to any
+                is KSTypeReference -> declaration.resolve()
+                else -> throw IllegalArgumentException("Unsupported type ${declaration::class.java.simpleName}")
+            }
 
         val realTypeName = ksType?.resolveTypeNameWithProcessingTypes() ?: (declaration as KSTypeParameter).toNullableSafeTypeVariableName()
 
-        override val name: String = realTypeName.copy(nullable = false).toString().let {
-            if (it.contains("<")) {
-                it.substring(0, it.indexOf("<")).trim { it <= ' ' }
-            } else {
-                it
+        override val name: String =
+            realTypeName.copy(nullable = false).toString().let {
+                if (it.contains("<")) {
+                    it.substring(0, it.indexOf("<")).trim { it <= ' ' }
+                } else {
+                    it
+                }
             }
-        }
         override val typeParams: List<DeclaringName> =
             when (declaration) {
-                is KSPropertyDeclaration -> declaration.type.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
-                    DeclaringName(
-                        declaration = typeArgument.type!!,
-                        relevantIndex = relevantIndex + index + 1,
-                        nullableIndexes = nullableIndexes
-                    )
-                }
-                is KSDeclaration -> declaration.typeParameters.mapIndexedNotNull { index, typeArgument ->
-                    DeclaringName(
-                        declaration = typeArgument,
-                        relevantIndex = relevantIndex + index + 1,
-                        nullableIndexes = nullableIndexes
-                    )
-                }
-                is KSTypeReference -> declaration.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
-                    DeclaringName(
-                        declaration = typeArgument.type!!,
-                        relevantIndex = relevantIndex + index + 1,
-                        nullableIndexes = nullableIndexes
-                    )
-                }
+                is KSPropertyDeclaration ->
+                    declaration.type.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
+                        DeclaringName(
+                            declaration = typeArgument.type!!,
+                            relevantIndex = relevantIndex + index + 1,
+                            nullableIndexes = nullableIndexes
+                        )
+                    }
+                is KSDeclaration ->
+                    declaration.typeParameters.mapIndexedNotNull { index, typeArgument ->
+                        DeclaringName(
+                            declaration = typeArgument,
+                            relevantIndex = relevantIndex + index + 1,
+                            nullableIndexes = nullableIndexes
+                        )
+                    }
+                is KSTypeReference ->
+                    declaration.resolve().arguments.mapIndexedNotNull { index, typeArgument ->
+                        DeclaringName(
+                            declaration = typeArgument.type!!,
+                            relevantIndex = relevantIndex + index + 1,
+                            nullableIndexes = nullableIndexes
+                        )
+                    }
                 else -> throw IllegalArgumentException("Unsupported type ${declaration::class.java.simpleName}")
             }
 
@@ -211,17 +218,18 @@ object ProcessingContext {
             }
         }
 
-        override fun asFullTypeName(): TypeName? = asTypeName()?.let {
-            if (it is ClassName && typeParams.isNotEmpty()) {
-                it.parameterizedBy(
-                    typeParams.mapNotNull {
-                        if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName()
-                    }
-                )
-            } else {
-                it
+        override fun asFullTypeName(): TypeName? =
+            asTypeName()?.let {
+                if (it is ClassName && typeParams.isNotEmpty()) {
+                    it.parameterizedBy(
+                        typeParams.mapNotNull {
+                            if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName()
+                        }
+                    )
+                } else {
+                    it
+                }
             }
-        }
 
         override fun hasEmptyConstructor(): Boolean {
             if (declaration !is KSClassDeclaration) return false
@@ -250,8 +258,9 @@ object ProcessingContext {
             return createdQualifiedClassNames.any { it.canonicalName == name } &&
                 (
                     name
-                        .endsWith("Wrapper") || name
-                        .endsWith("Entity")
+                        .endsWith("Wrapper") ||
+                        name
+                            .endsWith("Entity")
                     )
         }
 

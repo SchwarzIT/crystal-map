@@ -3,7 +3,14 @@ package com.schwarz.crystalapi.schema
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class EntitySchema(val name: String, val fields: List<Fields>, val basedOn: List<String>, val queries: List<Queries>, val docId: DocId?, val deprecatedSchema: DeprecatedSchema?) {
+data class EntitySchema(
+    val name: String,
+    val fields: List<Fields>,
+    val basedOn: List<String>,
+    val queries: List<Queries>,
+    val docId: DocId?,
+    val deprecatedSchema: DeprecatedSchema?
+) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "name" to name,
@@ -17,7 +24,14 @@ data class EntitySchema(val name: String, val fields: List<Fields>, val basedOn:
 }
 
 @Serializable
-data class Fields(val dbField: String, val fieldType: String, val isIterable: Boolean, val isConstant: Boolean, val defaultValue: String, val mandatory: Boolean?) {
+data class Fields(
+    val dbField: String,
+    val fieldType: String,
+    val isIterable: Boolean,
+    val isConstant: Boolean,
+    val defaultValue: String,
+    val mandatory: Boolean?
+) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "dbField" to dbField,

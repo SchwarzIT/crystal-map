@@ -9,9 +9,11 @@ import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.source.ISourceModel
 
 object PreModelValidation {
-
     @Throws(ClassNotFoundException::class)
-    fun <T>validate(entityElement: ISourceModel<T>, logger: ILogger<T>) {
+    fun <T> validate(
+        entityElement: ISourceModel<T>,
+        logger: ILogger<T>
+    ) {
         if (entityElement.entityAnnotation != null || entityElement.mapWrapperAnnotation != null
         ) {
             if (entityElement.isPrivateModifier) {
@@ -45,7 +47,10 @@ object PreModelValidation {
         }
     }
 
-    fun <T>validateTypeConverter(typeConverterElement: ISourceModel<T>, logger: ILogger<T>) {
+    fun <T> validateTypeConverter(
+        typeConverterElement: ISourceModel<T>,
+        logger: ILogger<T>
+    ) {
         if (typeConverterElement.isPrivateModifier) {
             logger.error(
                 TypeConverter::class.java.simpleName + " can not be private",
@@ -72,7 +77,10 @@ object PreModelValidation {
         }
     }
 
-    fun <T>validateTypeConverterExporter(element: ISourceModel<T>, logger: ILogger<T>) {
+    fun <T> validateTypeConverterExporter(
+        element: ISourceModel<T>,
+        logger: ILogger<T>
+    ) {
         if (element.isInterfaceSource) {
             logger.error(
                 "${TypeConverterExporter::class.simpleName} annotation has to be on an interface",
@@ -81,7 +89,10 @@ object PreModelValidation {
         }
     }
 
-    fun <T>validateTypeConverterImporter(element: ISourceModel<T>, logger: ILogger<T>) {
+    fun <T> validateTypeConverterImporter(
+        element: ISourceModel<T>,
+        logger: ILogger<T>
+    ) {
         if (element.isInterfaceSource) {
             logger.error(
                 "${TypeConverterImporter::class.simpleName} annotation has to be on an interface",

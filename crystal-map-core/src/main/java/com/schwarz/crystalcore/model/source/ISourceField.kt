@@ -3,7 +3,6 @@ package com.schwarz.crystalcore.model.source
 import com.squareup.kotlinpoet.TypeName
 
 interface ISourceField {
-
     val simpleName: String
     val packageName: String
 
@@ -25,5 +24,8 @@ interface ISourceField {
 
     val baseType: TypeName
 
-    fun parseMetaType(list: Boolean, subEntity: String?): TypeName
+    fun parseMetaType(
+        list: Boolean,
+        subEntity: String?
+    ): TypeName
 }

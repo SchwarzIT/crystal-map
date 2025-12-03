@@ -20,7 +20,8 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
  */
 class SchemaGeneration {
     private val pathAttributeName = "path"
-    fun <T>generateModel(
+
+    fun <T> generateModel(
         holder: SchemaClassHolder<T>,
         schemaClassPaths: List<String>,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
@@ -48,7 +49,7 @@ class SchemaGeneration {
             )
     }
 
-    private fun <T>buildAndAddFieldProperties(
+    private fun <T> buildAndAddFieldProperties(
         holder: SchemaClassHolder<T>,
         schemaClass: TypeSpec.Builder,
         schemaClassPaths: List<String>,
@@ -58,7 +59,7 @@ class SchemaGeneration {
         buildAndAddNormalFieldProperties(holder, schemaClass, schemaClassPaths, typeConvertersByConvertedClass)
     }
 
-    private fun <T>buildAndAddConstantFieldProperties(
+    private fun <T> buildAndAddConstantFieldProperties(
         holder: SchemaClassHolder<T>,
         schemaClass: TypeSpec.Builder,
         schemaClassPaths: List<String>,
@@ -67,12 +68,13 @@ class SchemaGeneration {
         holder.fieldConstants.forEach { (fieldName, fieldObject) ->
             val defaultVariableName = "DEFAULT_${fieldObject.constantName}"
 
-            val constantProperty = PropertySpec.builder(
-                defaultVariableName,
-                fieldObject.fieldType
-            ).initializer(
-                fieldObject.ensureTypeEscape(fieldObject.constantValue)
-            )
+            val constantProperty =
+                PropertySpec.builder(
+                    defaultVariableName,
+                    fieldObject.fieldType
+                ).initializer(
+                    fieldObject.ensureTypeEscape(fieldObject.constantValue)
+                )
 
             schemaClass.addProperty(constantProperty.build())
 
@@ -86,7 +88,7 @@ class SchemaGeneration {
         }
     }
 
-    private fun <T>buildAndAddNormalFieldProperties(
+    private fun <T> buildAndAddNormalFieldProperties(
         holder: SchemaClassHolder<T>,
         schemaClass: TypeSpec.Builder,
         schemaClassPaths: List<String>,
@@ -164,8 +166,9 @@ class SchemaGeneration {
         } else {
             parameterizedBy(
                 genericTypeNames.map { genericType ->
-                    val baseType = ClassName(genericType.packageName, genericType.className)
-                        .addGenerics(genericType.generics ?: emptyList())
+                    val baseType =
+                        ClassName(genericType.packageName, genericType.className)
+                            .addGenerics(genericType.generics ?: emptyList())
 
                     baseType.copy(nullable = genericType.nullable)
                 }
@@ -188,20 +191,29 @@ class SchemaGeneration {
         }
     }
 
-    private fun buildConverterFormat(fieldName: String, propertyType: TypeConverterHolderForEntityGeneration): String =
-        """%T("$fieldName", $pathAttributeName, ${propertyType.instanceClassTypeName})"""
+    private fun buildConverterFormat(
+        fieldName: String,
+        propertyType: TypeConverterHolderForEntityGeneration
+    ): String = """%T("$fieldName", $pathAttributeName, ${propertyType.instanceClassTypeName})"""
 
-    private fun buildObjectListFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
+    private fun buildObjectListFormat(
+        propertyType: TypeName,
+        fieldName: String,
+        propertyAccessPath: String
+    ): String =
         """%T(
             $propertyType($propertyAccessPath),
             "$fieldName",
             $pathAttributeName,
         )"""
 
-    private fun buildSimpleFormat(fieldName: String): String =
-        """%T("$fieldName", $pathAttributeName)"""
+    private fun buildSimpleFormat(fieldName: String): String = """%T("$fieldName", $pathAttributeName)"""
 
-    private fun buildObjectFormat(propertyType: TypeName, fieldName: String, propertyAccessPath: String): String =
+    private fun buildObjectFormat(
+        propertyType: TypeName,
+        fieldName: String,
+        propertyAccessPath: String
+    ): String =
         """%T(
             $propertyType($propertyAccessPath),
             "$fieldName",

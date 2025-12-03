@@ -12,7 +12,6 @@ class CblGenerateAccessorHolder(
     val memberFunction: SourceMemberFunction?,
     val memberProperty: SourceMemberField?
 ) {
-
     fun accessorFunSpec(): FunSpec? {
         if (memberFunction != null) {
             val methodBuilder = FunSpec.builder(memberFunction.name).addAnnotation(JvmStatic::class)

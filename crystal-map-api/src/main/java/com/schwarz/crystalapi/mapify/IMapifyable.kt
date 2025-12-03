@@ -1,7 +1,6 @@
 package com.schwarz.crystalapi.mapify
 
 interface IMapifyable<T> {
-
     fun fromMap(map: Map<String, Any>): T
 
     fun toMap(obj: T): Map<String, Any>

@@ -18,7 +18,10 @@ open class GtinLink {
         const val PREFIX: String = "gtinlink"
         const val TYPE: String = "GtinLink"
 
-        fun documentId(country: String, gtin: String): String {
+        fun documentId(
+            country: String,
+            gtin: String
+        ): String {
             return "$PREFIX:$country:$gtin"
         }
     }

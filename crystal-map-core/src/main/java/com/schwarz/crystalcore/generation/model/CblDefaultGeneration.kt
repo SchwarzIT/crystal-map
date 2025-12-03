@@ -9,8 +9,11 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeName
 
 object CblDefaultGeneration {
-
-    fun <T>addDefaults(holder: BaseEntityHolder<T>, useNullableMap: Boolean, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FunSpec {
+    fun <T> addDefaults(
+        holder: BaseEntityHolder<T>,
+        useNullableMap: Boolean,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FunSpec {
         val type =
             if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
         val valueType =

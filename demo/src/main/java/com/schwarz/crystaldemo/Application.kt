@@ -13,7 +13,6 @@ import com.schwarz.crystaldemo.entity.ProductEntity
 import com.schwarz.crystaldemo.entity.UserCommentWrapper
 
 class Application : android.app.Application() {
-
     private var mDatabase: Database? = null
 
     val database: Database?
@@ -34,25 +33,27 @@ class Application : android.app.Application() {
         super.onCreate()
 
         deleteDbIfExists()
-        PersistenceConfig.configure(object : Couchbase2Connector() {
-            override fun getDatabase(name: String): Database {
-                if (DB == name) {
-                    return database!!
+        PersistenceConfig.configure(
+            object : Couchbase2Connector() {
+                override fun getDatabase(name: String): Database {
+                    if (DB == name) {
+                        return database!!
+                    }
+                    throw RuntimeException("wrong db name defined!!")
                 }
-                throw RuntimeException("wrong db name defined!!")
-            }
 
-            override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
-                if (errorWrapper.exception is java.lang.ClassCastException) {
-                    Log.e(
-                        TAG,
-                        "Data type manipulated: Tried to cast ${errorWrapper.value} into ${errorWrapper.`class`}"
-                    )
-                } else {
-                    throw errorWrapper.exception
+                override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+                    if (errorWrapper.exception is java.lang.ClassCastException) {
+                        Log.e(
+                            TAG,
+                            "Data type manipulated: Tried to cast ${errorWrapper.value} into ${errorWrapper.`class`}"
+                        )
+                    } else {
+                        throw errorWrapper.exception
+                    }
                 }
             }
-        })
+        )
         createMockArticle()
     }
 

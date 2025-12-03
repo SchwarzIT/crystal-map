@@ -15,7 +15,6 @@ import com.squareup.kotlinpoet.TypeName
 abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
     IClassModel<T> by sourceElement,
     ModelHolderWithFields {
-
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()
 
     var isReduced: Boolean = false
@@ -59,6 +58,7 @@ abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
         get() = ClassName(sourcePackage, interfaceSimpleName)
 
     override fun hasFieldWithName(name: String): Boolean = fields.containsKey(name)
+
     override fun hasFieldConstantWithName(name: String): Boolean = fieldConstants.containsKey(name)
 
     fun collectAllSuperInterfaceNames(): List<TypeName> {

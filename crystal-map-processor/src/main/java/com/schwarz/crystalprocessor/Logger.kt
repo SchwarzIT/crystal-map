@@ -7,7 +7,6 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogger<Element> {
-
     private val messager: Messager
 
     private var hasErrors: Boolean = false
@@ -20,20 +19,33 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogge
         messager.printMessage(Diagnostic.Kind.NOTE, msg)
     }
 
-    override fun info(msg: String, e: Element?) {
+    override fun info(
+        msg: String,
+        e: Element?
+    ) {
         messager.printMessage(Diagnostic.Kind.NOTE, msg, e)
     }
 
-    override fun warn(msg: String, e: Element?) {
+    override fun warn(
+        msg: String,
+        e: Element?
+    ) {
         messager.printMessage(Diagnostic.Kind.WARNING, msg, e)
     }
 
-    override fun error(msg: String, e: Element?) {
+    override fun error(
+        msg: String,
+        e: Element?
+    ) {
         hasErrors = true
         messager.printMessage(Diagnostic.Kind.ERROR, msg, e)
     }
 
-    override fun abortWithError(msg: String, e: Element?, ex: Throwable?) {
+    override fun abortWithError(
+        msg: String,
+        e: Element?,
+        ex: Throwable?
+    ) {
         error(msg, e)
         throw RuntimeException(ex)
     }
@@ -42,7 +54,11 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogge
         return hasErrors
     }
 
-    override fun abortWithError(msg: String?, elements: List<Element>, ex: Throwable?) {
+    override fun abortWithError(
+        msg: String?,
+        elements: List<Element>,
+        ex: Throwable?
+    ) {
         if (elements.isNotEmpty()) {
             for (causingElement in elements) {
                 error(msg ?: "unknown", causingElement)

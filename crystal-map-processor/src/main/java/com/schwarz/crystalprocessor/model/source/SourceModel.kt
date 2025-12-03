@@ -15,10 +15,15 @@ import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalcore.ILogger
+import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceBasedOn
+import com.schwarz.crystalcore.model.source.ISourceComment
 import com.schwarz.crystalcore.model.source.ISourceDeprecated
+import com.schwarz.crystalcore.model.source.ISourceDocId
+import com.schwarz.crystalcore.model.source.ISourceEntity
 import com.schwarz.crystalcore.model.source.ISourceField
+import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.ISourceModel
 import com.schwarz.crystalcore.model.source.ISourceQuery
 import com.schwarz.crystalcore.model.source.ISourceReduce
@@ -26,11 +31,6 @@ import com.schwarz.crystalcore.model.source.ISourceTypeConverterImporter
 import com.schwarz.crystalcore.model.source.Parameter
 import com.schwarz.crystalcore.model.source.SourceMemberField
 import com.schwarz.crystalcore.model.source.SourceMemberFunction
-import com.schwarz.crystalcore.javaToKotlinType
-import com.schwarz.crystalcore.model.source.ISourceComment
-import com.schwarz.crystalcore.model.source.ISourceDocId
-import com.schwarz.crystalcore.model.source.ISourceEntity
-import com.schwarz.crystalcore.model.source.ISourceMapWrapper
 import com.schwarz.crystalcore.model.source.TypeConverterInterface
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
@@ -55,7 +55,6 @@ import kotlin.metadata.jvm.KotlinClassMetadata
 data class SourceModel(override val source: Element) :
     ISourceModel<Element>,
     IClassModel<Element> by SourceClassModel(source) {
-
     override val fullQualifiedName: String
         get() = source.toString()
 
@@ -75,23 +74,25 @@ data class SourceModel(override val source: Element) :
 
     override val queryAnnotations: List<ISourceQuery> =
         source.getAnnotation(Queries::class.java)?.value?.toList()?.map { SourceQuery(it) } ?: emptyList()
-    override val typeConverterImporter: ISourceTypeConverterImporter? = source.getAnnotation(
-        TypeConverterImporter::class.java
-    )?.let { SourceTypeConverterImporter(it) }
+    override val typeConverterImporter: ISourceTypeConverterImporter? =
+        source.getAnnotation(
+            TypeConverterImporter::class.java
+        )?.let { SourceTypeConverterImporter(it) }
 
     override val abstractParts: Set<String>
 
     private val typeConverterKmClass = ITypeConverter::class.java.getAnnotation(Metadata::class.java).toKmClass()
 
-    override val typeConverterInterface: TypeConverterInterface? = source.getTypeConverterInterface()?.let {
-        val (domainClassType, mapClassType) = it.arguments
+    override val typeConverterInterface: TypeConverterInterface? =
+        source.getTypeConverterInterface()?.let {
+            val (domainClassType, mapClassType) = it.arguments
 
-        TypeConverterInterface(
-            domainClassType.resolveToString().toClassName(),
-            mapClassType.resolveToString().toClassName(),
-            mapClassType.getGenericClassNames()
-        )
-    }
+            TypeConverterInterface(
+                domainClassType.resolveToString().toClassName(),
+                mapClassType.resolveToString().toClassName(),
+                mapClassType.getGenericClassNames()
+            )
+        }
 
     private fun Element.getTypeConverterInterface(): KmType? {
         val kmClass = getAnnotation(Metadata::class.java)?.toKmClass()
@@ -103,9 +104,10 @@ data class SourceModel(override val source: Element) :
 
     private fun Metadata.toKmClass(): KmClass = (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
 
-    private fun String.toClassName(): ClassName = split('.').let {
-        ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
-    }
+    private fun String.toClassName(): ClassName =
+        split('.').let {
+            ClassName(it.subList(0, it.size - 1).joinToString("."), it.last())
+        }
 
     private fun KmTypeProjection.resolveToString(): String {
         val classifier = type!!.classifier as KmClassifier.Class
@@ -116,12 +118,13 @@ data class SourceModel(override val source: Element) :
     private fun KmTypeProjection.getGenericClassNames(): List<ClassNameDefinition> =
         type!!.arguments.fold(emptyList()) { classNameDefinitions, generic ->
             val type = generic.resolveToString().toClassName()
-            classNameDefinitions + ClassNameDefinition(
-                type.packageName,
-                type.simpleName,
-                generic.getGenericClassNames(),
-                nullable = generic.type!!.isNullable
-            )
+            classNameDefinitions +
+                ClassNameDefinition(
+                    type.packageName,
+                    type.simpleName,
+                    generic.getGenericClassNames(),
+                    nullable = generic.type!!.isNullable
+                )
         }
 
     override val isFinalModifier: Boolean = source.modifiers.contains(Modifier.FINAL)
@@ -145,7 +148,10 @@ data class SourceModel(override val source: Element) :
 
     override val isPrivateModifier: Boolean = source.modifiers.contains(Modifier.PRIVATE)
 
-    override fun logError(logger: ILogger<Element>, message: String) {
+    override fun logError(
+        logger: ILogger<Element>,
+        message: String
+    ) {
         logger.error(message, source)
     }
 
@@ -198,7 +204,10 @@ data class SourceModel(override val source: Element) :
                                 }
                             }
 
-                            val returnType = it.returnType.asTypeName().javaToKotlinType().copy(it.getAnnotation(Nullable::class.java) != null)
+                            val returnType =
+                                it.returnType.asTypeName().javaToKotlinType().copy(
+                                    it.getAnnotation(Nullable::class.java) != null
+                                )
 
                             relevantStaticsFunctions.add(
                                 SourceMemberFunction(
@@ -224,11 +233,17 @@ data class SourceModel(override val source: Element) :
         return varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
     }
 
-    private fun evaluateTypeName(typeMirror: TypeMirror, nullable: Boolean): TypeName {
+    private fun evaluateTypeName(
+        typeMirror: TypeMirror,
+        nullable: Boolean
+    ): TypeName {
         return typeMirror.asTypeName().javaToKotlinType().copy(nullable = nullable)
     }
 
-    private fun parseStaticsFromStructure(cblEntityElement: Element, mapper: (Element) -> Unit) {
+    private fun parseStaticsFromStructure(
+        cblEntityElement: Element,
+        mapper: (Element) -> Unit
+    ) {
         for (childElement in cblEntityElement.enclosedElements) {
             if (childElement.modifiers.contains(Modifier.STATIC)) {
                 if (childElement.kind == ElementKind.CLASS && childElement.simpleName.toString() == "Companion") {

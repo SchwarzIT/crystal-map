@@ -18,6 +18,11 @@ import com.schwarz.crystalapi.query.Query
 import com.schwarz.crystalcore.PostValidationException
 import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalcore.model.source.ISourceModel
+import com.schwarz.crystalcore.processing.Worker
+import com.schwarz.crystalcore.processing.mapper.MapperWorkSet
+import com.schwarz.crystalcore.processing.mapper.MapperWorker
+import com.schwarz.crystalcore.processing.model.ModelWorkSet
+import com.schwarz.crystalcore.processing.model.ModelWorker
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
@@ -25,13 +30,8 @@ import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.FRAMEWORK_USE_SUSPEND_OPTION_NAME
 import com.schwarz.crystalprocessor.CoachBaseBinderProcessor.Companion.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.schwarz.crystalprocessor.generation.CodeGenerator
-import com.schwarz.crystalcore.processing.Worker
-import com.schwarz.crystalcore.processing.model.ModelWorkSet
-import com.schwarz.crystalcore.processing.mapper.MapperWorker
-import com.schwarz.crystalcore.processing.model.ModelWorker
 import com.schwarz.crystalprocessor.model.source.SourceMapperModel
 import com.schwarz.crystalprocessor.model.source.SourceModel
-import com.schwarz.crystalcore.processing.mapper.MapperWorkSet
 import com.schwarz.crystalprocessor.validation.mapper.PreMapperValidation
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
@@ -54,7 +54,6 @@ import javax.lang.model.element.TypeElement
     FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
 )
 class CoachBaseBinderProcessor : AbstractProcessor() {
-
     private lateinit var mLogger: Logger
 
     private lateinit var mCodeGenerator: CodeGenerator
@@ -95,42 +94,53 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         super.init(processingEnvironment)
     }
 
-    override fun process(set: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
+    override fun process(
+        set: Set<TypeElement>,
+        roundEnv: RoundEnvironment
+    ): Boolean {
         ProcessingContext.roundEnv = roundEnv
-        workers = setOf(
-            ModelWorker<Element>(
-                mLogger,
-                mCodeGenerator,
-                mSettings,
-                ModelWorkSet(
-                    allEntityElements = roundEnv.getElementsAnnotatedWith(Entity::class.java)
-                        .toSourceModel(),
-                    allWrapperElements = roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
-                        .toSourceModel(),
-                    allSchemaClassElements = roundEnv.getElementsAnnotatedWith(SchemaClass::class.java)
-                        .toSourceModel(),
-                    allBaseModelElements = roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
-                        .toSourceModel(),
-                    allTypeConverterElements = roundEnv.getElementsAnnotatedWith(TypeConverter::class.java)
-                        .toSourceModel(),
-                    allTypeConverterExporterElements = roundEnv.getElementsAnnotatedWith(
-                        TypeConverterExporter::class.java
-                    ).toSourceModel(),
-                    allTypeConverterImporterElements = roundEnv.getElementsAnnotatedWith(
-                        TypeConverterImporter::class.java
-                    ).toSourceModel()
-                )
-            ),
-            MapperWorker(
-                mLogger,
-                mCodeGenerator,
-                mSettings,
-                MapperWorkSet(
-                    allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java).toMapperSourceModel(),
-                    PreMapperValidation::validate
+        workers =
+            setOf(
+                ModelWorker<Element>(
+                    mLogger,
+                    mCodeGenerator,
+                    mSettings,
+                    ModelWorkSet(
+                        allEntityElements =
+                        roundEnv.getElementsAnnotatedWith(Entity::class.java)
+                            .toSourceModel(),
+                        allWrapperElements =
+                        roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
+                            .toSourceModel(),
+                        allSchemaClassElements =
+                        roundEnv.getElementsAnnotatedWith(SchemaClass::class.java)
+                            .toSourceModel(),
+                        allBaseModelElements =
+                        roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
+                            .toSourceModel(),
+                        allTypeConverterElements =
+                        roundEnv.getElementsAnnotatedWith(TypeConverter::class.java)
+                            .toSourceModel(),
+                        allTypeConverterExporterElements =
+                        roundEnv.getElementsAnnotatedWith(
+                            TypeConverterExporter::class.java
+                        ).toSourceModel(),
+                        allTypeConverterImporterElements =
+                        roundEnv.getElementsAnnotatedWith(
+                            TypeConverterImporter::class.java
+                        ).toSourceModel()
+                    )
+                ),
+                MapperWorker(
+                    mLogger,
+                    mCodeGenerator,
+                    mSettings,
+                    MapperWorkSet(
+                        allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java).toMapperSourceModel(),
+                        PreMapperValidation::validate
+                    )
                 )
             )
-        )
 
         workers.forEach { it.init() }
 

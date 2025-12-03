@@ -9,7 +9,6 @@ import java.lang.reflect.Method
 
 class MapifyElementTypeGetterSetter<T>(val getterSetter: GetterSetter<T>, override val fieldName: String) :
     MapifyElementType<T> {
-
     override val elements: List<T> =
         listOfNotNull(getterSetter.getterElement?.source, getterSetter.setterElement?.source)
 
@@ -17,11 +16,15 @@ class MapifyElementTypeGetterSetter<T>(val getterSetter: GetterSetter<T>, overri
 
     override val typeName = getterSetter.setterElement!!.typeName
 
-    override val accessible = getterSetter.let {
-        it.getterElement?.accessible == true && it.setterElement?.accessible == true
-    } ?: false
+    override val accessible =
+        getterSetter.let {
+            it.getterElement?.accessible == true && it.setterElement?.accessible == true
+        } ?: false
 
-    override val declaringName: ISourceDeclaringName = getterSetter.setterElement!!.asDeclaringName(getterSetter.mapify!!.nullableIndexes.toTypedArray())
+    override val declaringName: ISourceDeclaringName =
+        getterSetter.setterElement!!.asDeclaringName(
+            getterSetter.mapify!!.nullableIndexes.toTypedArray()
+        )
 
     override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
         return listOf(
@@ -36,7 +39,12 @@ class MapifyElementTypeGetterSetter<T>(val getterSetter: GetterSetter<T>, overri
             PropertySpec.builder(getterSetter.setterInternalAccessor(), Method::class.java.asTypeName(), KModifier.PRIVATE)
                 .initializer(
                     CodeBlock.builder()
-                        .addStatement("%T::class.java.getDeclaredMethod(%S, %T::class.java)", sourceClazzTypeName, getterSetter.setterName(), if (declaringName.isTypeVar()) TypeUtil.any().javaToKotlinType() else typeName)
+                        .addStatement(
+                            "%T::class.java.getDeclaredMethod(%S, %T::class.java)",
+                            sourceClazzTypeName,
+                            getterSetter.setterName(),
+                            if (declaringName.isTypeVar()) TypeUtil.any().javaToKotlinType() else typeName
+                        )
                         .beginControlFlow(".apply")
                         .addStatement("isAccessible·=·true")
                         .endControlFlow().build()
@@ -45,10 +53,17 @@ class MapifyElementTypeGetterSetter<T>(val getterSetter: GetterSetter<T>, overri
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.invoke(this) as? %T", getterSetter.getterInternalAccessor(), declaringName.asFullTypeName()!!.copy(nullable = true)).build()
+        return FunSpec.getterBuilder().addStatement(
+            "return %N.invoke(this) as? %T",
+            getterSetter.getterInternalAccessor(),
+            declaringName.asFullTypeName()!!.copy(nullable = true)
+        ).build()
     }
 
     override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter("value", declaringName.asFullTypeName()!!).addStatement("%N.invoke(this,·value)", getterSetter.setterInternalAccessor()).build()
+        return FunSpec.setterBuilder().addParameter(
+            "value",
+            declaringName.asFullTypeName()!!
+        ).addStatement("%N.invoke(this,·value)", getterSetter.setterInternalAccessor()).build()
     }
 }

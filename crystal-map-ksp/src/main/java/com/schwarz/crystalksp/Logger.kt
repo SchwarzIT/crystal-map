@@ -5,27 +5,39 @@ import com.google.devtools.ksp.symbol.KSNode
 import com.schwarz.crystalcore.ILogger
 
 class Logger internal constructor(private val logger: KSPLogger) : ILogger<KSNode> {
-
     private var hasErrors: Boolean = false
 
     override fun info(msg: String) {
         logger.info(msg)
     }
 
-    override fun info(msg: String, e: KSNode?) {
+    override fun info(
+        msg: String,
+        e: KSNode?
+    ) {
         logger.info(msg, e)
     }
 
-    override fun warn(msg: String, e: KSNode?) {
+    override fun warn(
+        msg: String,
+        e: KSNode?
+    ) {
         logger.warn(msg, e)
     }
 
-    override fun error(msg: String, e: KSNode?) {
+    override fun error(
+        msg: String,
+        e: KSNode?
+    ) {
         hasErrors = true
         logger.error(msg, e)
     }
 
-    override fun abortWithError(msg: String, e: KSNode?, ex: Throwable?) {
+    override fun abortWithError(
+        msg: String,
+        e: KSNode?,
+        ex: Throwable?
+    ) {
         error(msg, e)
         throw RuntimeException(ex)
     }
@@ -34,7 +46,11 @@ class Logger internal constructor(private val logger: KSPLogger) : ILogger<KSNod
         return hasErrors
     }
 
-    override fun abortWithError(msg: String?, elements: List<KSNode>, ex: Throwable?) {
+    override fun abortWithError(
+        msg: String?,
+        elements: List<KSNode>,
+        ex: Throwable?
+    ) {
         if (elements.isNotEmpty()) {
             for (causingElement in elements) {
                 error(msg ?: "unknown", causingElement)

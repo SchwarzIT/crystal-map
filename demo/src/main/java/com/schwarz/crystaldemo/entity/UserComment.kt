@@ -1,8 +1,8 @@
 package com.schwarz.crystaldemo.entity
 
+import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
-import com.schwarz.crystalapi.Field
 
 @MapWrapper
 @Fields(

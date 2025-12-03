@@ -13,13 +13,15 @@ class MapperWorker<T>(
     override val workSet: MapperWorkSet<T>
 ) :
     Worker<MapperWorkSet<T>, T> {
-
     val mapperGeneration: MapperGeneration<T> = MapperGeneration<T>()
 
     override fun init() {
     }
 
-    override fun doWork(workSet: MapperWorkSet<T>, useSuspend: Boolean) {
+    override fun doWork(
+        workSet: MapperWorkSet<T>,
+        useSuspend: Boolean
+    ) {
         for (mapper in workSet.mappers) {
             mapperGeneration.generate(mapper).apply {
                 codeGenerator.generate(this, settings)

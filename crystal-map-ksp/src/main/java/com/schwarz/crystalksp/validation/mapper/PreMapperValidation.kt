@@ -7,9 +7,11 @@ import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.source.IClassModel
 
 object PreMapperValidation {
-
     @Throws(ClassNotFoundException::class)
-    fun validate(mapperElement: IClassModel<KSNode>, logger: ILogger<KSNode>) {
+    fun validate(
+        mapperElement: IClassModel<KSNode>,
+        logger: ILogger<KSNode>
+    ) {
         val getterMap: MutableMap<String, KSFunctionDeclaration> = hashMapOf()
         val setterMap: MutableMap<String, KSFunctionDeclaration> = hashMapOf()
 
@@ -22,18 +24,20 @@ object PreMapperValidation {
                 when {
                     isGetter -> getterMap[simpleName.substringAfter("get")] = member
                     isSetter -> setterMap[simpleName.substringAfter("set")] = member
-                    else -> logger.error(
-                        "Mapify is only allowed on getters/setters/fields.",
-                        member
-                    )
+                    else ->
+                        logger.error(
+                            "Mapify is only allowed on getters/setters/fields.",
+                            member
+                        )
                 }
             }
         }
 
-        val missingPairs = hashSetOf(
-            *getterMap.keys.minus(setterMap.keys).toTypedArray(),
-            *setterMap.keys.minus(getterMap.keys).toTypedArray()
-        )
+        val missingPairs =
+            hashSetOf(
+                *getterMap.keys.minus(setterMap.keys).toTypedArray(),
+                *setterMap.keys.minus(getterMap.keys).toTypedArray()
+            )
 
         missingPairs.forEach {
             val declaration = getterMap[it] ?: setterMap[it] ?: mapperElement.source

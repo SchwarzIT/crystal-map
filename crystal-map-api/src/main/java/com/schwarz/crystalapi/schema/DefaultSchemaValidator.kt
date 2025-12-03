@@ -1,8 +1,11 @@
 package com.schwarz.crystalapi.schema
 
 open class DefaultSchemaValidator : SchemaValidator {
-
-    override fun validate(current: List<EntitySchema>, released: List<EntitySchema>, logger: SchemaValidationLogger) {
+    override fun validate(
+        current: List<EntitySchema>,
+        released: List<EntitySchema>,
+        logger: SchemaValidationLogger
+    ) {
         val currentMap: Map<String, EntitySchema> = current.map { it.name to it }.toMap()
         val releasedMap: Map<String, EntitySchema> = released.map { it.name to it }.toMap()
 
@@ -15,7 +18,11 @@ open class DefaultSchemaValidator : SchemaValidator {
         }
     }
 
-    protected open fun validateModelLevel(current: EntitySchema?, released: EntitySchema, logger: SchemaValidationLogger): Boolean {
+    protected open fun validateModelLevel(
+        current: EntitySchema?,
+        released: EntitySchema,
+        logger: SchemaValidationLogger
+    ): Boolean {
         current?.let {
             released.docId?.let {
                 if (current.docId?.scheme != it.scheme) {
@@ -36,7 +43,11 @@ open class DefaultSchemaValidator : SchemaValidator {
         return true
     }
 
-    protected open fun validateFieldLevel(released: EntitySchema, key: String, logger: SchemaValidationLogger) {
+    protected open fun validateFieldLevel(
+        released: EntitySchema,
+        key: String,
+        logger: SchemaValidationLogger
+    ) {
         if (released.deprecatedSchema?.deprecatedFields?.find { it.field == key }?.inUse != false) {
             logger.error(released, "forbidden change on existing field [$key]")
         } else {
@@ -44,7 +55,10 @@ open class DefaultSchemaValidator : SchemaValidator {
         }
     }
 
-    private fun modelDeletedDuringValidDeprecationPeriod(released: EntitySchema, logger: SchemaValidationLogger) {
+    private fun modelDeletedDuringValidDeprecationPeriod(
+        released: EntitySchema,
+        logger: SchemaValidationLogger
+    ) {
         if (released.deprecatedSchema == null || released.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")
         } else {

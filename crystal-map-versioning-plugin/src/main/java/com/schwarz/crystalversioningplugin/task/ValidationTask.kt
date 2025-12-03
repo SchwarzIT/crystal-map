@@ -15,7 +15,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import java.io.File
 
 open class ValidationTask : DefaultTask() {
-
     @Input
     lateinit var extension: VersioningPluginExtension
 
@@ -45,16 +44,17 @@ open class ValidationTask : DefaultTask() {
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
-        val mapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(
-            KotlinModule.Builder()
-                .withReflectionCacheSize(512)
-                .configure(KotlinFeature.NullToEmptyCollection, false)
-                .configure(KotlinFeature.NullToEmptyMap, false)
-                .configure(KotlinFeature.NullIsSameAsDefault, false)
-                .configure(KotlinFeature.SingletonSupport, false)
-                .configure(KotlinFeature.StrictNullChecks, false)
-                .build()
-        )
+        val mapper =
+            ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(
+                KotlinModule.Builder()
+                    .withReflectionCacheSize(512)
+                    .configure(KotlinFeature.NullToEmptyCollection, false)
+                    .configure(KotlinFeature.NullToEmptyMap, false)
+                    .configure(KotlinFeature.NullIsSameAsDefault, false)
+                    .configure(KotlinFeature.SingletonSupport, false)
+                    .configure(KotlinFeature.StrictNullChecks, false)
+                    .build()
+            )
         return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
     }
 }

@@ -2,14 +2,13 @@ package com.schwarz.crystalcore.model.id
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblFieldHolder
-import com.squareup.kotlinpoet.*
 import com.schwarz.crystalcore.model.source.ISourceDocId
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
+import com.squareup.kotlinpoet.*
 import java.util.regex.Pattern
 
 class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocIdSegmentHolder>) {
-
     private val docIdSegmentCallPattern = Pattern.compile("\\((.+?)\\)")
 
     data class Segment(
@@ -17,11 +16,11 @@ class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocI
         val fields: List<String>,
         val customSegment: DocIdSegmentHolder?
     ) {
-
-        fun <T>fieldsToModelFields(entity: BaseEntityHolder<T>) = fields.map {
-            entity.fields[it] ?: entity.fieldConstants[it]
-                ?: throw Exception("type [$it] not found in model fields")
-        }
+        fun <T> fieldsToModelFields(entity: BaseEntityHolder<T>) =
+            fields.map {
+                entity.fields[it] ?: entity.fieldConstants[it]
+                    ?: throw Exception("type [$it] not found in model fields")
+            }
     }
 
     val pattern = docId.value
@@ -32,40 +31,41 @@ class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocI
 
     fun recompile() {
         customSegments = customSegmentSource.associateBy { it.name }.toMutableMap()
-        segments = Pattern.compile("%(.+?)%").matcher(pattern).let {
-            val segments = mutableListOf<Segment>()
-            while (it.find()) {
-                val plainSegment = it.group(1)
-                val segmentMatcher = docIdSegmentCallPattern.matcher(plainSegment)
-                if (segmentMatcher.find()) {
-                    val fields = segmentMatcher.group(1).split(',').map { it.trim() }
-                    segments.add(
-                        Segment(
-                            plainSegment,
-                            fields,
-                            this.customSegments[
-                                plainSegment.removeSuffix("(${segmentMatcher.group(1)})")
-                                    .removePrefix("this.")
-                            ]
+        segments =
+            Pattern.compile("%(.+?)%").matcher(pattern).let {
+                val segments = mutableListOf<Segment>()
+                while (it.find()) {
+                    val plainSegment = it.group(1)
+                    val segmentMatcher = docIdSegmentCallPattern.matcher(plainSegment)
+                    if (segmentMatcher.find()) {
+                        val fields = segmentMatcher.group(1).split(',').map { it.trim() }
+                        segments.add(
+                            Segment(
+                                plainSegment,
+                                fields,
+                                this.customSegments[
+                                    plainSegment.removeSuffix("(${segmentMatcher.group(1)})")
+                                        .removePrefix("this.")
+                                ]
+                            )
                         )
-                    )
-                } else if (plainSegment.contains("()")) {
-                    segments.add(
-                        Segment(
-                            plainSegment,
-                            listOf(),
-                            this.customSegments[
-                                plainSegment.removeSuffix("()")
-                                    .removePrefix("this.")
-                            ]
+                    } else if (plainSegment.contains("()")) {
+                        segments.add(
+                            Segment(
+                                plainSegment,
+                                listOf(),
+                                this.customSegments[
+                                    plainSegment.removeSuffix("()")
+                                        .removePrefix("this.")
+                                ]
+                            )
                         )
-                    )
-                } else {
-                    segments.add(Segment(plainSegment, listOf(plainSegment), null))
+                    } else {
+                        segments.add(Segment(plainSegment, listOf(plainSegment), null))
+                    }
                 }
+                segments
             }
-            segments
-        }
     }
 
     lateinit var customSegments: MutableMap<String, DocIdSegmentHolder>
@@ -73,33 +73,38 @@ class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocI
     // contains all segments placed between %
     lateinit var segments: List<Segment>
 
-    fun <T>distinctFieldAccessors(model: BaseEntityHolder<T>): List<String> {
+    fun <T> distinctFieldAccessors(model: BaseEntityHolder<T>): List<String> {
         return segments.map { it.fieldsToModelFields(model) }.flatten().map { it.accessorSuffix() }.distinct()
     }
 
-    fun <T>companionFunction(entity: BaseEntityHolder<T>, typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>): FunSpec {
-        val spec = FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
-            .returns(TypeUtil.string())
+    fun <T> companionFunction(
+        entity: BaseEntityHolder<T>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+    ): FunSpec {
+        val spec =
+            FunSpec.builder(COMPANION_BUILD_FUNCTION_NAME).addAnnotation(JvmStatic::class)
+                .returns(TypeUtil.string())
         var statement = pattern
         val addedFields = mutableListOf<String>()
         for (segment in segments) {
             val entityFields = segment.fieldsToModelFields(entity).associateBy { it.dbField }
 
-            val statementValue = segment.customSegment?.let {
-                "\${${it.name}(${
-                entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
-                })}"
-            }
-                ?: entityFields.map { (_, fieldHolder) ->
-                    val accessorSuffix = fieldHolder.accessorSuffix()
-                    if (fieldHolder.isNonConvertibleClass) {
-                        accessorSuffix
-                    } else {
-                        val typeConverter = typeConvertersByConvertedClass[fieldHolder.fieldType]!!.instanceClassTypeName.simpleName
-                        "{$typeConverter.write($accessorSuffix)}"
-                    }
+            val statementValue =
+                segment.customSegment?.let {
+                    "\${${it.name}(${
+                    entityFields.map { it.value.accessorSuffix() }.joinToString(separator = ",")
+                    })}"
                 }
-                    .joinToString(separator = ",") { "\$$it" }
+                    ?: entityFields.map { (_, fieldHolder) ->
+                        val accessorSuffix = fieldHolder.accessorSuffix()
+                        if (fieldHolder.isNonConvertibleClass) {
+                            accessorSuffix
+                        } else {
+                            val typeConverter = typeConvertersByConvertedClass[fieldHolder.fieldType]!!.instanceClassTypeName.simpleName
+                            "{$typeConverter.write($accessorSuffix)}"
+                        }
+                    }
+                        .joinToString(separator = ",") { "\$$it" }
 
             statement = statement.replace("%${segment.segment}%", statementValue)
 
@@ -121,9 +126,10 @@ class DocIdHolder(docId: ISourceDocId, val customSegmentSource: MutableList<DocI
         return spec.build()
     }
 
-    fun <T>buildExpectedDocId(entity: BaseEntityHolder<T>): FunSpec {
-        val spec = FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string())
-            .addModifiers(KModifier.OVERRIDE)
+    fun <T> buildExpectedDocId(entity: BaseEntityHolder<T>): FunSpec {
+        val spec =
+            FunSpec.builder(BUILD_FUNCTION_NAME).returns(TypeUtil.string())
+                .addModifiers(KModifier.OVERRIDE)
         val list: List<String> = distinctFieldAccessors(entity)
 
         if (entity.deprecated?.addDeprecatedFunctions(list.toTypedArray(), spec) == true) {

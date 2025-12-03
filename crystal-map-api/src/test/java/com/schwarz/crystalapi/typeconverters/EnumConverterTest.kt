@@ -5,13 +5,13 @@ import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
 enum class TestEnum {
-    FOO, BAR
+    FOO,
+    BAR
 }
 
 object TestEnumConverter : ITypeConverter<TestEnum, String> by EnumConverter(TestEnum::class)
 
 class EnumConverterTest {
-
     @Test
     fun `should correctly read an enum value`() {
         val result = TestEnumConverter.read("FOO")

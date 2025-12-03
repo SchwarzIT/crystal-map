@@ -60,7 +60,6 @@ import java.time.LocalDate
 )
 @DocId("myProduct:%type%:%name%:%custom(name)%:%custom2(top_comment)%")
 open class Product {
-
     companion object {
         @DocIdSegment
         fun custom(name: String?): String = "${name}blub"

@@ -13,10 +13,10 @@ import java.lang.reflect.Field
 
 class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISourceMapify) :
     MapifyElementType<T> {
-
-    override val elements: List<T> = listOf(
-        element.source
-    )
+    override val elements: List<T> =
+        listOf(
+            element.source
+        )
 
     override val fieldName = element.sourceClazzSimpleName
 
@@ -42,10 +42,17 @@ class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISource
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.get(this) as? %T", reflectedFieldName, declaringName.asFullTypeName()!!.copy(nullable = true)).build()
+        return FunSpec.getterBuilder().addStatement(
+            "return %N.get(this) as? %T",
+            reflectedFieldName,
+            declaringName.asFullTypeName()!!.copy(nullable = true)
+        ).build()
     }
 
     override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter("value", declaringName.asFullTypeName()!!).addStatement("%N.set(this,·value)", reflectedFieldName).build()
+        return FunSpec.setterBuilder().addParameter(
+            "value",
+            declaringName.asFullTypeName()!!
+        ).addStatement("%N.set(this,·value)", reflectedFieldName).build()
     }
 }

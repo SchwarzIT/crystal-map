@@ -23,29 +23,29 @@ import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.TypeSpec
 
 object TypeConverterExporterObjectGeneration {
-
     val map: Map<String, String> = mapOf()
 
     fun <T> generateTypeConverterExporterObject(
         typeConverterExporterHolder: TypeConverterExporterHolder<T>,
         typeConverterHolders: List<TypeConverterHolder>
     ): FileSpec {
-        val typeSpec = TypeSpec.classBuilder(typeConverterExporterHolder.name + "Instance")
-            .addSuperinterface(
-                ClassName(
-                    typeConverterExporterHolder.sourcePackageName,
-                    typeConverterExporterHolder.name
+        val typeSpec =
+            TypeSpec.classBuilder(typeConverterExporterHolder.name + "Instance")
+                .addSuperinterface(
+                    ClassName(
+                        typeConverterExporterHolder.sourcePackageName,
+                        typeConverterExporterHolder.name
+                    )
                 )
-            )
-            .addSuperinterface(ITypeConverterExporter::class)
-            .addAnnotations(getAnnotations(typeConverterHolders))
-            .addProperty(
-                getTypeConvertersSpec(typeConverterHolders)
-            )
-            .addProperty(
-                getTypeConverterImportablesSpec(typeConverterHolders)
-            )
-            .build()
+                .addSuperinterface(ITypeConverterExporter::class)
+                .addAnnotations(getAnnotations(typeConverterHolders))
+                .addProperty(
+                    getTypeConvertersSpec(typeConverterHolders)
+                )
+                .addProperty(
+                    getTypeConverterImportablesSpec(typeConverterHolders)
+                )
+                .build()
 
         return FileSpec.get(typeConverterExporterHolder.sourcePackageName, typeSpec)
     }
@@ -66,11 +66,12 @@ object TypeConverterExporterObjectGeneration {
             exportConverterVars.add(it.domainClassTypeName)
             exportConverterVars.add(it.instanceClassTypeName)
 
-            val importableBuilder = StringBuilder()
-                .append("%T(")
-                .append("\ntypeConverterInstanceTargetDefinition = %T(pkg = %S, name = %S),")
-                .append("\ndomainTargetDefinition = %T(pkg = %S, name = %S),")
-                .append("\nmapTargetDefinition = %T(pkg = %S, name = %S),")
+            val importableBuilder =
+                StringBuilder()
+                    .append("%T(")
+                    .append("\ntypeConverterInstanceTargetDefinition = %T(pkg = %S, name = %S),")
+                    .append("\ndomainTargetDefinition = %T(pkg = %S, name = %S),")
+                    .append("\nmapTargetDefinition = %T(pkg = %S, name = %S),")
 
             importableConverterVars.add(ImportableConverter::class)
 
@@ -201,9 +202,7 @@ object TypeConverterExporterObjectGeneration {
      *     ))
      * )
      */
-    private fun List<ClassNameDefinition>.toKotlinCodeString(
-        indentLevel: Int = 1
-    ): String {
+    private fun List<ClassNameDefinition>.toKotlinCodeString(indentLevel: Int = 1): String {
         if (isEmpty()) return "listOf()"
 
         val indent = "  ".repeat(indentLevel)
@@ -220,9 +219,7 @@ object TypeConverterExporterObjectGeneration {
         }
     }
 
-    private fun ClassNameDefinition.toKotlinCodeString(
-        indentLevel: Int
-    ): String {
+    private fun ClassNameDefinition.toKotlinCodeString(indentLevel: Int): String {
         val indent = "  ".repeat(indentLevel)
 
         val nullableString = if (nullable) ", nullable = true" else ""
@@ -240,14 +237,16 @@ object TypeConverterExporterObjectGeneration {
         }
     }
 
-    private fun typeConverterMapType() = ClassName("kotlin.collections", "Map")
-        .parameterizedBy(
-            ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
-            ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
-        )
+    private fun typeConverterMapType() =
+        ClassName("kotlin.collections", "Map")
+            .parameterizedBy(
+                ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
+                ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
+            )
 
-    private fun typeConverterImportablesListType() = ClassName("kotlin.collections", "List")
-        .parameterizedBy(
-            ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
-        )
+    private fun typeConverterImportablesListType() =
+        ClassName("kotlin.collections", "List")
+            .parameterizedBy(
+                ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
+            )
 }

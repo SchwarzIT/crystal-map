@@ -3,7 +3,6 @@ package com.schwarz.testdata
 import com.tschuchort.compiletesting.SourceFile
 
 object TestDataHelper {
-
     private const val PACKAGE_DECLARE = "package com.kaufland.testModels\n"
 
     fun clazzAsJavaFileObjects(clazz: String): SourceFile {

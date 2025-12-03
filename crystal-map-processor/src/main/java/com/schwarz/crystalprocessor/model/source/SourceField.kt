@@ -1,19 +1,18 @@
 package com.schwarz.crystalprocessor.model.source
 
 import com.schwarz.crystalapi.Field
-import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.javaToKotlinType
-import com.schwarz.crystalprocessor.util.FieldExtractionUtil
+import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.util.TypeUtil.list
 import com.schwarz.crystalcore.util.TypeUtil.map
 import com.schwarz.crystalcore.util.TypeUtil.mapStringAnyNullable
+import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import javax.lang.model.type.TypeMirror
 
 class SourceField(val fieldAnnotation: Field) : ISourceField {
-
     private val typeMirror: TypeMirror = FieldExtractionUtil.typeMirror(fieldAnnotation)
 
     private fun getSimpleName(type: TypeMirror): String {
@@ -43,11 +42,18 @@ class SourceField(val fieldAnnotation: Field) : ISourceField {
     override val javaToKotlinType = typeMirror.asTypeName().javaToKotlinType()
     override val baseType: TypeName = typeMirror.asTypeName()
 
-    override fun parseMetaType(list: Boolean, subEntity: String?): TypeName {
+    override fun parseMetaType(
+        list: Boolean,
+        subEntity: String?
+    ): TypeName {
         return parseMetaType(list, true, subEntity)
     }
 
-    private fun parseMetaType(list: Boolean, convertMap: Boolean, subEntity: String?): TypeName {
+    private fun parseMetaType(
+        list: Boolean,
+        convertMap: Boolean,
+        subEntity: String?
+    ): TypeName {
         val simpleName = if (subEntity != null && subEntity.contains(simpleName)) subEntity else simpleName
 
         var baseType: TypeName?

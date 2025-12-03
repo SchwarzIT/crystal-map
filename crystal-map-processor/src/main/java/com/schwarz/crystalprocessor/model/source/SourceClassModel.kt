@@ -1,9 +1,9 @@
 package com.schwarz.crystalprocessor.model.source
 
+import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalprocessor.ProcessingContext.asDeclaringName
-import com.schwarz.crystalcore.javaToKotlinType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName

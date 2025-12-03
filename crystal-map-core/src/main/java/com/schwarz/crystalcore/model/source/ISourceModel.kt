@@ -3,7 +3,6 @@ package com.schwarz.crystalcore.model.source
 import com.schwarz.crystalcore.ILogger
 
 interface ISourceModel<T> : IClassModel<T> {
-
     val entityAnnotation: ISourceEntity?
 
     val fullQualifiedName: String
@@ -34,7 +33,10 @@ interface ISourceModel<T> : IClassModel<T> {
 
     val typeConverterInterface: TypeConverterInterface?
 
-    fun logError(logger: ILogger<T>, message: String)
+    fun logError(
+        logger: ILogger<T>,
+        message: String
+    )
 
     val isPrivateModifier: Boolean
 

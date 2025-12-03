@@ -7,8 +7,10 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 
 object CblConstantGeneration {
-
-    fun <T>addConstants(holder: BaseEntityHolder<T>, useNullableMap: Boolean): FunSpec {
+    fun <T> addConstants(
+        holder: BaseEntityHolder<T>,
+        useNullableMap: Boolean
+    ): FunSpec {
         val type = if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
         val builder = FunSpec.builder("addConstants").addModifiers(KModifier.PRIVATE).addParameter("map", type)
 

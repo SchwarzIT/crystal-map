@@ -6,7 +6,6 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 
 interface MapifyElementType<T> {
-
     val elements: List<T>
 
     val fieldName: String

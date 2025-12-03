@@ -12,10 +12,10 @@ import com.schwarz.crystalksp.util.getAnnotation
 
 class SourceMapperModel(source: KSClassDeclaration) :
     IClassModel<KSNode> by SourceClassModel(source), ISourceMapperModel<KSNode> {
-
-    override val typeParams: List<String> = source.typeParameters.map {
-        it.name.getShortName()
-    }.toList()
+    override val typeParams: List<String> =
+        source.typeParameters.map {
+            it.name.getShortName()
+        }.toList()
 
     override val declaringName = ProcessingContext.DeclaringName(source)
     override val fields: HashMap<String, Field<KSNode>> = HashMap()

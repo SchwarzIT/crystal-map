@@ -14,7 +14,6 @@ import javax.lang.model.element.Modifier
 
 class SourceMapperModel(source: Element) :
     IClassModel<Element> by SourceClassModel(source), ISourceMapperModel<Element> {
-
     override val typeParams: List<String> =
         (source as Symbol.ClassSymbol).typeParameters.mapNotNull {
             ElementUtil.splitGenericIfNeeded(it.asType().toString())[0]
