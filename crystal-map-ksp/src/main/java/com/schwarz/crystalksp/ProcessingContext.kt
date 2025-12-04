@@ -81,10 +81,10 @@ object ProcessingContext {
 
     private fun hackyResolving(stringValue: String): TypeName {
         // error types looks like this List<INVARIANT TaskEntity>
-        val splitted = stringValue.replace('<', ' ').replace('>', ' ').split(" ")
+        val splitted = stringValue.replace("Unresolved type for ", "").replace("[", "").replace("]", "").replace('<', ' ').replace('>', ' ').split(" ")
         var isList = false
         for (item in splitted) {
-            if (item == "INVARIANT" || item == "ERROR" || item == "TYPE:" ||
+            if (item == "INVARIANT" || item == "Error" || item == "type:" || item == "ERROR" || item == "TYPE:" ||
                 item.trim()
                     .isEmpty()
             ) {
