@@ -7,13 +7,13 @@ import com.schwarz.crystalcore.model.entity.EntityHolder
 import com.schwarz.crystalcore.model.entity.SchemaClassHolder
 import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
 import com.schwarz.crystalcore.model.source.ISourceModel
-import com.schwarz.crystalcore.validation.model.ModelValidation
 import com.schwarz.crystalcore.model.source.ReducedSourceModel
 import com.schwarz.crystalcore.model.typeconverter.ImportedTypeConverterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterExporterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderFactory
 import com.schwarz.crystalcore.processing.WorkSet
+import com.schwarz.crystalcore.validation.model.ModelValidation
 import com.schwarz.crystalcore.validation.model.PreModelValidation
 
 class ModelWorkSet<T>(
@@ -26,7 +26,6 @@ class ModelWorkSet<T>(
     val allTypeConverterImporterElements: Set<ISourceModel<T>>
 ) :
     WorkSet<T> {
-
     private val entityModels: MutableMap<String, EntityHolder<T>> = HashMap()
 
     private val wrapperModels: MutableMap<String, WrapperEntityHolder<T>> = HashMap()
@@ -90,47 +89,51 @@ class ModelWorkSet<T>(
             entityModels[element.fullQualifiedName] = entityModel
 
             entityModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(
-                    ReducedSourceModel(
-                        entityModel.sourceElement,
-                        it
-                    ),
-                    allWrapperPaths,
-                    wrapperBaseModels
-                )
+                val reduced =
+                    EntityFactory.createEntityHolder(
+                        ReducedSourceModel(
+                            entityModel.sourceElement,
+                            it
+                        ),
+                        allWrapperPaths,
+                        wrapperBaseModels
+                    )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
 
         for (element in allWrapperElements) {
-            val wrapperModel = EntityFactory.createChildEntityHolder(
-                element,
-                allWrapperPaths,
-                wrapperBaseModels
-            )
-            wrapperModels[element.fullQualifiedName] = wrapperModel
-
-            wrapperModel.reducesModels.forEach {
-                val reduced = EntityFactory.createEntityHolder(
-                    ReducedSourceModel(
-                        wrapperModel.sourceElement,
-                        it
-                    ),
+            val wrapperModel =
+                EntityFactory.createChildEntityHolder(
+                    element,
                     allWrapperPaths,
                     wrapperBaseModels
                 )
+            wrapperModels[element.fullQualifiedName] = wrapperModel
+
+            wrapperModel.reducesModels.forEach {
+                val reduced =
+                    EntityFactory.createEntityHolder(
+                        ReducedSourceModel(
+                            wrapperModel.sourceElement,
+                            it
+                        ),
+                        allWrapperPaths,
+                        wrapperBaseModels
+                    )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
             }
         }
 
         for (element in allSchemaClassElements) {
-            val schemaModel = EntityFactory.createSchemaEntityHolder(
-                element,
-                allSchemaClassPaths,
-                schemaBaseModels
-            )
+            val schemaModel =
+                EntityFactory.createSchemaEntityHolder(
+                    element,
+                    allSchemaClassPaths,
+                    schemaBaseModels
+                )
             schemaModels[element.fullQualifiedName] = schemaModel
         }
 

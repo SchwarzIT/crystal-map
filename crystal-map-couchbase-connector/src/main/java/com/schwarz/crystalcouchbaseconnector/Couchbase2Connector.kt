@@ -7,10 +7,13 @@ import java.util.*
 import kotlin.jvm.Throws
 
 abstract class Couchbase2Connector : PersistenceConfig.Connector {
-
     protected abstract fun getDatabase(name: String): Database
 
-    override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
+    override fun getDocument(
+        id: String,
+        dbName: String,
+        onlyInclude: List<String>?
+    ): Map<String, Any>? {
         val document = getDatabase(dbName).getDocument(id) ?: return null
 
         val result = document.toMap()
@@ -28,7 +31,10 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         }
 
     @Throws(PersistenceException::class)
-    override fun deleteDocument(id: String, dbName: String) {
+    override fun deleteDocument(
+        id: String,
+        dbName: String
+    ) {
         try {
             val document = getDatabase(dbName).getDocument(id)
             if (document != null) {
@@ -47,8 +53,9 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         onlyInclude: List<String>?
     ): List<Map<String, Any>> {
         try {
-            val builder = QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
-                .from(DataSource.database(getDatabase(dbName)))
+            val builder =
+                QueryBuilder.select(SelectResult.expression(Meta.id), SelectResult.all())
+                    .from(DataSource.database(getDatabase(dbName)))
 
             parseExpressions(queryParams)?.let {
                 builder.where(it)
@@ -81,21 +88,27 @@ abstract class Couchbase2Connector : PersistenceConfig.Connector {
         var result: Expression? = null
 
         for (queryParam in queryParams) {
-            val equalTo = Expression.property(queryParam.key).equalTo(
-                Expression.value(queryParam.value)
-            )
-            result = if (result == null) {
-                equalTo
-            } else {
-                result.and(equalTo)
-            }
+            val equalTo =
+                Expression.property(queryParam.key).equalTo(
+                    Expression.value(queryParam.value)
+                )
+            result =
+                if (result == null) {
+                    equalTo
+                } else {
+                    result.and(equalTo)
+                }
         }
 
         return result
     }
 
     @Throws(PersistenceException::class)
-    override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
+    override fun upsertDocument(
+        document: MutableMap<String, Any>,
+        id: String?,
+        dbName: String
+    ): Map<String, Any> {
         if (document["_id"] == null && id != null) {
             document["_id"] = id
         }

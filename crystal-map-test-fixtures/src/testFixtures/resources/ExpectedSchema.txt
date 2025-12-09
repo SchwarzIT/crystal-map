@@ -28,24 +28,20 @@ public open class SubSchema(
   public val list: CMJsonList<String> = CMJsonList("list", path)
 
   public val someObject: CMObjectField<TestObjectSchema> = CMObjectField(
-                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else
-          "$path.someObject"),
+                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else "$path.someObject"),
                   "someObject",
                   path,
               )
 
   public val objects: CMObjectList<TestObjectSchema> = CMObjectList(
-                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "objects" else
-          "$path.objects"),
+                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "objects" else "$path.objects"),
                   "objects",
                   path,
               )
 
   public val dateConverterField: CMConverterField<OffsetDateTime, String> =
-      CMConverterField("date_converter_field", path,
-      com.kaufland.testModels.DateTypeConverterInstance)
+      CMConverterField("date_converter_field", path, com.kaufland.testModels.DateTypeConverterInstance)
 
   public val dateConverterList: CMConverterList<OffsetDateTime, String> =
-      CMConverterList("date_converter_list", path,
-      com.kaufland.testModels.DateTypeConverterInstance)
+      CMConverterList("date_converter_list", path, com.kaufland.testModels.DateTypeConverterInstance)
 }

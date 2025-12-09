@@ -1,9 +1,9 @@
 package com.schwarz.crystalprocessor.model.source
 
+import com.schwarz.crystalcore.javaToKotlinType
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
 import com.schwarz.crystalprocessor.ProcessingContext.asDeclaringName
-import com.schwarz.crystalcore.javaToKotlinType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
@@ -12,11 +12,8 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
 class SourceClassModel(override val source: Element) : IClassModel<Element> {
-    override val sourceClazzSimpleName: String = if (source is Symbol.ClassSymbol) {
-        source.simpleName.toString()
-    } else {
-        source.simpleName.toString()
-    }
+    override val sourceClazzSimpleName: String = source.simpleName.toString()
+
     override val sourcePackage: String = if (source is Symbol.ClassSymbol) source.packge().toString() else ""
 
     override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)

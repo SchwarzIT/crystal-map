@@ -4,23 +4,22 @@ import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.mapper.Field
 import com.schwarz.crystalcore.model.mapper.GetterSetter
 import com.schwarz.crystalcore.model.source.IClassModel
-import com.schwarz.crystalcore.model.source.ISourceDeclaringName
-import com.schwarz.crystalcore.model.source.ISourceMapper
-import com.schwarz.crystalprocessor.ProcessingContext
+import com.schwarz.crystalcore.model.source.ISourceMapperModel
+import com.schwarz.crystalprocessor.ProcessingContext.DeclaringName
+import com.schwarz.crystalprocessor.util.ElementUtil
 import com.sun.tools.javac.code.Symbol
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 
-class SourceMapper(source: Element) :
-    IClassModel<Element> by SourceClassModel(source), ISourceMapper<Element> {
-
-    override val typeParams: List<ISourceDeclaringName> =
+class SourceMapperModel(source: Element) :
+    IClassModel<Element> by SourceClassModel(source), ISourceMapperModel<Element> {
+    override val typeParams: List<String> =
         (source as Symbol.ClassSymbol).typeParameters.mapNotNull {
-            ProcessingContext.DeclaringName(it.asType())
+            ElementUtil.splitGenericIfNeeded(it.asType().toString())[0]
         }
 
-    override val declaringName = ProcessingContext.DeclaringName(source.asType())
+    override val declaringName = DeclaringName(source.asType())
     override val fields: HashMap<String, Field<Element>> = HashMap()
 
     override val getterSetters: HashMap<String, GetterSetter<Element>> = HashMap()
@@ -33,7 +32,7 @@ class SourceMapper(source: Element) :
 
             if (childElement.kind == ElementKind.FIELD) {
                 childElement.getAnnotation(Mapify::class.java)?.apply {
-                    fields[childElement.simpleName.toString()] = Field(SourceClassModel(childElement), this)
+                    fields[childElement.simpleName.toString()] = Field(SourceClassModel(childElement), SourceMapify(this))
                 }
             }
 
@@ -45,14 +44,14 @@ class SourceMapper(source: Element) :
                                 GetterSetter()
                             }.apply {
                                 setterElement = SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
-                                mapify = anno
+                                mapify = SourceMapify(anno)
                             }
                         } else if (it.startsWith("get")) {
                             getterSetters.getOrPut(it.substringAfter("get")) {
                                 GetterSetter()
                             }.apply {
                                 getterElement = SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
-                                mapify = anno
+                                mapify = SourceMapify(anno)
                             }
                         }
                         null

@@ -8,17 +8,25 @@ import java.io.Serializable
 
 class MapifyHolder<T>(val mapifyElement: MapifyElementType<T>) :
     MapifyElementType<T> by mapifyElement {
-
-    val typeHandleMode: TypeHandleMode = when {
-        declaringName.isPlainType() -> TypeHandleMode.PLAIN
-        declaringName.getAnnotation(Mapper::class.java) != null -> TypeHandleMode.MAPPER
-        declaringName.isTypeVar() -> TypeHandleMode.TYPEVAR
-        isMapifyable(declaringName) -> TypeHandleMode.MAPIFYABLE
-        else -> TypeHandleMode.UNKNOWN
-    }
+    val typeHandleMode: TypeHandleMode =
+        when {
+            declaringName.isPlainType() -> TypeHandleMode.PLAIN
+            declaringName.isAnnotationPresent(Mapper::class.java) -> TypeHandleMode.MAPPER
+            declaringName.isTypeVar() -> TypeHandleMode.TYPEVAR
+            isMapifyable(declaringName) -> TypeHandleMode.MAPIFYABLE
+            else -> TypeHandleMode.UNKNOWN
+        }
 
     private fun isMapifyable(declaringName: ISourceDeclaringName): Boolean {
-        return (declaringName.isProcessingType() || declaringName.isAssignable(List::class.java) || declaringName.isAssignable(Map::class.java) || declaringName.isAssignable(Serializable::class.java) || declaringName.getAnnotation(Mapifyable::class.java) != null) && declaringName.typeParams.all { isMapifyable(it) }
+        return (
+            declaringName.isProcessingType() ||
+                declaringName.isPlainType() ||
+                declaringName.isAssignable(List::class) ||
+                declaringName.isAssignable(Map::class) ||
+                declaringName.isAssignable(Serializable::class) ||
+                declaringName.isAnnotationPresent(Mapifyable::class.java) ||
+                declaringName.isAnnotationPresent(Mapper::class.java) || declaringName.isTypeVar()
+            ) && declaringName.typeParams.all { isMapifyable(it) }
     }
 
     enum class TypeHandleMode {

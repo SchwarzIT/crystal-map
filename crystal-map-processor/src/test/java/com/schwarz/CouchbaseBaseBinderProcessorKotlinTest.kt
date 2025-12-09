@@ -10,11 +10,9 @@ import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Assert
 import org.junit.Test
-import java.io.File
 
 @OptIn(ExperimentalCompilerApi::class)
 class CouchbaseBaseBinderProcessorKotlinTest {
-
     @Test
     fun testSuccessSimpleMapper() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("SimpleMapperTest"))
@@ -78,107 +76,117 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testSuccessWithQueriesAndSuspendFunctions() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"),
+                useSuspend = true
+            )
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessWithGenerateAccessorAndSuspendFunctions() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"),
+                useSuspend = true
+            )
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDeprecatedGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDeprecatedWithReduceGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFieldsAndReduce"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFieldsAndReduce"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDocIdGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDocIdEnumGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithEnumDocId"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithEnumDocId"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessDocIdSegmentGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testFailedWrongDeprecatedGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"),
+                useSuspend = true
+            )
         Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
         Assert.assertTrue(compilation.messages.contains("replacement [name2] for field [name] does not exists"))
     }
 
     @Test
     fun testSuccessDeprecatedClassGeneration() {
-        val compilation = compileKotlin(
-            TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedClass"),
-            useSuspend = true
-        )
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedClass"),
+                useSuspend = true
+            )
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testKotlinAbstractGeneration() {
-        val subEntity = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                ENTITY_HEADER +
-                "@Entity\n" +
-                "@Fields(\n" +
-                "Field(name = \"test\", type = String::class),\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
-                ")\n" +
-                "abstract class Sub {\n" +
-                "\n" +
-                " companion object {\n" +
-                "        const val TYPE: String = \"DWG\"" +
-                "}\n" +
-                " abstract var test : String?\n" +
-                "}"
-        )
+        val subEntity =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    ENTITY_HEADER +
+                    "@Entity\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test\", type = String::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
+                    ")\n" +
+                    "abstract class Sub {\n" +
+                    "\n" +
+                    " companion object {\n" +
+                    "        const val TYPE: String = \"DWG\"" +
+                    "}\n" +
+                    " abstract var test : String?\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(subEntity)
 
@@ -188,23 +196,24 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun testKotlinAbstractGenerationWithLongFields() {
-        val subEntity = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                ENTITY_HEADER +
-                "@Entity\n" +
-                "@Fields(\n" +
-                "Field(name = \"test_test_test\", type = String::class),\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
-                ")\n" +
-                "abstract class Sub {\n" +
-                "\n" +
-                " companion object {\n" +
-                "        const val TYPE: String = \"DWG\"" +
-                "}\n" +
-                " abstract var testTestTest : String?\n" +
-                "}"
-        )
+        val subEntity =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    ENTITY_HEADER +
+                    "@Entity\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test_test_test\", type = String::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
+                    ")\n" +
+                    "abstract class Sub {\n" +
+                    "\n" +
+                    " companion object {\n" +
+                    "        const val TYPE: String = \"DWG\"" +
+                    "}\n" +
+                    " abstract var testTestTest : String?\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(subEntity)
 
@@ -213,45 +222,48 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinSchemaGeneration() {
-        val expected = File("src/test/resources/ExpectedSchema.txt").readLines()
-        val testObject = SourceFile.kotlin(
-            "TestObject.kt",
-            PACKAGE_HEADER +
-                "import com.schwarz.crystalapi.SchemaClass\n" +
-                "@SchemaClass\n" +
-                "class TestObject"
-        )
-        val sub = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                "import com.kaufland.testModels.TestObject\n" +
-                "import com.schwarz.crystalapi.Field\n" +
-                "import com.schwarz.crystalapi.Fields\n" +
-                "import com.schwarz.crystalapi.SchemaClass\n" +
-                "import java.time.OffsetDateTime\n" +
-                "@SchemaClass\n" +
-                "@Fields(\n" +
-                "Field(name = \"test_test_test\", type = Number::class),\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true),\n" +
-                "Field(name = \"list\", type = String::class, list = true),\n" +
-                "Field(name = \"someObject\", type = TestObject::class),\n" +
-                "Field(name = \"objects\", type = TestObject::class, list = true),\n" +
-                "Field(name = \"date_converter_field\", type = OffsetDateTime::class),\n" +
-                "Field(name = \"date_converter_list\", type = OffsetDateTime::class, list = true),\n" +
-                ")\n" +
-                "class Sub"
-        )
-        val typeConverter = SourceFile.kotlin(
-            "DateTypeConverter.kt",
-            PACKAGE_HEADER +
-                TYPE_CONVERTER_HEADER +
-                "import java.time.OffsetDateTime\n" +
-                "@TypeConverter\n" +
-                "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
-                "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-                "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                "}"
-        )
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSchema.txt").readAllBytes()).lines()
+        val testObject =
+            SourceFile.kotlin(
+                "TestObject.kt",
+                PACKAGE_HEADER +
+                    "import com.schwarz.crystalapi.SchemaClass\n" +
+                    "@SchemaClass\n" +
+                    "class TestObject"
+            )
+        val sub =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    "import com.kaufland.testModels.TestObject\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "import com.schwarz.crystalapi.SchemaClass\n" +
+                    "import java.time.OffsetDateTime\n" +
+                    "@SchemaClass\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test_test_test\", type = Number::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true),\n" +
+                    "Field(name = \"list\", type = String::class, list = true),\n" +
+                    "Field(name = \"someObject\", type = TestObject::class),\n" +
+                    "Field(name = \"objects\", type = TestObject::class, list = true),\n" +
+                    "Field(name = \"date_converter_field\", type = OffsetDateTime::class),\n" +
+                    "Field(name = \"date_converter_list\", type = OffsetDateTime::class, list = true),\n" +
+                    ")\n" +
+                    "class Sub"
+            )
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}"
+            )
         val compilation = compileKotlin(typeConverter, testObject, sub)
 
         val actual = compilation.generatedFiles.find { it.name == "SubSchema.kt" }!!.readLines()
@@ -262,49 +274,52 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinSchemaGenerationWithBasedOn() {
-        val expected = File("src/test/resources/ExpectedSubSchema.txt").readLines()
-        val testObject = SourceFile.kotlin(
-            "TestObject.kt",
-            PACKAGE_HEADER +
-                "import com.schwarz.crystalapi.Fields\n" +
-                "import com.schwarz.crystalapi.Field\n" +
-                "import com.schwarz.crystalapi.MapWrapper\n" +
-                "import com.schwarz.crystalapi.SchemaClass\n" +
-                "@MapWrapper\n" +
-                "@SchemaClass\n" +
-                "@Fields(\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
-                ")\n" +
-                "open class TestObject"
-        )
-        val base = SourceFile.kotlin(
-            "Base.kt",
-            PACKAGE_HEADER +
-                "import com.schwarz.crystalapi.BaseModel\n" +
-                "import com.schwarz.crystalapi.Fields\n" +
-                "import com.schwarz.crystalapi.Field\n" +
-                "@BaseModel\n" +
-                "@Fields(\n" +
-                "Field(name = \"someObject\", type = TestObject::class)\n" +
-                ")\n" +
-                "open class Base"
-        )
-        val sub = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                "import com.kaufland.testModels.TestObject\n" +
-                "import com.schwarz.crystalapi.BasedOn\n" +
-                "import com.schwarz.crystalapi.Field\n" +
-                "import com.schwarz.crystalapi.Fields\n" +
-                "import com.schwarz.crystalapi.SchemaClass\n" +
-                "import java.time.OffsetDateTime\n" +
-                "@SchemaClass\n" +
-                "@BasedOn(Base::class)\n" +
-                "@Fields(\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = \"sub\", readonly = true)\n" +
-                ")\n" +
-                "class Sub"
-        )
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSubSchema.txt").readAllBytes()).lines()
+        val testObject =
+            SourceFile.kotlin(
+                "TestObject.kt",
+                PACKAGE_HEADER +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "import com.schwarz.crystalapi.MapWrapper\n" +
+                    "import com.schwarz.crystalapi.SchemaClass\n" +
+                    "@MapWrapper\n" +
+                    "@SchemaClass\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
+                    ")\n" +
+                    "open class TestObject"
+            )
+        val base =
+            SourceFile.kotlin(
+                "Base.kt",
+                PACKAGE_HEADER +
+                    "import com.schwarz.crystalapi.BaseModel\n" +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "@BaseModel\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"someObject\", type = TestObject::class)\n" +
+                    ")\n" +
+                    "open class Base"
+            )
+        val sub =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    "import com.kaufland.testModels.TestObject\n" +
+                    "import com.schwarz.crystalapi.BasedOn\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "import com.schwarz.crystalapi.SchemaClass\n" +
+                    "import java.time.OffsetDateTime\n" +
+                    "@SchemaClass\n" +
+                    "@BasedOn(Base::class)\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = \"sub\", readonly = true)\n" +
+                    ")\n" +
+                    "class Sub"
+            )
         val compilation = compileKotlin(base, testObject, sub)
 
         val actual = compilation.generatedFiles.find { it.name == "SubSchema.kt" }!!.readLines()
@@ -315,22 +330,23 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testKotlinPrivateGeneration() {
-        val subEntity = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                ENTITY_HEADER +
-                "@Entity\n" +
-                "@Fields(\n" +
-                "Field(name = \"test\", type = String::class),\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
-                ")\n" +
-                "class Sub {\n" +
-                "\n" +
-                " companion object {\n" +
-                "        const val TYPE: String = \"DWG\"" +
-                "}\n" +
-                "}"
-        )
+        val subEntity =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    ENTITY_HEADER +
+                    "@Entity\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test\", type = String::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
+                    ")\n" +
+                    "class Sub {\n" +
+                    "\n" +
+                    " companion object {\n" +
+                    "        const val TYPE: String = \"DWG\"" +
+                    "}\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(subEntity)
 
@@ -341,22 +357,23 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun testKotlinConstructorFailGeneration() {
-        val subEntity = SourceFile.kotlin(
-            "Sub.kt",
-            PACKAGE_HEADER +
-                ENTITY_HEADER +
-                "@Entity\n" +
-                "@Fields(\n" +
-                "Field(name = \"test\", type = String::class),\n" +
-                "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
-                ")\n" +
-                "open class Sub(a : String) {\n" +
-                "\n" +
-                " companion object {\n" +
-                "        const val TYPE: String = \"DWG\"" +
-                "}\n" +
-                "}"
-        )
+        val subEntity =
+            SourceFile.kotlin(
+                "Sub.kt",
+                PACKAGE_HEADER +
+                    ENTITY_HEADER +
+                    "@Entity\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"test\", type = String::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = Sub.TYPE, readonly = true)\n" +
+                    ")\n" +
+                    "open class Sub(a : String) {\n" +
+                    "\n" +
+                    " companion object {\n" +
+                    "        const val TYPE: String = \"DWG\"" +
+                    "}\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(subEntity)
 
@@ -366,40 +383,44 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testTypeConverterGeneration() {
-        val expected = File("src/test/resources/ExpectedTypeConverter.txt").readLines()
-        val typeConverter = SourceFile.kotlin(
-            "DateTypeConverter.kt",
-            PACKAGE_HEADER +
-                TYPE_CONVERTER_HEADER +
-                "import java.time.OffsetDateTime\n" +
-                "@TypeConverter\n" +
-                "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
-                "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-                "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                "}"
-        )
+        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverter.txt").readAllBytes()).lines()
+
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(typeConverter)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
-        val actual = compilation.generatedFiles.find { it.name == "DateTypeConverterInstance.kt" }
-            ?.readLines()
+        val actual =
+            compilation.generatedFiles.find { it.name == "DateTypeConverterInstance.kt" }
+                ?.readLines()
         Assert.assertEquals(expected, actual)
     }
 
     @Test
     fun testTypeConverterFinalClass() {
-        val typeConverter = SourceFile.kotlin(
-            "DateTypeConverter.kt",
-            PACKAGE_HEADER +
-                TYPE_CONVERTER_HEADER +
-                "import java.time.OffsetDateTime\n" +
-                "@TypeConverter\n" +
-                "class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
-                "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-                "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                "}"
-        )
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(typeConverter)
 
@@ -409,75 +430,99 @@ class CouchbaseBaseBinderProcessorKotlinTest {
 
     @Test
     fun testTypeConverterImplementsInterface() {
-        val typeConverter = SourceFile.kotlin(
-            "DateTypeConverter.kt",
-            PACKAGE_HEADER +
-                TYPE_CONVERTER_HEADER +
-                "import java.time.OffsetDateTime\n" +
-                "@TypeConverter\n" +
-                "open class DateTypeConverter {\n" +
-                "fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-                "fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                "}"
-        )
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "open class DateTypeConverter {\n" +
+                    "fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}"
+            )
 
         val compilation = compileKotlin(typeConverter)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
-        Assert.assertTrue(compilation.messages.contains("Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface"))
+        Assert.assertTrue(
+            compilation.messages.contains(
+                "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface"
+            )
+        )
     }
 
     @Test
     fun testTypeConverterExporterGeneration() {
-        val expected = File("src/test/resources/ExpectedTypeConverterExporter.txt").readLines().map { it.trim() }
-        val sourceFileContents = PACKAGE_HEADER +
-            TYPE_CONVERTER_EXPORTER_HEADER +
-            TYPE_CONVERTER_HEADER +
-            "import java.time.OffsetDateTime\n" +
-            "@TypeConverter\n" +
-            "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
-            "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
-            "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-            "}\n" +
-            "@TypeConverterExporter\n" +
-            "interface TestTypeConverters"
-        val typeConverter = SourceFile.kotlin(
-            "TestTypeConverters.kt",
-            sourceFileContents
-        )
+        val expected =
+            String(
+                this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporter.txt").readAllBytes()
+            ).lines().map {
+                it.trim()
+            }
+
+        val sourceFileContents =
+            PACKAGE_HEADER +
+                TYPE_CONVERTER_EXPORTER_HEADER +
+                TYPE_CONVERTER_HEADER +
+                "import java.time.OffsetDateTime\n" +
+                "@TypeConverter\n" +
+                "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                "}\n" +
+                "@TypeConverterExporter\n" +
+                "interface TestTypeConverters"
+        val typeConverter =
+            SourceFile.kotlin(
+                "TestTypeConverters.kt",
+                sourceFileContents
+            )
 
         val compilation = compileKotlin(typeConverter)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
-        val actual = compilation.generatedFiles.find { it.name == "TestTypeConvertersInstance.kt" }
-            ?.readLines()?.map { it.trim() }
+        val actual =
+            compilation.generatedFiles.find { it.name == "TestTypeConvertersInstance.kt" }
+                ?.readLines()?.map { it.trim() }
         Assert.assertEquals(expected, actual)
     }
 
     @Test
     fun testTypeConverterExporterGenerationWithGenericTypes() {
-        val expected = File("src/test/resources/ExpectedTypeConverterExporterGenerics.txt").readLines().map { it.trim() }
-        val sourceFileContents = PACKAGE_HEADER +
-            TYPE_CONVERTER_EXPORTER_HEADER +
-            TYPE_CONVERTER_HEADER +
-            "import java.time.OffsetDateTime\n" +
-            "@TypeConverter\n" +
-            "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, Map<String, Any?>> {\n" +
-            "override fun write(value: OffsetDateTime?): Map<String, Any?>? = mapOf()\n" +
-            "override fun read(value: Map<String, Any?>?): OffsetDateTime? = OffsetDateTime.now()\n" +
-            "}\n" +
-            "@TypeConverterExporter\n" +
-            "interface TestTypeConvertersGeneric"
-        val typeConverter = SourceFile.kotlin(
-            "TestTypeConvertersGeneric.kt",
-            sourceFileContents
-        )
+        val expected =
+            String(
+                this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporterGenerics.txt").readAllBytes()
+            ).lines().map {
+                it.trim()
+            }
+
+        val sourceFileContents =
+            PACKAGE_HEADER +
+                TYPE_CONVERTER_EXPORTER_HEADER +
+                TYPE_CONVERTER_HEADER +
+                "import java.time.OffsetDateTime\n" +
+                "@TypeConverter\n" +
+                "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, Map<String, Any?>> {\n" +
+                "override fun write(value: OffsetDateTime?): Map<String, Any?>? = mapOf()\n" +
+                "override fun read(value: Map<String, Any?>?): OffsetDateTime? = OffsetDateTime.now()\n" +
+                "}\n" +
+                "@TypeConverterExporter\n" +
+                "interface TestTypeConvertersGeneric"
+        val typeConverter =
+            SourceFile.kotlin(
+                "TestTypeConvertersGeneric.kt",
+                sourceFileContents
+            )
 
         val compilation = compileKotlin(typeConverter)
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
-        val actual = compilation.generatedFiles.find { it.name == "TestTypeConvertersGenericInstance.kt" }
-            ?.readLines()?.map { it.trim() }
+        val actual =
+            compilation.generatedFiles.find { it.name == "TestTypeConvertersGenericInstance.kt" }
+                ?.readLines()?.map { it.trim() }
+
         Assert.assertEquals(expected, actual)
     }
 
@@ -502,7 +547,6 @@ class CouchbaseBaseBinderProcessorKotlinTest {
     }
 
     companion object {
-
         const val PACKAGE_HEADER: String =
             "package com.kaufland.testModels\n" +
                 "\n"

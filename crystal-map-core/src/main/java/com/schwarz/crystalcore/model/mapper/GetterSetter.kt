@@ -1,12 +1,12 @@
 package com.schwarz.crystalcore.model.mapper
 
-import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.source.IClassModel
+import com.schwarz.crystalcore.model.source.ISourceMapify
 
 class GetterSetter<T>() {
     var getterElement: IClassModel<T>? = null
     var setterElement: IClassModel<T>? = null
-    var mapify: Mapify? = null
+    var mapify: ISourceMapify? = null
 
     fun getterName(): String {
         return getterElement!!.sourceClazzSimpleName

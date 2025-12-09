@@ -18,8 +18,7 @@ public open class SubSchema(
   public val type: CMJsonField<String> = CMJsonField("type", path)
 
   public val someObject: CMObjectField<TestObjectSchema> = CMObjectField(
-                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else
-          "$path.someObject"),
+                  com.kaufland.testModels.TestObjectSchema(if (path.isBlank()) "someObject" else "$path.someObject"),
                   "someObject",
                   path,
               )

@@ -20,7 +20,10 @@ open class DWG {
         const val TYPE: String = "DWG"
         const val PREFIX: String = "dwg"
 
-        fun documentId(country: String, item_type: String): String {
+        fun documentId(
+            country: String,
+            item_type: String
+        ): String {
             return "$PREFIX:$country:$item_type"
         }
     }

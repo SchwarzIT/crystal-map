@@ -34,13 +34,20 @@ import com.schwarz.crystalapi.deprecated.DeprecationType
     Field(name = "kolli_qty", type = Int::class),
     Field(name = "dwg", type = String::class)
 )
-@Deprecated(type = DeprecationType.ENTITY_DEPRECATION, replacedBy = StoreArticle::class, fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")])
+@Deprecated(
+    type = DeprecationType.ENTITY_DEPRECATION,
+    replacedBy = StoreArticle::class,
+    fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")]
+)
 open class BaseArticle {
     companion object {
         const val PREFIX: String = "basearticle"
         const val TYPE: String = "BaseArticle"
 
-        fun documentId(country: String, article_no: String): String {
+        fun documentId(
+            country: String,
+            article_no: String
+        ): String {
             return "$PREFIX:$country:$article_no"
         }
     }

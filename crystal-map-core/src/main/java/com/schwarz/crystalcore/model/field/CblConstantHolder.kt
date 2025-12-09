@@ -1,23 +1,20 @@
 package com.schwarz.crystalcore.model.field
 
+import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystalcore.generation.model.KDocGeneration
 import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
-import com.squareup.kotlinpoet.*
-
-import java.util.Arrays
-
-import com.schwarz.crystalapi.util.CrystalWrap
 import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterProcessingException
+import com.squareup.kotlinpoet.*
+import java.util.Arrays
 
 /**
  * Created by sbra0902 on 21.06.17.
  */
 
-class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(field.fieldAnnotation.name, field) {
-
-    val constantValue: String = field.fieldAnnotation.defaultValue
+class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(field.name, field) {
+    val constantValue: String = field.defaultValue
 
     val constantValueAccessorName = "DOC_$constantName"
 
@@ -54,8 +51,9 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
                 ).build()
             )
         } else {
-            val typeConverterHolder = typeConvertersByConvertedClass[fieldType]
-                ?: throw TypeConverterProcessingException("Missing type conversion for $fieldType")
+            val typeConverterHolder =
+                typeConvertersByConvertedClass[fieldType]
+                    ?: throw TypeConverterProcessingException("Missing type conversion for $fieldType")
 
             builder.getter(
                 FunSpec.getterBuilder().addStatement(

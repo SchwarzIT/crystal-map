@@ -46,7 +46,7 @@ public class LoggerTest {
         try {
             new Logger(mMock).abortWithError("abortMessage", new ArrayList<>(), null);
             Assert.fail("Should throw Exception");
-        } catch (RuntimeException ignored) {
+        } catch (Exception ignored) {
 
         }
         Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "abortMessage", null);

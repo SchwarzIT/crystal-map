@@ -27,7 +27,6 @@ import j2html.tags.UnescapedText
 import java.io.File
 
 class DocumentationGenerator(path: String, fileName: String) {
-
     private val path = File(path)
 
     private val file = File(path, fileName)
@@ -35,87 +34,93 @@ class DocumentationGenerator(path: String, fileName: String) {
     private val docuEntitySegments = mutableMapOf<String, DomContent>()
 
     fun generate() {
-        val document = html(
-            head(
-                title("EntityFramework Entities"),
-                style(
-                    "\n" +
-                        ".card {\n" +
-                        "  width: 100%;\n" +
-                        "  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);\n" +
-                        "  padding: 16px;\n" +
-                        "  text-align: center;\n" +
-                        "  background-color: #f2f2f2;\n" +
-                        "}\n" +
-                        ".table {\n" +
-                        "  font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\n" +
-                        "  border-collapse: collapse;\n" +
-                        "  width: 100%;\n" +
-                        "}\n" +
+        val document =
+            html(
+                head(
+                    title("EntityFramework Entities"),
+                    style(
                         "\n" +
-                        ".table td, .table th {\n" +
-                        "  border: 1px solid #ddd;\n" +
-                        "  padding: 8px;\n" +
-                        "}\n" +
-                        "\n" +
-                        ".table tr:nth-child(even){background-color: #f2f2f2;}\n" +
-                        "\n" +
-                        ".table tr:hover {background-color: #ddd;}\n" +
-                        "\n" +
-                        ".table th {\n" +
-                        "  padding-top: 12px;\n" +
-                        "  padding-bottom: 12px;\n" +
-                        "  text-align: left;\n" +
-                        "  background-color: #4CAF50;\n" +
-                        "  color: white;\n" +
-                        "}\n"
+                            ".card {\n" +
+                            "  width: 100%;\n" +
+                            "  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);\n" +
+                            "  padding: 16px;\n" +
+                            "  text-align: center;\n" +
+                            "  background-color: #f2f2f2;\n" +
+                            "}\n" +
+                            ".table {\n" +
+                            "  font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\n" +
+                            "  border-collapse: collapse;\n" +
+                            "  width: 100%;\n" +
+                            "}\n" +
+                            "\n" +
+                            ".table td, .table th {\n" +
+                            "  border: 1px solid #ddd;\n" +
+                            "  padding: 8px;\n" +
+                            "}\n" +
+                            "\n" +
+                            ".table tr:nth-child(even){background-color: #f2f2f2;}\n" +
+                            "\n" +
+                            ".table tr:hover {background-color: #ddd;}\n" +
+                            "\n" +
+                            ".table th {\n" +
+                            "  padding-top: 12px;\n" +
+                            "  padding-bottom: 12px;\n" +
+                            "  text-align: left;\n" +
+                            "  background-color: #4CAF50;\n" +
+                            "  color: white;\n" +
+                            "}\n"
+                    )
+                ),
+                body(
+                    main(
+                        attrs("#main.content"),
+                        div(*docuEntitySegments.values.toTypedArray())
+                    )
                 )
-            ),
-            body(
-                main(
-                    attrs("#main.content"),
-                    div(*docuEntitySegments.values.toTypedArray())
-                )
-            )
-        ).renderFormatted()
+            ).renderFormatted()
 
         path.mkdirs()
         file.writeText(document)
     }
 
-    fun <T>addEntitySegments(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntitySegments(entityHolder: BaseEntityHolder<T>) {
         if (docuEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
             return
         }
 
         val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
-        docuEntitySegments[entityHolder.sourceClazzSimpleName] = div().withId(entityHolder.sourceClazzSimpleName).with(
-            h1(entityHolder.sourceClazzSimpleName),
-            rawHtml(btnWithSectionLink),
-            evaluateAvailableTypes(entityHolder.sourceElement),
-            br(),
-            *buildComment(entityHolder.comment),
-            br(),
-            table(
-                attrs(".table"),
-                thead(*createTableHead()),
-                tbody(
-                    each(entityHolder.fields) { field ->
-                        tr(
-                            *parseField(field.value)
-                        )
-                    },
-                    each(entityHolder.fieldConstants) { field ->
-                        tr(*parseField(field.value))
-                    }
+        docuEntitySegments[entityHolder.sourceClazzSimpleName] =
+            div().withId(entityHolder.sourceClazzSimpleName).with(
+                h1(entityHolder.sourceClazzSimpleName),
+                rawHtml(btnWithSectionLink),
+                evaluateAvailableTypes(entityHolder.sourceElement),
+                br(),
+                *buildComment(entityHolder.comment),
+                br(),
+                table(
+                    attrs(".table"),
+                    thead(*createTableHead()),
+                    tbody(
+                        each(entityHolder.fields) { field ->
+                            tr(
+                                *parseField(field.value)
+                            )
+                        },
+                        each(entityHolder.fieldConstants) { field ->
+                            tr(*parseField(field.value))
+                        }
+                    )
                 )
             )
-        )
     }
 
-    private fun <T>evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
-        val entitySymbol = UnescapedText("<small> Entity: ${if (sourceElement?.entityAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
-        val wrapperSymbol = UnescapedText("<small> MapWrapper: ${if (sourceElement?.mapWrapperAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
+    private fun <T> evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
+        val entitySymbol =
+            UnescapedText("<small> Entity: ${if (sourceElement?.entityAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
+        val wrapperSymbol =
+            UnescapedText(
+                "<small> MapWrapper: ${if (sourceElement?.mapWrapperAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>"
+            )
 
         return table(attrs(".card"), tr(td(entitySymbol), td(wrapperSymbol)))
     }
@@ -125,7 +130,13 @@ class DocumentationGenerator(path: String, fileName: String) {
     }
 
     private fun parseField(fields: CblBaseFieldHolder): Array<DomContent> {
-        return arrayOf(td(fields.dbField), td(buildDisplayableType(fields.simpleName, fields.isIterable)), td(fields.defaultValue), td(if (fields.isConstant) "X" else ""), td(*buildComment(fields.comment)))
+        return arrayOf(
+            td(fields.dbField),
+            td(buildDisplayableType(fields.simpleName, fields.isIterable)),
+            td(fields.defaultValue),
+            td(if (fields.isConstant) "X" else ""),
+            td(*buildComment(fields.comment))
+        )
     }
 
     private fun buildComment(comments: Array<String>): Array<DomContent> {
@@ -134,7 +145,10 @@ class DocumentationGenerator(path: String, fileName: String) {
             .toTypedArray()
     }
 
-    private fun buildDisplayableType(simpleName: String, iterable: Boolean): String {
+    private fun buildDisplayableType(
+        simpleName: String,
+        iterable: Boolean
+    ): String {
         return if (iterable) {
             "List<$simpleName>"
         } else {

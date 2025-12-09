@@ -1,7 +1,13 @@
 package com.schwarz.crystalcore.generation.model
 
+import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.MandatoryCheck
+import com.schwarz.crystalapi.PersistenceConfig
+import com.schwarz.crystalapi.PersistenceException
+import com.schwarz.crystalcore.generation.MapifyableImplGeneration
 import com.schwarz.crystalcore.model.entity.EntityHolder
 import com.schwarz.crystalcore.model.id.DocIdHolder
+import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
 import com.schwarz.crystalcore.util.TypeUtil.string
 import com.squareup.kotlinpoet.CodeBlock
@@ -9,30 +15,24 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.jvm.throws
-import com.schwarz.crystalapi.Entity
-import com.schwarz.crystalapi.MandatoryCheck
-import com.schwarz.crystalapi.PersistenceConfig
-import com.schwarz.crystalapi.PersistenceException
-import com.schwarz.crystalcore.generation.MapifyableImplGeneration
-import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
-import com.squareup.kotlinpoet.TypeName
 
 class EntityGeneration {
-
     private val id: FunSpec
-        get() = FunSpec.builder("getId")
-            .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-            .returns(string().copy(nullable = true))
-            .addStatement(
-                "return mDoc.get(%N) as %T",
-                "_ID",
-                string().copy(nullable = true)
-            )
-            .build()
+        get() =
+            FunSpec.builder("getId")
+                .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
+                .returns(string().copy(nullable = true))
+                .addStatement(
+                    "return mDoc.get(%N) as %T",
+                    "_ID",
+                    string().copy(nullable = true)
+                )
+                .build()
 
-    fun <T>generateModel(
+    fun <T> generateModel(
         holder: EntityHolder<T>,
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
@@ -62,47 +62,48 @@ class EntityGeneration {
 
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
-        val typeBuilder = TypeSpec.classBuilder(holder.entitySimpleName)
-            .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(TypeUtil.iEntity())
-            .addSuperinterface(holder.interfaceTypeName)
-            .addSuperinterface(MandatoryCheck::class)
-            .addProperty(holder.dbNameProperty())
-            .addFunction(
-                EnsureTypesGeneration.ensureTypes(
-                    holder,
-                    false,
-                    typeConvertersByConvertedClass
+        val typeBuilder =
+            TypeSpec.classBuilder(holder.entitySimpleName)
+                .addModifiers(KModifier.PUBLIC)
+                .addSuperinterface(TypeUtil.iEntity())
+                .addSuperinterface(holder.interfaceTypeName)
+                .addSuperinterface(MandatoryCheck::class)
+                .addProperty(holder.dbNameProperty())
+                .addFunction(
+                    EnsureTypesGeneration.ensureTypes(
+                        holder,
+                        false,
+                        typeConvertersByConvertedClass
+                    )
                 )
-            )
-            .addFunction(
-                CblDefaultGeneration.addDefaults(
-                    holder,
-                    false,
-                    typeConvertersByConvertedClass
+                .addFunction(
+                    CblDefaultGeneration.addDefaults(
+                        holder,
+                        false,
+                        typeConvertersByConvertedClass
+                    )
                 )
-            )
-            .addFunction(CblConstantGeneration.addConstants(holder, false))
-            .addFunction(ValidateMethodGeneration.generate(holder, true))
-            .addProperty(
-                PropertySpec.builder(
-                    "mDoc",
-                    TypeUtil.mutableMapStringAny(),
-                    KModifier.PRIVATE
-                ).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build()
-            )
-            .addProperty(
-                PropertySpec.builder(
-                    "mDocChanges",
-                    TypeUtil.mutableMapStringAnyNullable(),
-                    KModifier.PRIVATE
-                ).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build()
-            )
-            .addFunction(constructor(holder))
-            .addFunction(SetAllMethodGeneration().generate(holder, true))
-            .addFunction(id).superclass(holder.sourceElement.typeName)
-            .addFunction(toMap(holder, useSuspend))
-            .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
+                .addFunction(CblConstantGeneration.addConstants(holder, false))
+                .addFunction(ValidateMethodGeneration.generate(holder, true))
+                .addProperty(
+                    PropertySpec.builder(
+                        "mDoc",
+                        TypeUtil.mutableMapStringAny(),
+                        KModifier.PRIVATE
+                    ).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build()
+                )
+                .addProperty(
+                    PropertySpec.builder(
+                        "mDocChanges",
+                        TypeUtil.mutableMapStringAnyNullable(),
+                        KModifier.PRIVATE
+                    ).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build()
+                )
+                .addFunction(constructor(holder))
+                .addFunction(SetAllMethodGeneration().generate(holder, true))
+                .addFunction(id).superclass(holder.sourceElement.typeName)
+                .addFunction(toMap(holder, useSuspend))
+                .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
@@ -158,9 +159,13 @@ class EntityGeneration {
         return FileSpec.get(holder.sourcePackage, typeBuilder.build())
     }
 
-    private fun <T>findById(holder: EntityHolder<T>, useSuspend: Boolean): FunSpec {
-        val builder = FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
-            .addParameter("id", String::class).addAnnotation(JvmStatic::class)
+    private fun <T> findById(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): FunSpec {
+        val builder =
+            FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
+                .addParameter("id", String::class).addAnnotation(JvmStatic::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
@@ -180,10 +185,14 @@ class EntityGeneration {
         return builder.returns(holder.entityTypeName.copy(true)).build()
     }
 
-    private fun <T>findByIds(holder: EntityHolder<T>, useSuspend: Boolean): FunSpec {
-        val builder = FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
-            .addParameter("ids", TypeUtil.list(string()))
-            .addAnnotation(JvmStatic::class)
+    private fun <T> findByIds(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): FunSpec {
+        val builder =
+            FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
+                .addParameter("ids", TypeUtil.list(string()))
+                .addAnnotation(JvmStatic::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
@@ -208,16 +217,20 @@ class EntityGeneration {
             .initializer("%S", "_id").addAnnotation(JvmField::class).build()
     }
 
-    private fun <T>toMap(holder: EntityHolder<T>, useSuspend: Boolean): FunSpec {
+    private fun <T> toMap(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): FunSpec {
         var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
 
         if (useSuspend) {
             refreshDoc = "kotlinx.coroutines.runBlocking{$refreshDoc}"
         }
 
-        val toMapBuilder = FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE)
-            .returns(TypeUtil.mutableMapStringAny())
-            .addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
+        val toMapBuilder =
+            FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE)
+                .returns(TypeUtil.mutableMapStringAny())
+                .addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
 
         for (constantField in holder.fieldConstants.values) {
             toMapBuilder.addStatement(
@@ -250,9 +263,13 @@ class EntityGeneration {
         return toMapBuilder.build()
     }
 
-    private fun <T>delete(holder: EntityHolder<T>, useSuspend: Boolean): FunSpec {
-        val builder = FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend))
-            .throws(PersistenceException::class)
+    private fun <T> delete(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): FunSpec {
+        val builder =
+            FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend))
+                .throws(PersistenceException::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
@@ -268,9 +285,13 @@ class EntityGeneration {
         return builder.build()
     }
 
-    private fun <T>save(holder: EntityHolder<T>, useSuspend: Boolean): FunSpec {
-        val saveBuilder = FunSpec.builder("save").addModifiers(evaluateModifiers(useSuspend))
-            .throws(PersistenceException::class)
+    private fun <T> save(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): FunSpec {
+        val saveBuilder =
+            FunSpec.builder("save").addModifiers(evaluateModifiers(useSuspend))
+                .throws(PersistenceException::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(
@@ -301,7 +322,7 @@ class EntityGeneration {
         return saveBuilder.build()
     }
 
-    private fun <T>constructor(holder: EntityHolder<T>): FunSpec {
+    private fun <T> constructor(holder: EntityHolder<T>): FunSpec {
         return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC)
             .addParameter("doc", TypeUtil.mapStringAny()).addStatement("rebind(ensureTypes(doc))")
             .build()
@@ -318,7 +339,10 @@ class EntityGeneration {
         }
     }
 
-    private fun <T>create(holder: EntityHolder<T>, useSuspend: Boolean): List<FunSpec> {
+    private fun <T> create(
+        holder: EntityHolder<T>,
+        useSuspend: Boolean
+    ): List<FunSpec> {
         return listOf(
             FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
                 .addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement(
@@ -343,7 +367,6 @@ class EntityGeneration {
     }
 
     companion object {
-
         private fun getDocumentMethod(useSuspend: Boolean): String {
             return "${if (useSuspend) "suspendingConnector" else "connector"}.getDocument"
         }

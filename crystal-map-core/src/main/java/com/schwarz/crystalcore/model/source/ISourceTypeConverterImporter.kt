@@ -1,10 +1,7 @@
 package com.schwarz.crystalcore.model.source
 
-import com.schwarz.crystalapi.TypeConverterImporter
+import com.schwarz.crystalapi.TypeConverterImportable
 
 interface ISourceTypeConverterImporter {
-
-    val typeConverterImporterAnnotation: TypeConverterImporter
-
-    val exporterClassName: String
+    val typeConverterImportable: List<TypeConverterImportable>
 }

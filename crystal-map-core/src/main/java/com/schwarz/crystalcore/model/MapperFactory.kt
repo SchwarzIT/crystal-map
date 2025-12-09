@@ -1,21 +1,21 @@
 package com.schwarz.crystalcore.model
 
-import com.schwarz.crystalcore.model.source.ISourceMapper
 import com.schwarz.crystalcore.model.mapper.MapifyHolder
 import com.schwarz.crystalcore.model.mapper.MapperHolder
 import com.schwarz.crystalcore.model.mapper.type.MapifyElementTypeField
 import com.schwarz.crystalcore.model.mapper.type.MapifyElementTypeGetterSetter
+import com.schwarz.crystalcore.model.source.ISourceMapperModel
 
 object MapperFactory {
-
-    fun <T>create(mapperElement: ISourceMapper<T>): MapperHolder<T> {
+    fun <T> create(mapperElement: ISourceMapperModel<T>): MapperHolder<T> {
         val result = MapperHolder(mapperElement)
 
         result.fields.putAll(
             mapperElement.fields.map {
-                it.key to MapifyHolder(
-                    MapifyElementTypeField(it.value.field, it.value.mapify)
-                )
+                it.key to
+                    MapifyHolder(
+                        MapifyElementTypeField(it.value.field, it.value.mapify)
+                    )
             }
         )
 

@@ -26,7 +26,6 @@ class ModelWorker<T>(
     override val workSet: ModelWorkSet<T>
 ) :
     Worker<ModelWorkSet<T>, T> {
-
     private var documentationGenerator: DocumentationGenerator? = null
     private var entityRelationshipGenerator: EntityRelationshipGenerator? = null
     private var schemaGenerator: SchemaGenerator? = null
@@ -36,10 +35,11 @@ class ModelWorker<T>(
             documentationGenerator = DocumentationGenerator(it, settings.documentationFilename ?: "default.html")
         }
         settings.schemaPath?.let {
-            schemaGenerator = SchemaGenerator(
-                it,
-                settings.schemaFilename ?: "schema.json"
-            )
+            schemaGenerator =
+                SchemaGenerator(
+                    it,
+                    settings.schemaFilename ?: "schema.json"
+                )
         }
 
         settings.entityRelationshipPath?.let {
@@ -47,15 +47,24 @@ class ModelWorker<T>(
         }
     }
 
-    override fun doWork(workSet: ModelWorkSet<T>, useSuspend: Boolean) {
-        val typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration> = (workSet.typeConverters + workSet.importedTypeConverters).associateBy { it.domainClassTypeName }
+    override fun doWork(
+        workSet: ModelWorkSet<T>,
+        useSuspend: Boolean
+    ) {
+        val typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration> =
+            (workSet.typeConverters + workSet.importedTypeConverters).associateBy {
+                it.domainClassTypeName
+            }
 
         workSet.typeConverters.forEach {
             codeGenerator.generate(TypeConverterObjectGeneration.generateTypeConverterObject(it), settings)
         }
 
         workSet.typeConverterExporters.forEach {
-            codeGenerator.generate(TypeConverterExporterObjectGeneration.generateTypeConverterExporterObject(it, workSet.typeConverters), settings)
+            codeGenerator.generate(
+                TypeConverterExporterObjectGeneration.generateTypeConverterExporterObject(it, workSet.typeConverters),
+                settings
+            )
         }
 
         val generatedInterfaces = mutableSetOf<String>()
@@ -81,7 +90,10 @@ class ModelWorker<T>(
         schemaGenerator?.generate()
     }
 
-    private fun process(schemaModels: List<SchemaClassHolder<T>>, generate: (SchemaClassHolder<T>) -> FileSpec) {
+    private fun process(
+        schemaModels: List<SchemaClassHolder<T>>,
+        generate: (SchemaClassHolder<T>) -> FileSpec
+    ) {
         for (model in schemaModels) {
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
@@ -127,7 +139,7 @@ class ModelWorker<T>(
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
     ) {
-        if (generatedInterfaces.contains(holder.sourceClazzSimpleName).not()) {
+        if (generatedInterfaces.contains("${holder.sourcePackage}.${holder.sourceClazzSimpleName}").not()) {
             codeGenerator.generate(
                 CommonInterfaceGeneration().generateModel(
                     holder,
@@ -136,7 +148,7 @@ class ModelWorker<T>(
                 ),
                 settings
             )
-            generatedInterfaces.add(holder.sourceClazzSimpleName)
+            generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }
     }
 }

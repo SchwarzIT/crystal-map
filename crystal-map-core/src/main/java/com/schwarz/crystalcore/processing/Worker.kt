@@ -5,7 +5,6 @@ import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.ISettings
 
 interface Worker<T : WorkSet<E>, E> {
-
     val logger: ILogger<E>
 
     val codeGenerator: ICodeGenerator
@@ -16,7 +15,10 @@ interface Worker<T : WorkSet<E>, E> {
 
     fun init()
 
-    fun doWork(workSet: T, useSuspend: Boolean)
+    fun doWork(
+        workSet: T,
+        useSuspend: Boolean
+    )
 
     fun invoke(useSuspend: Boolean): Boolean {
         workSet.preValidate(logger)

@@ -9,7 +9,6 @@ import java.time.LocalDate
 
 class ProductWrapperTest {
     companion object {
-
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
@@ -19,11 +18,12 @@ class ProductWrapperTest {
 
     @Test
     fun `toMap should preserve field order`() {
-        val product = ProductWrapper.create().builder()
-            .setName("name")
-            .setComments(emptyList())
-            .setIdentifiers(listOf("1", "2"))
-            .exit()
+        val product =
+            ProductWrapper.create().builder()
+                .setName("name")
+                .setComments(emptyList())
+                .setIdentifiers(listOf("1", "2"))
+                .exit()
 
         val map = product.toMap()
         map.remove(ProductWrapper.TYPE)
@@ -40,19 +40,20 @@ class ProductWrapperTest {
 
     @Test
     fun `toMap - fromMap should work`() {
-        val product = ProductWrapper.create().builder()
-            .setName("name")
-            .setComments(
-                listOf(
-                    UserCommentWrapper.create().apply {
-                        comment = "foobar"
-                    }
+        val product =
+            ProductWrapper.create().builder()
+                .setName("name")
+                .setComments(
+                    listOf(
+                        UserCommentWrapper.create().apply {
+                            comment = "foobar"
+                        }
+                    )
                 )
-            )
-            .setCategory(ProductCategory.AMAZING_PRODUCT)
-            .setIdentifiers(listOf("1", "2"))
-            .setSomeDate(LocalDate.now())
-            .exit()
+                .setCategory(ProductCategory.AMAZING_PRODUCT)
+                .setIdentifiers(listOf("1", "2"))
+                .setSomeDate(LocalDate.now())
+                .exit()
         val map = product.toMap() as MutableMap<String, Any?>
 
         val result = ProductWrapper.fromMap(map)!!

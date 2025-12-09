@@ -38,7 +38,10 @@ open class StoreArticle {
         const val PREFIX: String = "storearticle"
         const val TYPE: String = "StoreArticle"
 
-        fun documentId(storeId: String, article_no: String): String {
+        fun documentId(
+            storeId: String,
+            article_no: String
+        ): String {
             return "$PREFIX:$storeId:$article_no"
         }
     }

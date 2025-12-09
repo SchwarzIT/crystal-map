@@ -7,7 +7,6 @@ import j2html.tags.DomContent
 import java.io.File
 
 class EntityRelationshipGenerator(path: String, fileName: String) {
-
     private val path = File(path)
     private val file = File(path, fileName)
 
@@ -77,13 +76,14 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
                 )
             ).attr("border", "0").attr("cellborder", "1").attr("cellspacing", "1").attr("cellpadding", "5")
 
-        docuEntityEdges[entityHolder.sourceClazzSimpleName] = entityHolder.fields
-            .filter {
-                !it.value.fieldType.toString().startsWith("java") &&
-                    !it.value.fieldType.toString().startsWith("kotlin") &&
-                    !it.value.fieldType.toString().startsWith("org.threeten")
-            }
-            .map { extractClassName(it.value.fieldType) }
+        docuEntityEdges[entityHolder.sourceClazzSimpleName] =
+            entityHolder.fields
+                .filter {
+                    !it.value.fieldType.toString().startsWith("java") &&
+                        !it.value.fieldType.toString().startsWith("kotlin") &&
+                        !it.value.fieldType.toString().startsWith("org.threeten")
+                }
+                .map { extractClassName(it.value.fieldType) }
     }
 
     fun extractClassName(fullClassName: TypeName): String = fullClassName.toString().split(".").last()

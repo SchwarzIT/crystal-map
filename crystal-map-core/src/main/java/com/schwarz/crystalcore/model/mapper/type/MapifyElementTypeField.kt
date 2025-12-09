@@ -1,8 +1,8 @@
 package com.schwarz.crystalcore.model.mapper.type
 
-import com.schwarz.crystalapi.mapify.Mapify
 import com.schwarz.crystalcore.model.source.IClassModel
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
+import com.schwarz.crystalcore.model.source.ISourceMapify
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -11,12 +11,12 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.lang.reflect.Field
 
-class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: Mapify) :
+class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISourceMapify) :
     MapifyElementType<T> {
-
-    override val elements: List<T> = listOf(
-        element.source
-    )
+    override val elements: List<T> =
+        listOf(
+            element.source
+        )
 
     override val fieldName = element.sourceClazzSimpleName
 
@@ -42,10 +42,17 @@ class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: Mapify)
     }
 
     override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement("return %N.get(this) as? %T", reflectedFieldName, declaringName.asFullTypeName()!!.copy(nullable = true)).build()
+        return FunSpec.getterBuilder().addStatement(
+            "return %N.get(this) as? %T",
+            reflectedFieldName,
+            declaringName.asFullTypeName()!!.copy(nullable = true)
+        ).build()
     }
 
     override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter("value", declaringName.asFullTypeName()!!).addStatement("%N.set(this,·value)", reflectedFieldName).build()
+        return FunSpec.setterBuilder().addParameter(
+            "value",
+            declaringName.asFullTypeName()!!
+        ).addStatement("%N.set(this,·value)", reflectedFieldName).build()
     }
 }

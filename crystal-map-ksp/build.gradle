@@ -1,0 +1,55 @@
+apply plugin: 'kotlin'
+apply plugin: 'maven-publish'
+apply plugin: 'jacoco'
+apply plugin: 'pmd'
+apply plugin: 'kotlin-kapt'
+apply plugin: "org.jlleitschuh.gradle.ktlint"
+apply plugin: 'java-test-fixtures'
+
+targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_17
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            from components.java
+        }
+    }
+}
+
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+jacocoTestReport {
+    group 'verification'
+    dependsOn 'test'
+
+    reports {
+
+        xml.required = true
+        html.required = false
+    }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'com.squareup:kotlinpoet:2.2.0'
+    implementation("com.squareup:kotlinpoet-ksp:2.2.0")
+    implementation("com.google.devtools.ksp:symbol-processing-api:2.3.3")
+    testImplementation 'junit:junit:4.12'
+    testImplementation project(path: ':crystal-map-api', configuration: 'default')
+    //testImplementation 'com.github.tschuchortdev:kotlin-compile-testing-ksp:1.6.0'
+    testImplementation("dev.zacsweers.kctfork:ksp:0.11.1")
+    testImplementation(testFixtures(project(':crystal-map-test-fixtures')))
+    implementation project(path: ':crystal-map-core', configuration: 'default')
+}

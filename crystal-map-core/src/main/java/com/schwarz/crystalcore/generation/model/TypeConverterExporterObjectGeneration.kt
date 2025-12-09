@@ -3,8 +3,15 @@ package com.schwarz.crystalcore.generation.model
 import com.schwarz.crystalapi.ClassNameDefinition
 import com.schwarz.crystalapi.ITypeConverterExporter
 import com.schwarz.crystalapi.TypeConverterImportable
+import com.schwarz.crystalapi.converterexport.ExportConverter
+import com.schwarz.crystalapi.converterexport.ExportConverters
+import com.schwarz.crystalapi.converterexport.ImportableConverter
+import com.schwarz.crystalapi.converterexport.ImportableConverters
+import com.schwarz.crystalapi.converterexport.TargetDefinition
+import com.schwarz.crystalcore.generation.model.TypeConverterExporterObjectGeneration.toKotlinCodeString
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterExporterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolder
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
@@ -16,30 +23,109 @@ import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.TypeSpec
 
 object TypeConverterExporterObjectGeneration {
-
     val map: Map<String, String> = mapOf()
 
-    fun <T>generateTypeConverterExporterObject(
+    fun <T> generateTypeConverterExporterObject(
         typeConverterExporterHolder: TypeConverterExporterHolder<T>,
         typeConverterHolders: List<TypeConverterHolder>
     ): FileSpec {
-        val typeSpec = TypeSpec.classBuilder(typeConverterExporterHolder.name + "Instance")
-            .addSuperinterface(
-                ClassName(
-                    typeConverterExporterHolder.sourcePackageName,
-                    typeConverterExporterHolder.name
+        val typeSpec =
+            TypeSpec.classBuilder(typeConverterExporterHolder.name + "Instance")
+                .addSuperinterface(
+                    ClassName(
+                        typeConverterExporterHolder.sourcePackageName,
+                        typeConverterExporterHolder.name
+                    )
                 )
-            )
-            .addSuperinterface(ITypeConverterExporter::class)
-            .addProperty(
-                getTypeConvertersSpec(typeConverterHolders)
-            )
-            .addProperty(
-                getTypeConverterImportablesSpec(typeConverterHolders)
-            )
-            .build()
+                .addSuperinterface(ITypeConverterExporter::class)
+                .addAnnotations(getAnnotations(typeConverterHolders))
+                .addProperty(
+                    getTypeConvertersSpec(typeConverterHolders)
+                )
+                .addProperty(
+                    getTypeConverterImportablesSpec(typeConverterHolders)
+                )
+                .build()
 
         return FileSpec.get(typeConverterExporterHolder.sourcePackageName, typeSpec)
+    }
+
+    private fun getAnnotations(typeConverters: List<TypeConverterHolder>): List<AnnotationSpec> {
+        val exportConvertersAnnotation = AnnotationSpec.builder(ExportConverters::class)
+        val importableConvertersAnnotation = AnnotationSpec.builder(ImportableConverters::class)
+
+        val exportConverterVars = arrayListOf<Any>()
+        val exportConverterDeclarations = arrayListOf<String>()
+
+        val importableConverterVars = arrayListOf<Any>()
+        val importableConverterDeclarations = arrayListOf<String>()
+
+        typeConverters.forEach {
+            exportConverterDeclarations.add("\n%T(type = %T::class, converter = %T::class)")
+            exportConverterVars.add(ExportConverter::class)
+            exportConverterVars.add(it.domainClassTypeName)
+            exportConverterVars.add(it.instanceClassTypeName)
+
+            val importableBuilder =
+                StringBuilder()
+                    .append("%T(")
+                    .append("\ntypeConverterInstanceTargetDefinition = %T(pkg = %S, name = %S),")
+                    .append("\ndomainTargetDefinition = %T(pkg = %S, name = %S),")
+                    .append("\nmapTargetDefinition = %T(pkg = %S, name = %S),")
+
+            importableConverterVars.add(ImportableConverter::class)
+
+            importableConverterVars.add(TargetDefinition::class)
+            importableConverterVars.add(it.instanceClassTypeName.packageName)
+            importableConverterVars.add(it.instanceClassTypeName.simpleName)
+
+            importableConverterVars.add(TargetDefinition::class)
+            importableConverterVars.add(it.domainClassTypeName.packageName)
+            importableConverterVars.add(it.domainClassTypeName.simpleName)
+
+            importableConverterVars.add(TargetDefinition::class)
+            importableConverterVars.add(it.mapClassTypeName.packageName)
+            importableConverterVars.add(it.mapClassTypeName.simpleName)
+
+            val importableGenericDeclarations = arrayListOf<String>()
+            it.genericTypeNames.forEach {
+                importableGenericDeclarations.add("%T(pkg = %S, name = %S)")
+                importableConverterVars.add(TargetDefinition::class)
+                importableConverterVars.add(it.packageName)
+                importableConverterVars.add(it.className)
+            }
+            if (importableGenericDeclarations.isNotEmpty()) {
+                importableBuilder.append(
+                    "genericsTargetDefinitions = [${
+                    importableGenericDeclarations.joinToString(
+                        separator = ","
+                    )
+                    }]"
+                )
+            } else {
+                importableBuilder.append("genericsTargetDefinitions = []")
+            }
+                .append("\n)")
+            importableConverterDeclarations.add(importableBuilder.toString())
+        }
+        exportConvertersAnnotation.addMember(
+            "value = [${
+            exportConverterDeclarations.joinToString(
+                separator = ","
+            )
+            }]",
+            *exportConverterVars.toTypedArray()
+        )
+        importableConvertersAnnotation.addMember(
+            "value = [${
+            importableConverterDeclarations.joinToString(
+                separator = ","
+            )
+            }]",
+            *importableConverterVars.toTypedArray()
+        )
+
+        return listOf(exportConvertersAnnotation.build(), importableConvertersAnnotation.build())
     }
 
     private fun getTypeConvertersSpec(typeConverterHolders: List<TypeConverterHolder>): PropertySpec {
@@ -116,9 +202,7 @@ object TypeConverterExporterObjectGeneration {
      *     ))
      * )
      */
-    private fun List<ClassNameDefinition>.toKotlinCodeString(
-        indentLevel: Int = 1
-    ): String {
+    private fun List<ClassNameDefinition>.toKotlinCodeString(indentLevel: Int = 1): String {
         if (isEmpty()) return "listOf()"
 
         val indent = "  ".repeat(indentLevel)
@@ -135,9 +219,7 @@ object TypeConverterExporterObjectGeneration {
         }
     }
 
-    private fun ClassNameDefinition.toKotlinCodeString(
-        indentLevel: Int
-    ): String {
+    private fun ClassNameDefinition.toKotlinCodeString(indentLevel: Int): String {
         val indent = "  ".repeat(indentLevel)
 
         val nullableString = if (nullable) ", nullable = true" else ""
@@ -155,14 +237,16 @@ object TypeConverterExporterObjectGeneration {
         }
     }
 
-    private fun typeConverterMapType() = ClassName("kotlin.collections", "Map")
-        .parameterizedBy(
-            ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
-            ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
-        )
+    private fun typeConverterMapType() =
+        ClassName("kotlin.collections", "Map")
+            .parameterizedBy(
+                ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
+                ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
+            )
 
-    private fun typeConverterImportablesListType() = ClassName("kotlin.collections", "List")
-        .parameterizedBy(
-            ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
-        )
+    private fun typeConverterImportablesListType() =
+        ClassName("kotlin.collections", "List")
+            .parameterizedBy(
+                ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
+            )
 }

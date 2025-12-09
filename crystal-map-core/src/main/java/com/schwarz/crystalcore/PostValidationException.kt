@@ -3,7 +3,6 @@ package com.schwarz.crystalcore
 import kotlin.Exception
 
 class PostValidationException : Exception {
-
     var causingElements: Any? = null
 
 //    constructor(message: String, vararg causingElement: Any) : super(message) {

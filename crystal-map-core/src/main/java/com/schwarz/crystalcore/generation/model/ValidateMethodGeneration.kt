@@ -7,8 +7,10 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 
 object ValidateMethodGeneration {
-
-    fun <T>generate(holder: BaseEntityHolder<T>, useMDocChanges: Boolean): FunSpec {
+    fun <T> generate(
+        holder: BaseEntityHolder<T>,
+        useMDocChanges: Boolean
+    ): FunSpec {
         val validateBuilder =
             FunSpec.builder("validate").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
         val mandatoryFields = holder.fields.values.filter { it.mandatory }.map { it.constantName }

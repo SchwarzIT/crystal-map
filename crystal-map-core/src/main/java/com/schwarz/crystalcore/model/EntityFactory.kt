@@ -6,8 +6,8 @@ import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.BaseModelHolder
 import com.schwarz.crystalcore.model.entity.EntityHolder
 import com.schwarz.crystalcore.model.entity.ReducedModelHolder
-import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
 import com.schwarz.crystalcore.model.entity.SchemaClassHolder
+import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
 import com.schwarz.crystalcore.model.field.CblConstantHolder
 import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.id.DocIdHolder
@@ -17,9 +17,9 @@ import com.schwarz.crystalcore.model.source.ISourceModel
 
 private const val WRAPPER_SUB_ENTITY_SUFFIX = "Wrapper"
 private const val SCHEMA_SUB_ENTITY_SUFFIX = "Schema"
-object EntityFactory {
 
-    fun <T>createEntityHolder(
+object EntityFactory {
+    fun <T> createEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>
@@ -39,7 +39,7 @@ object EntityFactory {
         ) as EntityHolder
     }
 
-    fun <T>createWrapperBaseModelHolder(
+    fun <T> createWrapperBaseModelHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>
     ): BaseModelHolder<T> {
@@ -52,7 +52,7 @@ object EntityFactory {
         ) as BaseModelHolder
     }
 
-    fun <T>createSchemaBaseModelHolder(
+    fun <T> createSchemaBaseModelHolder(
         sourceModel: ISourceModel<T>,
         allSchemaClassPaths: List<String>
     ): BaseModelHolder<T> {
@@ -65,7 +65,7 @@ object EntityFactory {
         ) as BaseModelHolder
     }
 
-    fun <T>createChildEntityHolder(
+    fun <T> createChildEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>
@@ -80,19 +80,20 @@ object EntityFactory {
         ) as WrapperEntityHolder
     }
 
-    fun <T>createSchemaEntityHolder(
+    fun <T> createSchemaEntityHolder(
         sourceModel: ISourceModel<T>,
         allSchemaClassPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>
-    ): SchemaClassHolder<T> = create(
-        sourceModel,
-        SchemaClassHolder(sourceModel),
-        allSchemaClassPaths,
-        allBaseModels,
-        SCHEMA_SUB_ENTITY_SUFFIX
-    ) as SchemaClassHolder
+    ): SchemaClassHolder<T> =
+        create(
+            sourceModel,
+            SchemaClassHolder(sourceModel),
+            allSchemaClassPaths,
+            allBaseModels,
+            SCHEMA_SUB_ENTITY_SUFFIX
+        ) as SchemaClassHolder
 
-    private fun <T>create(
+    private fun <T> create(
         sourceModel: ISourceModel<T>,
         content: BaseEntityHolder<T>,
         classPaths: List<String>,
@@ -145,27 +146,26 @@ object EntityFactory {
         return content
     }
 
-    private fun <T>createReduceModels(
+    private fun <T> createReduceModels(
         sourceModel: ISourceModel<T>,
         content: BaseEntityHolder<T>
     ): List<ReducedModelHolder<T>> {
         sourceModel.reduceAnnotations.let { reduce ->
             return reduce.map {
-                val annotation = it.reduceAnnotation
                 ReducedModelHolder(
-                    annotation.namePrefix,
-                    annotation.include.asList(),
-                    annotation.includeQueries,
-                    annotation.includeAccessors,
-                    annotation.includeDocId,
-                    annotation.includeBasedOn,
+                    it.namePrefix,
+                    it.include.asList(),
+                    it.includeQueries,
+                    it.includeAccessors,
+                    it.includeDocId,
+                    it.includeBasedOn,
                     content
                 )
             }
         }
     }
 
-    fun <T>addBasedOn(
+    fun <T> addBasedOn(
         sourceModel: ISourceModel<T>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
         content: BaseEntityHolder<T>
@@ -194,23 +194,26 @@ object EntityFactory {
         }
     }
 
-    private fun <T>parseFields(
+    private fun <T> parseFields(
         sourceModel: ISourceModel<T>,
         content: BaseEntityHolder<T>,
         classPaths: List<String>,
         subEntityNameSuffix: String
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
-            if (cblField.fieldAnnotation.readonly) {
-                content.fieldConstants[cblField.fieldAnnotation.name] = CblConstantHolder(cblField)
+            if (cblField.readonly) {
+                content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
                 val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNameSuffix)
-                content.fields[cblField.fieldAnnotation.name] = cblFieldHolder
+                content.fields[cblField.name] = cblFieldHolder
             }
         }
     }
 
-    private fun <T>parseQueries(sourceModel: ISourceModel<T>, content: BaseEntityHolder<T>) {
+    private fun <T> parseQueries(
+        sourceModel: ISourceModel<T>,
+        content: BaseEntityHolder<T>
+    ) {
         val queries = sourceModel.queryAnnotations
 
         for (cblQuery in queries) {

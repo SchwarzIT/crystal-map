@@ -1,15 +1,15 @@
 package com.schwarz.crystalcore.model.source
 
-import com.schwarz.crystalapi.mapify.Mapifyable
 import com.squareup.kotlinpoet.TypeName
+import kotlin.reflect.KClass
 
 interface ISourceDeclaringName {
-
     val name: String
 
     val typeParams: List<ISourceDeclaringName>
 
     fun asTypeName(): TypeName?
+
     fun asFullTypeName(): TypeName?
 
     fun hasEmptyConstructor(): Boolean
@@ -22,9 +22,9 @@ interface ISourceDeclaringName {
 
     fun isProcessingType(): Boolean
 
-    fun isAssignable(clazz: Class<*>): Boolean
+    fun isAssignable(clazz: KClass<*>): Boolean
 
-    fun <A : Annotation?> getAnnotation(annotationType: Class<A>?): A?
+    fun <A : Annotation?, B> getAnnotationRepresent(annotationType: Class<A>?): B?
 
-    fun typeAsDeclaringName(mapifyable: Mapifyable): ISourceDeclaringName?
+    fun <A : Annotation?> isAnnotationPresent(annotationType: Class<A>): Boolean
 }
