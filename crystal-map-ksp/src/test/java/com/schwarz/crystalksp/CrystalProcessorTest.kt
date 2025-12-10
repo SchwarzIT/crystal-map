@@ -10,8 +10,11 @@ import com.tschuchort.compiletesting.kspProcessorOptions
 import com.tschuchort.compiletesting.sourcesGeneratedBySymbolProcessor
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
 
 @OptIn(ExperimentalCompilerApi::class)
 class CrystalProcessorTest {
@@ -19,7 +22,7 @@ class CrystalProcessorTest {
     fun testSuccessSimpleMapper() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("SimpleMapperTest"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -27,7 +30,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithSimpleReduce"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -35,7 +38,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithGetterAndSetter"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -43,21 +46,21 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithTypeParam"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessMapperWithNullable() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("MapperWithNullable"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
     fun testSuccessWithQueries() {
         val compilation = compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -65,7 +68,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithQueriesAndEnums"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -73,7 +76,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -84,7 +87,7 @@ class CrystalProcessorTest {
                 useSuspend = true
             )
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -95,7 +98,7 @@ class CrystalProcessorTest {
                 useSuspend = true
             )
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -105,7 +108,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -115,7 +118,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFieldsAndReduce"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -125,7 +128,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -135,7 +138,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithEnumDocId"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -145,7 +148,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -155,8 +158,8 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"),
                 useSuspend = true
             )
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
-        Assert.assertTrue(compilation.messages.contains("replacement [name2] for field [name] does not exists"))
+        assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertTrue(compilation.messages.contains("replacement [name2] for field [name] does not exists"))
     }
 
     @Test
@@ -166,7 +169,7 @@ class CrystalProcessorTest {
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedClass"),
                 useSuspend = true
             )
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -192,7 +195,7 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @OptIn(ExperimentalCompilerApi::class)
@@ -219,7 +222,7 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
 
     @Test
@@ -270,8 +273,8 @@ class CrystalProcessorTest {
 
         val actual = compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "SubSchema.kt" }!!.readLines()
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
-        Assert.assertEquals(expected, actual)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -326,8 +329,8 @@ class CrystalProcessorTest {
 
         val actual = compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "SubSchema.kt" }!!.readLines()
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
-        Assert.assertEquals(expected, actual)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -352,8 +355,8 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
-        Assert.assertTrue(compilation.messages.contains("Entity can not be final"))
+        assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertTrue(compilation.messages.contains("Entity can not be final"))
     }
 
     @OptIn(ExperimentalCompilerApi::class)
@@ -379,8 +382,8 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(subEntity)
 
-        Assert.assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
-        Assert.assertTrue(compilation.messages.contains("Entity should not have a constructor"))
+        assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertTrue(compilation.messages.contains("Entity should not have a constructor"))
     }
 
     @Test
@@ -402,11 +405,11 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(typeConverter)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
             compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "DateTypeConverterInstance.kt" }
                 ?.readLines()
-        Assert.assertEquals(expected, actual)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -426,8 +429,8 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(typeConverter)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
-        Assert.assertTrue(compilation.messages.contains("TypeConverter can not be final"))
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
+        assertTrue(compilation.messages.contains("TypeConverter can not be final"))
     }
 
     @Test
@@ -447,8 +450,8 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(typeConverter)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
-        Assert.assertTrue(
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
+        assertTrue(
             compilation.messages.contains(
                 "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface"
             )
@@ -484,11 +487,11 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(typeConverter)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
             compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "TestTypeConvertersInstance.kt" }
                 ?.readLines()?.map { it.trim() }
-        Assert.assertEquals(expected, actual)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -520,12 +523,12 @@ class CrystalProcessorTest {
 
         val compilation = compileKotlin(typeConverter)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
             compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "TestTypeConvertersGenericInstance.kt" }
                 ?.readLines()?.map { it.trim() }
 
-        Assert.assertEquals(expected, actual)
+        assertEquals(expected, actual)
     }
 
     @OptIn(ExperimentalCompilerApi::class)

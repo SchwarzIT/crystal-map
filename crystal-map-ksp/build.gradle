@@ -43,10 +43,10 @@ java {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'com.squareup:kotlinpoet:2.2.0'
-    implementation("com.squareup:kotlinpoet-ksp:2.2.0")
+    implementation "com.squareup:kotlinpoet:$kotlin_poet_version"
+    implementation("com.squareup:kotlinpoet-ksp:$kotlin_poet_version")
     implementation("com.google.devtools.ksp:symbol-processing-api:2.3.3")
-    testImplementation 'junit:junit:4.12'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
     testImplementation project(path: ':crystal-map-api', configuration: 'default')
     //testImplementation 'com.github.tschuchortdev:kotlin-compile-testing-ksp:1.6.0'
     testImplementation("dev.zacsweers.kctfork:ksp:0.11.1")

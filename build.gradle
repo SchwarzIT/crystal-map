@@ -2,6 +2,11 @@
 
 buildscript {
     ext.kotlin_version = '2.1.21'
+    ext.kotlin_poet_version = '2.1.0'
+    ext.junit_version = '6.0.1'
+    ext.mockito_version = "5.21.0"
+    ext.kotlinx_coroutines_core_version = "1.10.2"
+    ext.commons_lang3_version = "3.20.0"
     ext.groupName = 'com.github.SchwarzIT'
     repositories {
         google()

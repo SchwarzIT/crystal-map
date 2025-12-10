@@ -1,6 +1,6 @@
 
 buildscript {
-    ext.kotlin_version = '2.1.21'
+//    ext.kotlin_version = '2.1.21'
     repositories {
         google()
         mavenCentral()
@@ -11,7 +11,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
-//        classpath "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.2"
+//        classpath "tools.jackson.module:jackson-module-kotlin:3.0.3"
 //        classpath fileTree(dir:'../crystal-map-versioning-plugin/build/libs', include: ['*.jar'])
 //        classpath fileTree(dir:'../crystal-map-api/build/libs', include: ['*.jar'])
     }
@@ -38,7 +38,7 @@ android {
     namespace "com.schwarz.crystaldemo"
     defaultConfig {
         applicationId "com.schwarz.crystaldemo"
-        compileSdkVersion 33
+        compileSdkVersion 34
         minSdkVersion 26
         targetSdkVersion 33
         versionCode 1
@@ -97,8 +97,8 @@ ksp {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
     implementation project(path: ':dummy')
@@ -109,10 +109,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // Test dependencies
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:5.17.0'
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-    testImplementation 'ch.qos.logback:logback-classic:1.5.18'
-    kapt 'org.apache.logging.log4j:log4j-api:2.24.3'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
+    testImplementation "org.mockito:mockito-core:$mockito_version"
+    implementation 'ch.qos.logback:logback-core:1.5.21'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    testImplementation 'ch.qos.logback:logback-classic:1.5.21'
+    kapt 'org.apache.logging.log4j:log4j-api:2.25.2'
 }

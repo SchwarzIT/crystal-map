@@ -4,14 +4,14 @@ import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import com.schwarz.crystaldemo.UnitTestConnector
 import com.schwarz.crystaldemo.entity.ProductCategory.AMAZING_PRODUCT
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.system.measureTimeMillis
 
@@ -42,15 +42,15 @@ object ProductEntityTestConnector : UnitTestConnector() {
 
 class ProductEntityTest {
     companion object {
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun beforeClass() {
+        fun beforeAll() {
             PersistenceConfig.configure(ProductEntityTestConnector)
         }
     }
 
-    @Before
-    fun before() {
+    @BeforeEach
+    fun beforeEach() {
         LastErrorWrapper.clear()
     }
 
@@ -495,6 +495,6 @@ class ProductEntityTest {
                 entities.flatMap { it.someDates ?: emptyList() }
             }
 
-        assertTrue("Expecting time for creating and reading to be < 600ms but was $duration", duration < 600)
+        assertTrue(duration < 600, "Expecting time for creating and reading to be < 600ms but was $duration")
     }
 }

@@ -3,13 +3,13 @@ package com.schwarz.crystaldemo.mapper
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import com.schwarz.crystaldemo.entity.ProductEntity
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class DummyMapperSourceTest {
-    @Before
+    @BeforeEach
     fun init() {
         PersistenceConfig.configure(
             object : PersistenceConfig.Connector {

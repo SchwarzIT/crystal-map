@@ -2,16 +2,16 @@ package com.schwarz.crystaldemo.entity
 
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystaldemo.UnitTestConnector
-import org.junit.Assert.assertEquals
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class ProductWrapperTest {
     companion object {
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun beforeClass() {
+        fun beforeAll() {
             PersistenceConfig.configure(UnitTestConnector())
         }
     }

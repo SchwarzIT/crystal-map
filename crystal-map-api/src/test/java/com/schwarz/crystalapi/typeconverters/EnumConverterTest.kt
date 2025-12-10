@@ -1,8 +1,9 @@
 package com.schwarz.crystalapi.typeconverters
 
 import com.schwarz.crystalapi.ITypeConverter
-import junit.framework.TestCase.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 enum class TestEnum {
     FOO,
@@ -19,9 +20,15 @@ class EnumConverterTest {
         assertTrue(result == TestEnum.FOO)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `should throw an exception for incorrect string value`() {
-        TestEnumConverter.read("FOZ")
+        val exception: Exception = assertThrows(IllegalArgumentException::class.java, {
+            TestEnumConverter.read("FOZ")
+        })
+
+        val expectedMessage = "For input string"
+        val actualMessage = exception.message
+        assertTrue(actualMessage?.contains(expectedMessage) == true)
     }
 
     @Test
