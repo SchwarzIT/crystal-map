@@ -12,10 +12,15 @@ object CblDefaultGeneration {
     fun <T> addDefaults(
         holder: BaseEntityHolder<T>,
         useNullableMap: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FunSpec {
         val type =
-            if (useNullableMap) TypeUtil.mutableMapStringAnyNullable() else TypeUtil.mutableMapStringAny()
+            if (useNullableMap) {
+                TypeUtil.mutableMapStringAnyNullable()
+            } else {
+                TypeUtil
+                    .mutableMapStringAny()
+            }
         val valueType =
             if (useNullableMap) TypeUtil.anyNullable() else TypeUtil.any()
 
@@ -34,23 +39,26 @@ object CblDefaultGeneration {
                     "result",
                     typeConvertersByConvertedClass,
                     fieldHolder.ensureTypeEscape(
-                        fieldHolder.defaultValue
-                    )
+                        fieldHolder.defaultValue,
+                    ),
                 )
             }
         }
 
         builder.addCode(
-            CodeBlock.builder()
+            CodeBlock
+                .builder()
                 .beginControlFlow("result.forEach")
-                .beginControlFlow("if(it.value != null)").addStatement("map[it.key] = it.value!!").endControlFlow()
+                .beginControlFlow(
+                    "if(it.value != null)",
+                ).addStatement("map[it.key] = it.value!!")
                 .endControlFlow()
-                .build()
+                .endControlFlow()
+                .build(),
         )
         return builder.build()
     }
 
-    fun addAddCall(nameOfMap: String): CodeBlock {
-        return CodeBlock.builder().addStatement("addDefaults(%N)", nameOfMap).build()
-    }
+    fun addAddCall(nameOfMap: String): CodeBlock =
+        CodeBlock.builder().addStatement("addDefaults(%N)", nameOfMap).build()
 }

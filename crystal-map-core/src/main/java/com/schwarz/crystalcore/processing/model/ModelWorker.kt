@@ -23,33 +23,34 @@ class ModelWorker<T>(
     override val logger: ILogger<T>,
     override val codeGenerator: ICodeGenerator,
     override val settings: ISettings,
-    override val workSet: ModelWorkSet<T>
-) :
-    Worker<ModelWorkSet<T>, T> {
+    override val workSet: ModelWorkSet<T>,
+) : Worker<ModelWorkSet<T>, T> {
     private var documentationGenerator: DocumentationGenerator? = null
     private var entityRelationshipGenerator: EntityRelationshipGenerator? = null
     private var schemaGenerator: SchemaGenerator? = null
 
     override fun init() {
         settings.documentationPath?.let {
-            documentationGenerator = DocumentationGenerator(it, settings.documentationFilename ?: "default.html")
+            documentationGenerator =
+                DocumentationGenerator(it, settings.documentationFilename ?: "default.html")
         }
         settings.schemaPath?.let {
             schemaGenerator =
                 SchemaGenerator(
                     it,
-                    settings.schemaFilename ?: "schema.json"
+                    settings.schemaFilename ?: "schema.json",
                 )
         }
 
         settings.entityRelationshipPath?.let {
-            entityRelationshipGenerator = EntityRelationshipGenerator(it, settings.entityRelationshipFilename ?: "default.gv")
+            entityRelationshipGenerator =
+                EntityRelationshipGenerator(it, settings.entityRelationshipFilename ?: "default.gv")
         }
     }
 
     override fun doWork(
         workSet: ModelWorkSet<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ) {
         val typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration> =
             (workSet.typeConverters + workSet.importedTypeConverters).associateBy {
@@ -57,32 +58,57 @@ class ModelWorker<T>(
             }
 
         workSet.typeConverters.forEach {
-            codeGenerator.generate(TypeConverterObjectGeneration.generateTypeConverterObject(it), settings)
+            codeGenerator.generate(
+                TypeConverterObjectGeneration.generateTypeConverterObject(it),
+                settings,
+            )
         }
 
         workSet.typeConverterExporters.forEach {
             codeGenerator.generate(
-                TypeConverterExporterObjectGeneration.generateTypeConverterExporterObject(it, workSet.typeConverters),
-                settings
+                TypeConverterExporterObjectGeneration.generateTypeConverterExporterObject(
+                    it,
+                    workSet.typeConverters,
+                ),
+                settings,
             )
         }
 
         val generatedInterfaces = mutableSetOf<String>()
 
         for (baseModelHolder in workSet.bases) {
-            generateInterface(generatedInterfaces, baseModelHolder, useSuspend, typeConvertersByConvertedClass)
+            generateInterface(
+                generatedInterfaces,
+                baseModelHolder,
+                useSuspend,
+                typeConvertersByConvertedClass,
+            )
         }
 
-        processAndFixAccessors(workSet.entities, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        processAndFixAccessors(
+            workSet.entities,
+            generatedInterfaces,
+            useSuspend,
+            typeConvertersByConvertedClass,
+        ) {
             EntityGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
-        processAndFixAccessors(workSet.wrappers, generatedInterfaces, useSuspend, typeConvertersByConvertedClass) {
+        processAndFixAccessors(
+            workSet.wrappers,
+            generatedInterfaces,
+            useSuspend,
+            typeConvertersByConvertedClass,
+        ) {
             WrapperGeneration().generateModel(it, useSuspend, typeConvertersByConvertedClass)
         }
 
         process(workSet.schemas) {
-            SchemaGeneration().generateModel(it, workSet.schemaClassPaths, typeConvertersByConvertedClass)
+            SchemaGeneration().generateModel(
+                it,
+                workSet.schemaClassPaths,
+                typeConvertersByConvertedClass,
+            )
         }
 
         documentationGenerator?.generate()
@@ -92,7 +118,7 @@ class ModelWorker<T>(
 
     private fun process(
         schemaModels: List<SchemaClassHolder<T>>,
-        generate: (SchemaClassHolder<T>) -> FileSpec
+        generate: (SchemaClassHolder<T>) -> FileSpec,
     ) {
         for (model in schemaModels) {
             documentationGenerator?.addEntitySegments(model)
@@ -109,10 +135,15 @@ class ModelWorker<T>(
         generatedInterfaces: MutableSet<String>,
         useSuspend: Boolean,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
-        generate: (E) -> FileSpec
+        generate: (E) -> FileSpec,
     ) {
         for (model in models) {
-            generateInterface(generatedInterfaces, model, useSuspend, typeConvertersByConvertedClass)
+            generateInterface(
+                generatedInterfaces,
+                model,
+                useSuspend,
+                typeConvertersByConvertedClass,
+            )
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
@@ -121,12 +152,12 @@ class ModelWorker<T>(
                     codeGenerator.generateAndFixAccessors(
                         this,
                         model.generateAccessors,
-                        settings
+                        settings,
                     )
                 } else {
                     codeGenerator.generate(
                         this,
-                        settings
+                        settings,
                     )
                 }
             }
@@ -137,16 +168,20 @@ class ModelWorker<T>(
         generatedInterfaces: MutableSet<String>,
         holder: BaseEntityHolder<T>,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ) {
-        if (generatedInterfaces.contains("${holder.sourcePackage}.${holder.sourceClazzSimpleName}").not()) {
+        if (generatedInterfaces
+                .contains(
+                    "${holder.sourcePackage}.${holder.sourceClazzSimpleName}",
+                ).not()
+        ) {
             codeGenerator.generate(
                 CommonInterfaceGeneration().generateModel(
                     holder,
                     useSuspend,
-                    typeConvertersByConvertedClass
+                    typeConvertersByConvertedClass,
                 ),
-                settings
+                settings,
             )
             generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }

@@ -14,7 +14,7 @@ data class ImportedTypeConverterHolder(
     override val instanceClassTypeName: ClassName,
     override val domainClassTypeName: ClassName,
     override val mapClassTypeName: ClassName,
-    override val genericTypeNames: List<ClassNameDefinition>
+    override val genericTypeNames: List<ClassNameDefinition>,
 ) : TypeConverterHolderForEntityGeneration
 
 data class TypeConverterHolder(
@@ -22,5 +22,5 @@ data class TypeConverterHolder(
     override val instanceClassTypeName: ClassName,
     override val domainClassTypeName: ClassName,
     override val mapClassTypeName: ClassName,
-    override val genericTypeNames: List<ClassNameDefinition>
+    override val genericTypeNames: List<ClassNameDefinition>,
 ) : TypeConverterHolderForEntityGeneration

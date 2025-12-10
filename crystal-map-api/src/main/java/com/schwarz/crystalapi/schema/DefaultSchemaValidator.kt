@@ -4,7 +4,7 @@ open class DefaultSchemaValidator : SchemaValidator {
     override fun validate(
         current: List<EntitySchema>,
         released: List<EntitySchema>,
-        logger: SchemaValidationLogger
+        logger: SchemaValidationLogger,
     ) {
         val currentMap: Map<String, EntitySchema> = current.map { it.name to it }.toMap()
         val releasedMap: Map<String, EntitySchema> = released.map { it.name to it }.toMap()
@@ -21,7 +21,7 @@ open class DefaultSchemaValidator : SchemaValidator {
     protected open fun validateModelLevel(
         current: EntitySchema?,
         released: EntitySchema,
-        logger: SchemaValidationLogger
+        logger: SchemaValidationLogger,
     ): Boolean {
         current?.let {
             released.docId?.let {
@@ -46,18 +46,25 @@ open class DefaultSchemaValidator : SchemaValidator {
     protected open fun validateFieldLevel(
         released: EntitySchema,
         key: String,
-        logger: SchemaValidationLogger
+        logger: SchemaValidationLogger,
     ) {
-        if (released.deprecatedSchema?.deprecatedFields?.find { it.field == key }?.inUse != false) {
+        if (released.deprecatedSchema
+                ?.deprecatedFields
+                ?.find { it.field == key }
+                ?.inUse != false
+        ) {
             logger.error(released, "forbidden change on existing field [$key]")
         } else {
-            logger.info(released, "allowed change on existing field [$key] since it's deprecated and no longer in use")
+            logger.info(
+                released,
+                "allowed change on existing field [$key] since it's deprecated and no longer in use",
+            )
         }
     }
 
     private fun modelDeletedDuringValidDeprecationPeriod(
         released: EntitySchema,
-        logger: SchemaValidationLogger
+        logger: SchemaValidationLogger,
     ) {
         if (released.deprecatedSchema == null || released.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")

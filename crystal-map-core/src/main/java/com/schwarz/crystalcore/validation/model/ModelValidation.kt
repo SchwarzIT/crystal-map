@@ -19,7 +19,7 @@ class ModelValidation<T>(
     val wrapperModels: MutableMap<String, WrapperEntityHolder<T>>,
     val entityModels: MutableMap<String, EntityHolder<T>>,
     val typeConverterModels: List<TypeConverterHolder>,
-    val importedTypeConverterModels: List<ImportedTypeConverterHolder>
+    val importedTypeConverterModels: List<ImportedTypeConverterHolder>,
 ) {
     private val allTypeConverterModels: List<TypeConverterHolderForEntityGeneration> =
         typeConverterModels + importedTypeConverterModels
@@ -29,12 +29,12 @@ class ModelValidation<T>(
             for (field in query.fields) {
                 if (!baseEntityHolder.fields.containsKey(field) &&
                     !baseEntityHolder.fieldConstants.containsKey(
-                            field
-                        )
+                        field,
+                    )
                 ) {
                     baseEntityHolder.sourceElement.logError(
                         logger,
-                        "query param [$field] is not a part of this entity"
+                        "query param [$field] is not a part of this entity",
                     )
                 }
             }
@@ -45,14 +45,15 @@ class ModelValidation<T>(
         baseEntityHolder.deprecated?.let { deprecated ->
             if (deprecated.replacedBy != "") {
                 deprecated.replacedBy.apply {
-                    if (this != Void::class.java.canonicalName && !wrapperModels.containsKey(this) &&
+                    if (this != Void::class.java.canonicalName &&
+                        !wrapperModels.containsKey(this) &&
                         !entityModels.containsKey(
-                                this
-                            )
+                            this,
+                        )
                     ) {
                         baseEntityHolder.sourceElement.logError(
                             logger,
-                            "replacement [$this] is not an entity/wrapper"
+                            "replacement [$this] is not an entity/wrapper",
                         )
                     }
                 }
@@ -61,7 +62,7 @@ class ModelValidation<T>(
             validateDeprecatedFields(
                 deprecated.deprecatedFields,
                 deprecated.replacedBy,
-                baseEntityHolder
+                baseEntityHolder,
             )
         }
     }
@@ -69,7 +70,7 @@ class ModelValidation<T>(
     private fun validateDeprecatedFields(
         deprecatedFields: Map<String, ISourceDeprecated.ISourceDeprecatedField>,
         replacingModel: String?,
-        model: BaseEntityHolder<T>
+        model: BaseEntityHolder<T>,
     ) {
         val replacingModel: BaseEntityHolder<T>? =
             replacingModel?.let {
@@ -79,10 +80,13 @@ class ModelValidation<T>(
         val fieldsAccessorsDocId: List<String> =
             model.docId?.distinctFieldAccessors(model) ?: emptyList()
         for (field in deprecatedFields) {
-            if (!model.fields.containsKey(field.key) && !model.fieldConstants.containsKey(field.key) && model.isReduced.not()) {
+            if (!model.fields.containsKey(field.key) &&
+                !model.fieldConstants.containsKey(field.key) &&
+                model.isReduced.not()
+            ) {
                 model.sourceElement.logError(
                     logger,
-                    "replacement field [${field.key}] does not exists"
+                    "replacement field [${field.key}] does not exists",
                 )
             }
 
@@ -91,20 +95,24 @@ class ModelValidation<T>(
                     val replacingIncludedInModel =
                         model.fields.containsKey(replacement) ||
                             model.fieldConstants.containsKey(
-                                replacement
+                                replacement,
                             )
                     val replacementIncludedReplacingModel =
                         replacingModel?.let {
-                            it.fields.containsKey(replacement) || it.fieldConstants?.containsKey(
-                                replacement
-                            ) == true
+                            it.fields.containsKey(replacement) ||
+                                it.fieldConstants?.containsKey(
+                                    replacement,
+                                ) == true
                         }
                             ?: false
 
-                    if (!replacingIncludedInModel && !replacementIncludedReplacingModel && model.isReduced.not()) {
+                    if (!replacingIncludedInModel &&
+                        !replacementIncludedReplacingModel &&
+                        model.isReduced.not()
+                    ) {
                         model.sourceElement.logError(
                             logger,
-                            "replacement [$replacement] for field [${field.key}] does not exists"
+                            "replacement [$replacement] for field [${field.key}] does not exists",
                         )
                     }
                 }
@@ -113,7 +121,7 @@ class ModelValidation<T>(
             if (fieldsAccessorsDocId.contains(field.key)) {
                 model.sourceElement.logError(
                     logger,
-                    "deprecated field is a part of DocId which is not possible since DocId is a final value. Use Deprecation on Entity/Wrapper level instead"
+                    "deprecated field is a part of DocId which is not possible since DocId is a final value. Use Deprecation on Entity/Wrapper level instead",
                 )
             }
         }
@@ -125,7 +133,7 @@ class ModelValidation<T>(
             if (it.pattern.count { it == '%' } % 2 != 0) {
                 baseEntityHolder.sourceElement.logError(
                     logger,
-                    "all variables in a DocId should be wrapped in % e.G. %variable%"
+                    "all variables in a DocId should be wrapped in % e.G. %variable%",
                 )
             }
 
@@ -133,12 +141,12 @@ class ModelValidation<T>(
                 for (field in segment.fields) {
                     if (!baseEntityHolder.fieldConstants.containsKey(field) &&
                         !baseEntityHolder.fields.containsKey(
-                                field
-                            )
+                            field,
+                        )
                     ) {
                         baseEntityHolder.sourceElement.logError(
                             logger,
-                            "field [$field] for DocId generation does not exists"
+                            "field [$field] for DocId generation does not exists",
                         )
                     }
                 }
@@ -146,21 +154,22 @@ class ModelValidation<T>(
                     if (!it.customSegments.containsKey(name)) {
                         baseEntityHolder.sourceElement.logError(
                             logger,
-                            "DocIdSegment annotated [$name] not found in DocId"
+                            "DocIdSegment annotated [$name] not found in DocId",
                         )
                     }
                 }
 
-                if (segment.customSegment == null && (
-                    segment.segment.contains('(') ||
-                        segment.segment.contains(
-                                ')'
+                if (segment.customSegment == null &&
+                    (
+                        segment.segment.contains('(') ||
+                            segment.segment.contains(
+                                ')',
                             )
                     )
                 ) {
                     baseEntityHolder.sourceElement.logError(
                         logger,
-                        "It looks like you try to use a DocIdSegment which not exists"
+                        "It looks like you try to use a DocIdSegment which not exists",
                     )
                 }
             }
@@ -175,7 +184,7 @@ class ModelValidation<T>(
                 if (allFieldNames.contains(it).not()) {
                     baseEntityHolder.sourceElement.logError(
                         logger,
-                        "[$it] ${Reduce::class.java.name} can only contains fields which belongs to the root of the parent element"
+                        "[$it] ${Reduce::class.java.name} can only contains fields which belongs to the root of the parent element",
                     )
                 }
             }
@@ -184,7 +193,10 @@ class ModelValidation<T>(
 
     private fun validateTypeConversionTypes(baseEntityHolder: BaseEntityHolder<T>) {
         val allTypeConversionFields =
-            baseEntityHolder.fields.filter { !it.value.isTypeOfSubEntity && !it.value.isNonConvertibleClass }
+            baseEntityHolder.fields.filter {
+                !it.value.isTypeOfSubEntity &&
+                    !it.value.isNonConvertibleClass
+            }
 
         allTypeConversionFields.forEach { fieldEntry ->
 
@@ -194,7 +206,7 @@ class ModelValidation<T>(
             if (allTypeConverterModels.all { it.domainClassTypeName != rawFieldType }) {
                 baseEntityHolder.sourceElement.logError(
                     logger,
-                    "[${baseEntityHolder.entitySimpleName}] No ${TypeConverter::class.java.name} found for Type ${fieldEntry.value.fieldType}"
+                    "[${baseEntityHolder.entitySimpleName}] No ${TypeConverter::class.java.name} found for Type ${fieldEntry.value.fieldType}",
                 )
             }
         }
@@ -205,7 +217,7 @@ class ModelValidation<T>(
             if (!nonConvertibleClassesTypeNames.contains(it.mapClassTypeName)) {
                 logger.error(
                     "Invalid map type ${it.mapClassTypeName} found in TypeConverter ${it.classTypeName}. Should be one of $nonConvertibleClassesTypeNames",
-                    null
+                    null,
                 )
             }
         }
@@ -219,7 +231,7 @@ class ModelValidation<T>(
                 logger.error(
                     "Duplicate TypeConverters for domain class ${it.domainClassTypeName}. " +
                         "Cannot add ${it.classTypeName} since already defined by ${existingTypeConverter.instanceClassTypeName}",
-                    null
+                    null,
                 )
             } else {
                 typeConverterMap.put(it.domainClassTypeName, it)

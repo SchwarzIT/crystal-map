@@ -8,7 +8,9 @@ import com.schwarz.crystalksp.util.getArgument
 import com.schwarz.crystalksp.util.getEnumArgument
 import com.squareup.kotlinpoet.ksp.toClassName
 
-class SourceDeprecated(val deprecatedAnnotation: KSAnnotation) : ISourceDeprecated {
+class SourceDeprecated(
+    val deprecatedAnnotation: KSAnnotation,
+) : ISourceDeprecated {
     private val replacedByTypeMirror = deprecatedAnnotation.getArgument<KSType>("replacedBy")
 
     private val replaceByCanonicalName =
@@ -24,9 +26,17 @@ class SourceDeprecated(val deprecatedAnnotation: KSAnnotation) : ISourceDeprecat
                 ""
             }
         } ?: ""
-    override val type: DeprecationType = deprecatedAnnotation.getEnumArgument<DeprecationType>("type") ?: DeprecationType.FIELD_DEPRECATION
+    override val type: DeprecationType =
+        deprecatedAnnotation.getEnumArgument<DeprecationType>("type")
+            ?: DeprecationType.FIELD_DEPRECATION
     override val fields: Array<ISourceDeprecated.ISourceDeprecatedField> =
-        deprecatedAnnotation.getArgument<List<KSAnnotation>>("fields")?.map {
-            ISourceDeprecated.ISourceDeprecatedField(it.getArgument("field") ?: "", it.getArgument("replacedBy") ?: "", it.getArgument("inUse") ?: false)
-        }?.toTypedArray() ?: arrayOf()
+        deprecatedAnnotation
+            .getArgument<List<KSAnnotation>>("fields")
+            ?.map {
+                ISourceDeprecated.ISourceDeprecatedField(
+                    it.getArgument("field") ?: "",
+                    it.getArgument("replacedBy") ?: "",
+                    it.getArgument("inUse") ?: false,
+                )
+            }?.toTypedArray() ?: arrayOf()
 }

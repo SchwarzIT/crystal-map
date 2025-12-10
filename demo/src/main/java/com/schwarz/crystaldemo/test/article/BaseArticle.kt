@@ -6,6 +6,7 @@ import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.deprecated.DeprecatedField
 import com.schwarz.crystalapi.deprecated.DeprecationType
+import com.schwarz.crystaldemo.test.article.StoreArticle
 
 @MapWrapper(modifierOpen = true)
 @Fields(
@@ -32,12 +33,12 @@ import com.schwarz.crystalapi.deprecated.DeprecationType
     Field(name = "vat_flag", type = String::class),
     Field(name = "displays", type = Display::class, list = true),
     Field(name = "kolli_qty", type = Int::class),
-    Field(name = "dwg", type = String::class)
+    Field(name = "dwg", type = String::class),
 )
 @Deprecated(
     type = DeprecationType.ENTITY_DEPRECATION,
     replacedBy = StoreArticle::class,
-    fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")]
+    fields = [DeprecatedField(field = "base_unit", replacedBy = "kolli_qty")],
 )
 open class BaseArticle {
     companion object {
@@ -46,10 +47,8 @@ open class BaseArticle {
 
         fun documentId(
             country: String,
-            article_no: String
-        ): String {
-            return "$PREFIX:$country:$article_no"
-        }
+            article_no: String,
+        ): String = "$PREFIX:$country:$article_no"
     }
 
 //    override fun documentId(): String {

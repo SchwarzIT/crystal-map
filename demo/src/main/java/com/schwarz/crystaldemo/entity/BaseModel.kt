@@ -9,8 +9,8 @@ import com.schwarz.crystalapi.Fields
         name = "someBaseThing",
         type = String::class,
         defaultValue = "something",
-        readonly = true
+        readonly = true,
     ),
-    Field(name = "someConstant", type = String::class, defaultValue = "invalid", readonly = true)
+    Field(name = "someConstant", type = String::class, defaultValue = "invalid", readonly = true),
 )
 open class BaseModel

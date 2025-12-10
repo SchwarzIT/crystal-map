@@ -9,7 +9,9 @@ import java.io.Serializable
 import java.math.BigDecimal
 
 @Mapper
-class DummyMapperSource(simple: String = "test123") {
+class DummyMapperSource(
+    simple: String = "test123",
+) {
     @Mapify
     private val myPrivateValWithAVeryVeryVeryVeryLongName: String? = simple
 
@@ -44,29 +46,34 @@ class DummyMapperSource(simple: String = "test123") {
     private val nullableMap: Map<String?, Int?> = mapOf()
 
     @Mapify
-    val mapper: InnerMapperSource<TestSerializable?, String> = InnerMapperSource(TestSerializable(simple, 5), simple)
+    val mapper: InnerMapperSource<TestSerializable?, String> =
+        InnerMapperSource(TestSerializable(simple, 5), simple)
 
     @Mapify
     val liveData = ExposingSource<TestSerializable>(TestSerializable(simple, 5))
 
     @Mapify
-    val liveDataList: ExposingSource<List<TestSerializable>> = ExposingSource(listOf(TestSerializable(simple, 5)))
+    val liveDataList: ExposingSource<List<TestSerializable>> =
+        ExposingSource(listOf(TestSerializable(simple, 5)))
 
     val privateValExpose
         get() = myPrivateValWithAVeryVeryVeryVeryLongName
 
-    data class TestSerializable(val test1: String, val test2: Int) : Serializable
+    data class TestSerializable(
+        val test1: String,
+        val test2: Int,
+    ) : Serializable
 
     @Mapifyable(MyMapifyableTest.Mapper::class)
-    class MyMapifyableTest(val myString: String) {
+    class MyMapifyableTest(
+        val myString: String,
+    ) {
         class Mapper : IMapifyable<MyMapifyableTest> {
-            override fun fromMap(map: Map<String, Any>): MyMapifyableTest {
-                return MyMapifyableTest(map["test"] as String)
-            }
+            override fun fromMap(map: Map<String, Any>): MyMapifyableTest =
+                MyMapifyableTest(map["test"] as String)
 
-            override fun toMap(obj: MyMapifyableTest): Map<String, Any> {
-                return mapOf("test" to obj.myString)
-            }
+            override fun toMap(obj: MyMapifyableTest): Map<String, Any> =
+                mapOf("test" to obj.myString)
         }
     }
 }

@@ -6,12 +6,12 @@ import com.squareup.kotlinpoet.FileSpec
 interface ICodeGenerator {
     fun generate(
         entityToGenerate: FileSpec,
-        settings: ISettings
+        settings: ISettings,
     )
 
     fun generateAndFixAccessors(
         entityToGenerate: FileSpec,
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
-        settings: ISettings
+        settings: ISettings,
     )
 }

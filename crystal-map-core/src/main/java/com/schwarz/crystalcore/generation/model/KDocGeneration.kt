@@ -3,7 +3,6 @@ package com.schwarz.crystalcore.generation.model
 import com.squareup.kotlinpoet.CodeBlock
 
 object KDocGeneration {
-    fun generate(comments: Array<String>): CodeBlock {
-        return CodeBlock.of("%L", comments.joinToString(separator = "\n"))
-    }
+    fun generate(comments: Array<String>): CodeBlock =
+        CodeBlock.of("%L", comments.joinToString(separator = "\n"))
 }

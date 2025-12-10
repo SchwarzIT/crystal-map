@@ -23,9 +23,8 @@ class ModelWorkSet<T>(
     val allBaseModelElements: Set<ISourceModel<T>>,
     val allTypeConverterElements: Set<ISourceModel<T>>,
     val allTypeConverterExporterElements: Set<ISourceModel<T>>,
-    val allTypeConverterImporterElements: Set<ISourceModel<T>>
-) :
-    WorkSet<T> {
+    val allTypeConverterImporterElements: Set<ISourceModel<T>>,
+) : WorkSet<T> {
     private val entityModels: MutableMap<String, EntityHolder<T>> = HashMap()
 
     private val wrapperModels: MutableMap<String, WrapperEntityHolder<T>> = HashMap()
@@ -48,7 +47,7 @@ class ModelWorkSet<T>(
         for (element in hashSetOf(
             *allBaseModelElements.toTypedArray(),
             *allEntityElements.toTypedArray(),
-            *allWrapperElements.toTypedArray()
+            *allWrapperElements.toTypedArray(),
         )) {
             PreModelValidation.validate(element, logger)
         }
@@ -65,13 +64,24 @@ class ModelWorkSet<T>(
 
     override fun loadModels(logger: ILogger<T>) {
         val allWrapperPaths = allWrapperElements.map { element -> element.fullQualifiedName }
-        val allSchemaClassPaths = allSchemaClassElements.map { element -> element.fullQualifiedName }
+        val allSchemaClassPaths =
+            allSchemaClassElements.map { element ->
+                element.fullQualifiedName
+            }
 
         for (element in allBaseModelElements) {
-            val wrapperBaseModel = EntityFactory.createWrapperBaseModelHolder(element, allWrapperPaths)
+            val wrapperBaseModel =
+                EntityFactory.createWrapperBaseModelHolder(
+                    element,
+                    allWrapperPaths,
+                )
             wrapperBaseModels[element.fullQualifiedName] = wrapperBaseModel
 
-            val schemaBaseModel = EntityFactory.createSchemaBaseModelHolder(element, allSchemaClassPaths)
+            val schemaBaseModel =
+                EntityFactory.createSchemaBaseModelHolder(
+                    element,
+                    allSchemaClassPaths,
+                )
             schemaBaseModels[element.fullQualifiedName] = schemaBaseModel
         }
 
@@ -85,7 +95,12 @@ class ModelWorkSet<T>(
         }
 
         for (element in allEntityElements) {
-            val entityModel = EntityFactory.createEntityHolder(element, allWrapperPaths, wrapperBaseModels)
+            val entityModel =
+                EntityFactory.createEntityHolder(
+                    element,
+                    allWrapperPaths,
+                    wrapperBaseModels,
+                )
             entityModels[element.fullQualifiedName] = entityModel
 
             entityModel.reducesModels.forEach {
@@ -93,10 +108,10 @@ class ModelWorkSet<T>(
                     EntityFactory.createEntityHolder(
                         ReducedSourceModel(
                             entityModel.sourceElement,
-                            it
+                            it,
                         ),
                         allWrapperPaths,
-                        wrapperBaseModels
+                        wrapperBaseModels,
                     )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
@@ -108,7 +123,7 @@ class ModelWorkSet<T>(
                 EntityFactory.createChildEntityHolder(
                     element,
                     allWrapperPaths,
-                    wrapperBaseModels
+                    wrapperBaseModels,
                 )
             wrapperModels[element.fullQualifiedName] = wrapperModel
 
@@ -117,10 +132,10 @@ class ModelWorkSet<T>(
                     EntityFactory.createEntityHolder(
                         ReducedSourceModel(
                             wrapperModel.sourceElement,
-                            it
+                            it,
                         ),
                         allWrapperPaths,
-                        wrapperBaseModels
+                        wrapperBaseModels,
                     )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
@@ -132,13 +147,15 @@ class ModelWorkSet<T>(
                 EntityFactory.createSchemaEntityHolder(
                     element,
                     allSchemaClassPaths,
-                    schemaBaseModels
+                    schemaBaseModels,
                 )
             schemaModels[element.fullQualifiedName] = schemaModel
         }
 
         allTypeConverterImporterElements.forEach { element ->
-            importedTypeConverterModels.addAll(TypeConverterHolderFactory.importedTypeConverterHolders(element))
+            importedTypeConverterModels.addAll(
+                TypeConverterHolderFactory.importedTypeConverterHolders(element),
+            )
         }
 
         allTypeConverterElements.forEach {
@@ -156,7 +173,7 @@ class ModelWorkSet<T>(
             wrapperModels,
             entityModels,
             typeConverterModels.values.toList(),
-            importedTypeConverterModels
+            importedTypeConverterModels,
         ).postValidate()
     }
 

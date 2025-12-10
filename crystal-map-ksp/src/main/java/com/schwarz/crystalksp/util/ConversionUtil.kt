@@ -10,13 +10,19 @@ fun KSDeclaration.getAnnotation(annotationClass: KClass<out Annotation>): KSAnno
     val targetAnnotationQualifiedName = annotationClass.qualifiedName ?: return null
 
     return this.annotations.firstOrNull { ksAnnotation ->
-        ksAnnotation.annotationType.resolve().declaration.qualifiedName?.asString() == targetAnnotationQualifiedName
+        ksAnnotation.annotationType
+            .resolve()
+            .declaration.qualifiedName
+            ?.asString() ==
+            targetAnnotationQualifiedName
     }
 }
 
-fun <T> KSAnnotation.getArgument(argumentName: String): T? {
-    return this.arguments.firstOrNull { it.name?.getShortName() == argumentName }?.value as? T
-}
+fun <T> KSAnnotation.getArgument(argumentName: String): T? =
+    this.arguments
+        .firstOrNull {
+            it.name?.getShortName() == argumentName
+        }?.value as? T
 
 inline fun <reified T : Enum<T>> KSAnnotation.getEnumArgument(argumentName: String): T? {
     val argument = this.getArgument<Any>(argumentName)

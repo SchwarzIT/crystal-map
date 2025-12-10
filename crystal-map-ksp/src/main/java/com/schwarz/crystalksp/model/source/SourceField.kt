@@ -15,7 +15,9 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 
-class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
+class SourceField(
+    val fieldAnnotation: KSAnnotation,
+) : ISourceField {
     private val classArgument =
         fieldAnnotation.getArgument<KSType>("type")!!.let {
             if (it.declaration is KSTypeAlias) {
@@ -34,29 +36,48 @@ class SourceField(val fieldAnnotation: KSAnnotation) : ISourceField {
     override val list: Boolean = fieldAnnotation.getArgument<Boolean>("list") ?: false
     override val defaultValue: String = fieldAnnotation.getArgument<String>("defaultValue") ?: ""
     override val mandatory: Boolean = fieldAnnotation.getArgument<Boolean>("mandatory") ?: false
-    override val comment: Array<String> = fieldAnnotation.getArgument<List<String>>("comment")?.toTypedArray() ?: arrayOf()
+    override val comment: Array<String> =
+        fieldAnnotation.getArgument<List<String>>("comment")?.toTypedArray() ?: arrayOf()
 
     override val fullQualifiedName: String
         get() {
             return classArgument.declaration.qualifiedName!!.asString()
         }
 
-    override val javaToKotlinType = if (classArgument is KSClassDeclaration) (classArgument as KSType).toClassName().javaToKotlinType() else classArgument.toTypeName().javaToKotlinType()
-    override val baseType: TypeName = if (classArgument is KSClassDeclaration) (classArgument as KSType).toClassName() else classArgument.toTypeName()
+    override val javaToKotlinType =
+        if (classArgument is KSClassDeclaration) {
+            (classArgument as KSType)
+                .toClassName()
+                .javaToKotlinType()
+        } else {
+            classArgument.toTypeName().javaToKotlinType()
+        }
+    override val baseType: TypeName =
+        if (classArgument is KSClassDeclaration) {
+            (classArgument as KSType)
+                .toClassName()
+        } else {
+            classArgument.toTypeName()
+        }
 
     override fun parseMetaType(
         list: Boolean,
-        subEntity: String?
-    ): TypeName {
-        return parseMetaType(list, true, subEntity)
-    }
+        subEntity: String?,
+    ): TypeName = parseMetaType(list, true, subEntity)
 
     private fun parseMetaType(
         list: Boolean,
         convertMap: Boolean,
-        subEntity: String?
+        subEntity: String?,
     ): TypeName {
-        val simpleName = if (subEntity != null && subEntity.contains(simpleName)) subEntity else simpleName
+        val simpleName =
+            if (subEntity != null &&
+                subEntity.contains(simpleName)
+            ) {
+                subEntity
+            } else {
+                simpleName
+            }
 
         var baseType: TypeName?
 

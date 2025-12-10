@@ -51,7 +51,7 @@ import javax.lang.model.element.TypeElement
     FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME,
     FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME,
     FRAMEWORK_SCHEMA_PATH_OPTION_NAME,
-    FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME
+    FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME,
 )
 class CoachBaseBinderProcessor : AbstractProcessor() {
     private lateinit var mLogger: Logger
@@ -82,7 +82,8 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
     @Synchronized
     override fun init(processingEnvironment: ProcessingEnvironment) {
         useSuspend =
-            processingEnvironment.options?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")
+            processingEnvironment.options
+                ?.getOrDefault(FRAMEWORK_USE_SUSPEND_OPTION_NAME, "false")
                 ?.toBoolean()
                 ?: false
         mLogger = Logger(processingEnvironment)
@@ -96,7 +97,7 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
 
     override fun process(
         set: Set<TypeElement>,
-        roundEnv: RoundEnvironment
+        roundEnv: RoundEnvironment,
     ): Boolean {
         ProcessingContext.roundEnv = roundEnv
         workers =
@@ -107,39 +108,50 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
                     mSettings,
                     ModelWorkSet(
                         allEntityElements =
-                        roundEnv.getElementsAnnotatedWith(Entity::class.java)
-                            .toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(Entity::class.java)
+                                .toSourceModel(),
                         allWrapperElements =
-                        roundEnv.getElementsAnnotatedWith(MapWrapper::class.java)
-                            .toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(MapWrapper::class.java)
+                                .toSourceModel(),
                         allSchemaClassElements =
-                        roundEnv.getElementsAnnotatedWith(SchemaClass::class.java)
-                            .toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(SchemaClass::class.java)
+                                .toSourceModel(),
                         allBaseModelElements =
-                        roundEnv.getElementsAnnotatedWith(BaseModel::class.java)
-                            .toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(BaseModel::class.java)
+                                .toSourceModel(),
                         allTypeConverterElements =
-                        roundEnv.getElementsAnnotatedWith(TypeConverter::class.java)
-                            .toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(TypeConverter::class.java)
+                                .toSourceModel(),
                         allTypeConverterExporterElements =
-                        roundEnv.getElementsAnnotatedWith(
-                            TypeConverterExporter::class.java
-                        ).toSourceModel(),
+                            roundEnv
+                                .getElementsAnnotatedWith(
+                                    TypeConverterExporter::class.java,
+                                ).toSourceModel(),
                         allTypeConverterImporterElements =
-                        roundEnv.getElementsAnnotatedWith(
-                            TypeConverterImporter::class.java
-                        ).toSourceModel()
-                    )
+                            roundEnv
+                                .getElementsAnnotatedWith(
+                                    TypeConverterImporter::class.java,
+                                ).toSourceModel(),
+                    ),
                 ),
                 MapperWorker(
                     mLogger,
                     mCodeGenerator,
                     mSettings,
                     MapperWorkSet(
-                        allMapperElements = roundEnv.getElementsAnnotatedWith(Mapper::class.java).toMapperSourceModel(),
-                        PreMapperValidation::validate
-                    )
-                )
+                        allMapperElements =
+                            roundEnv
+                                .getElementsAnnotatedWith(
+                                    Mapper::class.java,
+                                ).toMapperSourceModel(),
+                        PreMapperValidation::validate,
+                    ),
+                ),
             )
 
         workers.forEach { it.init() }
@@ -159,24 +171,25 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
         return true // no further processing of this annotation type
     }
 
-    private fun unboxError(value: Any?): List<Element> {
-        return when (value) {
+    private fun unboxError(value: Any?): List<Element> =
+        when (value) {
             is List<*> -> value.map { it as Element }
             is Element -> listOf(value as Element)
             else -> emptyList()
         }
-    }
 
-    private fun Set<Element>.toSourceModel(): Set<ISourceModel<Element>> {
-        return map { SourceModel(it) }.toSet()
-    }
+    private fun Set<Element>.toSourceModel(): Set<ISourceModel<Element>> =
+        map {
+            SourceModel(it)
+        }.toSet()
 
-    private fun Set<Element>.toMapperSourceModel(): Set<ISourceMapperModel<Element>> {
-        return map { SourceMapperModel(it) }.toSet()
-    }
+    private fun Set<Element>.toMapperSourceModel(): Set<ISourceMapperModel<Element>> =
+        map {
+            SourceMapperModel(it)
+        }.toSet()
 
-    override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return setOf(
+    override fun getSupportedAnnotationTypes(): MutableSet<String> =
+        setOf(
             Field::class.java.canonicalName,
             Entity::class.java.canonicalName,
             MapWrapper::class.java.canonicalName,
@@ -189,7 +202,6 @@ class CoachBaseBinderProcessor : AbstractProcessor() {
             Reduce::class.java.canonicalName,
             TypeConverter::class.java.canonicalName,
             TypeConverterExporter::class.java.canonicalName,
-            TypeConverterImporter::class.java.canonicalName
+            TypeConverterImporter::class.java.canonicalName,
         ).toMutableSet()
-    }
 }

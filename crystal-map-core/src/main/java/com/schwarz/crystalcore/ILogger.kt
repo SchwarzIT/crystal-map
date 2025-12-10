@@ -5,23 +5,23 @@ interface ILogger<T> {
 
     fun info(
         msg: String,
-        element: T?
+        element: T?,
     )
 
     fun warn(
         msg: String,
-        element: T?
+        element: T?,
     )
 
     fun error(
         msg: String,
-        element: T?
+        element: T?,
     )
 
     fun abortWithError(
         msg: String,
         element: T?,
-        ex: Throwable?
+        ex: Throwable?,
     )
 
     fun hasErrors(): Boolean
@@ -29,6 +29,6 @@ interface ILogger<T> {
     fun abortWithError(
         msg: String?,
         elements: List<T>,
-        ex: Throwable?
+        ex: Throwable?,
     )
 }

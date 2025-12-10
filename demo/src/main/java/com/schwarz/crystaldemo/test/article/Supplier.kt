@@ -18,6 +18,6 @@ import com.schwarz.crystalapi.MapWrapper
     Field(name = "ordering_area_name", type = String::class),
     Field(name = "kdis_flag", type = String::class),
     Field(name = "comm_category", type = String::class),
-    Field(name = "landx", type = String::class)
+    Field(name = "landx", type = String::class),
 )
 open class Supplier

@@ -11,11 +11,13 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.lang.reflect.Field
 
-class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISourceMapify) :
-    MapifyElementType<T> {
+class MapifyElementTypeField<T>(
+    val element: IClassModel<T>,
+    val mapify: ISourceMapify,
+) : MapifyElementType<T> {
     override val elements: List<T> =
         listOf(
-            element.source
+            element.source,
         )
 
     override val fieldName = element.sourceClazzSimpleName
@@ -26,33 +28,47 @@ class MapifyElementTypeField<T>(val element: IClassModel<T>, val mapify: ISource
 
     override val accessible = element.accessible
 
-    override val declaringName: ISourceDeclaringName = element.asDeclaringName(mapify.nullableIndexes.toTypedArray())
-
-    override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> {
-        return listOf(
-            PropertySpec.builder(reflectedFieldName, Field::class.java.asTypeName(), KModifier.PRIVATE)
-                .initializer(
-                    CodeBlock.builder()
-                        .addStatement("%T::class.java.getDeclaredField(%S)", sourceClazzTypeName, fieldName)
-                        .beginControlFlow(".apply")
-                        .addStatement("isAccessible·=·true")
-                        .endControlFlow().build()
-                ).build()
+    override val declaringName: ISourceDeclaringName =
+        element.asDeclaringName(
+            mapify.nullableIndexes.toTypedArray(),
         )
-    }
 
-    override fun getterFunSpec(): FunSpec {
-        return FunSpec.getterBuilder().addStatement(
-            "return %N.get(this) as? %T",
-            reflectedFieldName,
-            declaringName.asFullTypeName()!!.copy(nullable = true)
-        ).build()
-    }
+    override fun reflectionProperties(sourceClazzTypeName: TypeName): List<PropertySpec> =
+        listOf(
+            PropertySpec
+                .builder(
+                    reflectedFieldName,
+                    Field::class.java.asTypeName(),
+                    KModifier.PRIVATE,
+                ).initializer(
+                    CodeBlock
+                        .builder()
+                        .addStatement(
+                            "%T::class.java.getDeclaredField(%S)",
+                            sourceClazzTypeName,
+                            fieldName,
+                        ).beginControlFlow(".apply")
+                        .addStatement("isAccessible·=·true")
+                        .endControlFlow()
+                        .build(),
+                ).build(),
+        )
 
-    override fun setterFunSpec(): FunSpec {
-        return FunSpec.setterBuilder().addParameter(
-            "value",
-            declaringName.asFullTypeName()!!
-        ).addStatement("%N.set(this,·value)", reflectedFieldName).build()
-    }
+    override fun getterFunSpec(): FunSpec =
+        FunSpec
+            .getterBuilder()
+            .addStatement(
+                "return %N.get(this) as? %T",
+                reflectedFieldName,
+                declaringName.asFullTypeName()!!.copy(nullable = true),
+            ).build()
+
+    override fun setterFunSpec(): FunSpec =
+        FunSpec
+            .setterBuilder()
+            .addParameter(
+                "value",
+                declaringName.asFullTypeName()!!,
+            ).addStatement("%N.set(this,·value)", reflectedFieldName)
+            .build()
 }

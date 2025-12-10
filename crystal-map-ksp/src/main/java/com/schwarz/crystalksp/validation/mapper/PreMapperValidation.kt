@@ -10,13 +10,15 @@ object PreMapperValidation {
     @Throws(ClassNotFoundException::class)
     fun validate(
         mapperElement: IClassModel<KSNode>,
-        logger: ILogger<KSNode>
+        logger: ILogger<KSNode>,
     ) {
         val getterMap: MutableMap<String, KSFunctionDeclaration> = hashMapOf()
         val setterMap: MutableMap<String, KSFunctionDeclaration> = hashMapOf()
 
         (mapperElement.source as? KSClassDeclaration)?.declarations?.forEach { member ->
-            if (member is KSFunctionDeclaration && member.annotations.any { it.shortName.asString() == "Mapify" }) {
+            if (member is KSFunctionDeclaration &&
+                member.annotations.any { it.shortName.asString() == "Mapify" }
+            ) {
                 val simpleName = member.simpleName.asString()
                 val isGetter = simpleName.startsWith("get")
                 val isSetter = simpleName.startsWith("set")
@@ -27,7 +29,7 @@ object PreMapperValidation {
                     else ->
                         logger.error(
                             "Mapify is only allowed on getters/setters/fields.",
-                            member
+                            member,
                         )
                 }
             }
@@ -36,14 +38,14 @@ object PreMapperValidation {
         val missingPairs =
             hashSetOf(
                 *getterMap.keys.minus(setterMap.keys).toTypedArray(),
-                *setterMap.keys.minus(getterMap.keys).toTypedArray()
+                *setterMap.keys.minus(getterMap.keys).toTypedArray(),
             )
 
         missingPairs.forEach {
             val declaration = getterMap[it] ?: setterMap[it] ?: mapperElement.source
             logger.error(
                 "Mapifyable needs to be applied on both getter and setter for property '$it'.",
-                declaration
+                declaration,
             )
         }
     }

@@ -10,9 +10,8 @@ class MapperWorker<T>(
     override val logger: ILogger<T>,
     override val codeGenerator: ICodeGenerator,
     override val settings: ISettings,
-    override val workSet: MapperWorkSet<T>
-) :
-    Worker<MapperWorkSet<T>, T> {
+    override val workSet: MapperWorkSet<T>,
+) : Worker<MapperWorkSet<T>, T> {
     val mapperGeneration: MapperGeneration<T> = MapperGeneration<T>()
 
     override fun init() {
@@ -20,7 +19,7 @@ class MapperWorker<T>(
 
     override fun doWork(
         workSet: MapperWorkSet<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ) {
         for (mapper in workSet.mappers) {
             mapperGeneration.generate(mapper).apply {

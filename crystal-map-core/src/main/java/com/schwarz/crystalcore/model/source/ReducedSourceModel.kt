@@ -7,9 +7,8 @@ import com.squareup.kotlinpoet.TypeName
 
 data class ReducedSourceModel<T>(
     private val sourceModel: ISourceModel<T>,
-    private val reducedModelHolder: ReducedModelHolder<T>
-) :
-    ISourceModel<T> by sourceModel {
+    private val reducedModelHolder: ReducedModelHolder<T>,
+) : ISourceModel<T> by sourceModel {
     override val sourceClazzSimpleName: String =
         "${reducedModelHolder.namePrefix}${sourceModel.sourceClazzSimpleName.capitalize()}"
 
@@ -65,7 +64,14 @@ data class ReducedSourceModel<T>(
             val generateAccessor =
                 if (reducedModelHolder.includeAccessor) it.generateAccessor else null
             if (docIdSegment != null || generateAccessor != null) {
-                SourceMemberFunction(it.name, it.isSuspend, it.returnTypeName, it.parameters, docIdSegment, generateAccessor)
+                SourceMemberFunction(
+                    it.name,
+                    it.isSuspend,
+                    it.returnTypeName,
+                    it.parameters,
+                    docIdSegment,
+                    generateAccessor,
+                )
             } else {
                 null
             }

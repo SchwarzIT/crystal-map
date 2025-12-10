@@ -12,11 +12,19 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import javax.lang.model.type.TypeMirror
 
-class SourceField(val fieldAnnotation: Field) : ISourceField {
+class SourceField(
+    val fieldAnnotation: Field,
+) : ISourceField {
     private val typeMirror: TypeMirror = FieldExtractionUtil.typeMirror(fieldAnnotation)
 
     private fun getSimpleName(type: TypeMirror): String {
-        val parts = type.toString().split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val parts =
+            type
+                .toString()
+                .split(
+                    "\\.".toRegex(),
+                ).dropLastWhile { it.isEmpty() }
+                .toTypedArray()
         return if (parts.size > 1) parts[parts.size - 1] else parts[0]
     }
 
@@ -44,17 +52,22 @@ class SourceField(val fieldAnnotation: Field) : ISourceField {
 
     override fun parseMetaType(
         list: Boolean,
-        subEntity: String?
-    ): TypeName {
-        return parseMetaType(list, true, subEntity)
-    }
+        subEntity: String?,
+    ): TypeName = parseMetaType(list, true, subEntity)
 
     private fun parseMetaType(
         list: Boolean,
         convertMap: Boolean,
-        subEntity: String?
+        subEntity: String?,
     ): TypeName {
-        val simpleName = if (subEntity != null && subEntity.contains(simpleName)) subEntity else simpleName
+        val simpleName =
+            if (subEntity != null &&
+                subEntity.contains(simpleName)
+            ) {
+                subEntity
+            } else {
+                simpleName
+            }
 
         var baseType: TypeName?
 

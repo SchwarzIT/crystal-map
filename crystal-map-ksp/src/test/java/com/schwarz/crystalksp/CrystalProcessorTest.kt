@@ -10,11 +10,9 @@ import com.tschuchort.compiletesting.kspProcessorOptions
 import com.tschuchort.compiletesting.sourcesGeneratedBySymbolProcessor
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
 
 @OptIn(ExperimentalCompilerApi::class)
 class CrystalProcessorTest {
@@ -84,7 +82,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithQueries"),
-                useSuspend = true
+                useSuspend = true,
             )
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
@@ -95,7 +93,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithGenerateAccessor"),
-                useSuspend = true
+                useSuspend = true,
             )
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
@@ -106,7 +104,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFields"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -116,7 +114,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedFieldsAndReduce"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -126,7 +124,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDocId"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -136,7 +134,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithEnumDocId"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -146,7 +144,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDocIdAndDocIdSegments"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -156,10 +154,12 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithWrongConfiguredDeprecatedFields"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(compilation.exitCode, KotlinCompilation.ExitCode.COMPILATION_ERROR)
-        assertTrue(compilation.messages.contains("replacement [name2] for field [name] does not exists"))
+        assertTrue(
+            compilation.messages.contains("replacement [name2] for field [name] does not exists"),
+        )
     }
 
     @Test
@@ -167,7 +167,7 @@ class CrystalProcessorTest {
         val compilation =
             compileKotlin(
                 TestDataHelper.clazzAsJavaFileObjects("EntityWithDeprecatedClass"),
-                useSuspend = true
+                useSuspend = true,
             )
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
     }
@@ -190,7 +190,7 @@ class CrystalProcessorTest {
                     "        const val TYPE: String = \"DWG\"" +
                     "}\n" +
                     " abstract var test : String?\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(subEntity)
@@ -217,7 +217,7 @@ class CrystalProcessorTest {
                     "        const val TYPE: String = \"DWG\"" +
                     "}\n" +
                     " abstract var testTestTest : String?\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(subEntity)
@@ -227,14 +227,19 @@ class CrystalProcessorTest {
 
     @Test
     fun testKotlinSchemaGeneration() {
-        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSchema.txt").readAllBytes()).lines()
+        val expected =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedSchema.txt")
+                    .readAllBytes(),
+            ).lines()
         val testObject =
             SourceFile.kotlin(
                 "TestObject.kt",
                 PACKAGE_HEADER +
                     "import com.schwarz.crystalapi.SchemaClass\n" +
                     "@SchemaClass\n" +
-                    "class TestObject"
+                    "class TestObject",
             )
         val sub =
             SourceFile.kotlin(
@@ -255,7 +260,7 @@ class CrystalProcessorTest {
                     "Field(name = \"date_converter_field\", type = OffsetDateTime::class),\n" +
                     "Field(name = \"date_converter_list\", type = OffsetDateTime::class, list = true),\n" +
                     ")\n" +
-                    "class Sub"
+                    "class Sub",
             )
         val typeConverter =
             SourceFile.kotlin(
@@ -267,11 +272,16 @@ class CrystalProcessorTest {
                     "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
                     "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
                     "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                    "}"
+                    "}",
             )
         val compilation = compileKotlin(typeConverter, testObject, sub)
 
-        val actual = compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "SubSchema.kt" }!!.readLines()
+        val actual =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find {
+                    it.name == "SubSchema.kt"
+                }!!
+                .readLines()
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         assertEquals(expected, actual)
@@ -279,7 +289,12 @@ class CrystalProcessorTest {
 
     @Test
     fun testKotlinSchemaGenerationWithBasedOn() {
-        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedSubSchema.txt").readAllBytes()).lines()
+        val expected =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedSubSchema.txt")
+                    .readAllBytes(),
+            ).lines()
         val testObject =
             SourceFile.kotlin(
                 "TestObject.kt",
@@ -293,7 +308,7 @@ class CrystalProcessorTest {
                     "@Fields(\n" +
                     "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
                     ")\n" +
-                    "open class TestObject"
+                    "open class TestObject",
             )
         val base =
             SourceFile.kotlin(
@@ -306,7 +321,7 @@ class CrystalProcessorTest {
                     "@Fields(\n" +
                     "Field(name = \"someObject\", type = TestObject::class)\n" +
                     ")\n" +
-                    "open class Base"
+                    "open class Base",
             )
         val sub =
             SourceFile.kotlin(
@@ -323,11 +338,16 @@ class CrystalProcessorTest {
                     "@Fields(\n" +
                     "Field(name = \"type\", type = String::class, defaultValue = \"sub\", readonly = true)\n" +
                     ")\n" +
-                    "class Sub"
+                    "class Sub",
             )
         val compilation = compileKotlin(base, testObject, sub)
 
-        val actual = compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "SubSchema.kt" }!!.readLines()
+        val actual =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find {
+                    it.name == "SubSchema.kt"
+                }!!
+                .readLines()
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         assertEquals(expected, actual)
@@ -350,7 +370,7 @@ class CrystalProcessorTest {
                     " companion object {\n" +
                     "        const val TYPE: String = \"DWG\"" +
                     "}\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(subEntity)
@@ -377,7 +397,7 @@ class CrystalProcessorTest {
                     " companion object {\n" +
                     "        const val TYPE: String = \"DWG\"" +
                     "}\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(subEntity)
@@ -388,7 +408,13 @@ class CrystalProcessorTest {
 
     @Test
     fun testTypeConverterGeneration() {
-        val expected = String(this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverter.txt").readAllBytes()).lines()
+        val expected =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream(
+                        "ExpectedTypeConverter.txt",
+                    ).readAllBytes(),
+            ).lines()
 
         val typeConverter =
             SourceFile.kotlin(
@@ -400,15 +426,18 @@ class CrystalProcessorTest {
                     "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
                     "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
                     "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(typeConverter)
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
-            compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "DateTypeConverterInstance.kt" }
-                ?.readLines()
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find {
+                    it.name ==
+                        "DateTypeConverterInstance.kt"
+                }?.readLines()
         assertEquals(expected, actual)
     }
 
@@ -424,7 +453,7 @@ class CrystalProcessorTest {
                     "class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
                     "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
                     "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(typeConverter)
@@ -445,7 +474,7 @@ class CrystalProcessorTest {
                     "open class DateTypeConverter {\n" +
                     "fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
                     "fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
-                    "}"
+                    "}",
             )
 
         val compilation = compileKotlin(typeConverter)
@@ -453,8 +482,8 @@ class CrystalProcessorTest {
         assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
         assertTrue(
             compilation.messages.contains(
-                "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface"
-            )
+                "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface",
+            ),
         )
     }
 
@@ -462,7 +491,10 @@ class CrystalProcessorTest {
     fun testTypeConverterExporterGeneration() {
         val expected =
             String(
-                this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporter.txt").readAllBytes()
+                this::class.java.classLoader
+                    .getResourceAsStream(
+                        "ExpectedTypeConverterExporter.txt",
+                    ).readAllBytes(),
             ).lines().map {
                 it.trim()
             }
@@ -482,15 +514,19 @@ class CrystalProcessorTest {
         val typeConverter =
             SourceFile.kotlin(
                 "TestTypeConverters.kt",
-                sourceFileContents
+                sourceFileContents,
             )
 
         val compilation = compileKotlin(typeConverter)
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
-            compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "TestTypeConvertersInstance.kt" }
-                ?.readLines()?.map { it.trim() }
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find {
+                    it.name ==
+                        "TestTypeConvertersInstance.kt"
+                }?.readLines()
+                ?.map { it.trim() }
         assertEquals(expected, actual)
     }
 
@@ -498,7 +534,10 @@ class CrystalProcessorTest {
     fun testTypeConverterExporterGenerationWithGenericTypes() {
         val expected =
             String(
-                this::class.java.classLoader.getResourceAsStream("ExpectedTypeConverterExporterGenerics.txt").readAllBytes()
+                this::class.java.classLoader
+                    .getResourceAsStream(
+                        "ExpectedTypeConverterExporterGenerics.txt",
+                    ).readAllBytes(),
             ).lines().map {
                 it.trim()
             }
@@ -518,15 +557,19 @@ class CrystalProcessorTest {
         val typeConverter =
             SourceFile.kotlin(
                 "TestTypeConvertersGeneric.kt",
-                sourceFileContents
+                sourceFileContents,
             )
 
         val compilation = compileKotlin(typeConverter)
 
         assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
         val actual =
-            compilation.sourcesGeneratedBySymbolProcessor.find { it.name == "TestTypeConvertersGenericInstance.kt" }
-                ?.readLines()?.map { it.trim() }
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find {
+                    it.name ==
+                        "TestTypeConvertersGenericInstance.kt"
+                }?.readLines()
+                ?.map { it.trim() }
 
         assertEquals(expected, actual)
     }
@@ -534,20 +577,20 @@ class CrystalProcessorTest {
     @OptIn(ExperimentalCompilerApi::class)
     private fun compileKotlin(
         vararg sourceFiles: SourceFile,
-        useSuspend: Boolean = false
-    ): JvmCompilationResult {
-        return KotlinCompilation().apply {
-            configureKsp {
-                symbolProcessorProviders.add(CrystalProcessorProvider())
-            }
-            languageVersion = "2.1"
-            sources = sourceFiles.toMutableList()
-            jvmTarget = "17"
-            kspProcessorOptions["useSuspend"] = useSuspend.toString()
-            inheritClassPath = true
-            // messageOutputStream = System.out // see diagnostics in real time
-        }.compile()
-    }
+        useSuspend: Boolean = false,
+    ): JvmCompilationResult =
+        KotlinCompilation()
+            .apply {
+                configureKsp {
+                    symbolProcessorProviders.add(CrystalProcessorProvider())
+                }
+                languageVersion = "2.1"
+                sources = sourceFiles.toMutableList()
+                jvmTarget = "17"
+                kspProcessorOptions["useSuspend"] = useSuspend.toString()
+                inheritClassPath = true
+                // messageOutputStream = System.out // see diagnostics in real time
+            }.compile()
 
     companion object {
         const val PACKAGE_HEADER: String =

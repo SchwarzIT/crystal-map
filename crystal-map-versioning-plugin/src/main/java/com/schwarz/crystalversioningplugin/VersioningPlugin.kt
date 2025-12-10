@@ -16,7 +16,11 @@ private const val PARAM_VERSION = "entity-version"
 
 class VersioningPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val extension = project.extensions.create(EXTENSION_NAME, VersioningPluginExtension::class.java)
+        val extension =
+            project.extensions.create(
+                EXTENSION_NAME,
+                VersioningPluginExtension::class.java,
+            )
 
         project.run {
             tasks.register(TASK_VALIDATE_SCHEMA, ValidationTask::class.java) {
@@ -35,7 +39,7 @@ class VersioningPlugin : Plugin<Project> {
     private fun markCurrentSchemaAsReleased(
         project: Project,
         extension: VersioningPluginExtension,
-        task: Task
+        task: Task,
     ) {
         task.dependsOn("build").doLast {
             val version: String =
@@ -62,7 +66,7 @@ class VersioningPlugin : Plugin<Project> {
     private fun removeSchema(
         project: Project,
         extension: VersioningPluginExtension,
-        task: Task
+        task: Task,
     ) {
         task.doLast {
             val version: String =

@@ -6,5 +6,5 @@ data class TypeConversionErrorWrapper(
     val exception: Exception,
     val fieldName: String,
     val value: Any?,
-    val `class`: KClass<*>
+    val `class`: KClass<*>,
 )

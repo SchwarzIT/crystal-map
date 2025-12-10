@@ -26,7 +26,10 @@ import j2html.tags.DomContent
 import j2html.tags.UnescapedText
 import java.io.File
 
-class DocumentationGenerator(path: String, fileName: String) {
+class DocumentationGenerator(
+    path: String,
+    fileName: String,
+) {
     private val path = File(path)
 
     private val file = File(path, fileName)
@@ -68,15 +71,15 @@ class DocumentationGenerator(path: String, fileName: String) {
                             "  text-align: left;\n" +
                             "  background-color: #4CAF50;\n" +
                             "  color: white;\n" +
-                            "}\n"
-                    )
+                            "}\n",
+                    ),
                 ),
                 body(
                     main(
                         attrs("#main.content"),
-                        div(*docuEntitySegments.values.toTypedArray())
-                    )
-                )
+                        div(*docuEntitySegments.values.toTypedArray()),
+                    ),
+                ),
             ).renderFormatted()
 
         path.mkdirs()
@@ -88,7 +91,8 @@ class DocumentationGenerator(path: String, fileName: String) {
             return
         }
 
-        val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
+        val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host " +
+            "+ window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
         docuEntitySegments[entityHolder.sourceClazzSimpleName] =
             div().withId(entityHolder.sourceClazzSimpleName).with(
                 h1(entityHolder.sourceClazzSimpleName),
@@ -103,58 +107,56 @@ class DocumentationGenerator(path: String, fileName: String) {
                     tbody(
                         each(entityHolder.fields) { field ->
                             tr(
-                                *parseField(field.value)
+                                *parseField(field.value),
                             )
                         },
                         each(entityHolder.fieldConstants) { field ->
                             tr(*parseField(field.value))
-                        }
-                    )
-                )
+                        },
+                    ),
+                ),
             )
     }
 
     private fun <T> evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
         val entitySymbol =
-            UnescapedText("<small> Entity: ${if (sourceElement?.entityAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>")
+            UnescapedText(
+                "<small> Entity: ${if (sourceElement?.entityAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>",
+            )
         val wrapperSymbol =
             UnescapedText(
-                "<small> MapWrapper: ${if (sourceElement?.mapWrapperAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>"
+                "<small> MapWrapper: ${if (sourceElement?.mapWrapperAnnotation != null) CHECKMARK_EMOJI else CROSSMARK_EMOJI} </small>",
             )
 
         return table(attrs(".card"), tr(td(entitySymbol), td(wrapperSymbol)))
     }
 
-    private fun createTableHead(): Array<DomContent> {
-        return arrayOf(th("Fieldname"), th("Type"), th("DefaultValue"), th("IsConstant"), th("Comment"))
-    }
+    private fun createTableHead(): Array<DomContent> =
+        arrayOf(th("Fieldname"), th("Type"), th("DefaultValue"), th("IsConstant"), th("Comment"))
 
-    private fun parseField(fields: CblBaseFieldHolder): Array<DomContent> {
-        return arrayOf(
+    private fun parseField(fields: CblBaseFieldHolder): Array<DomContent> =
+        arrayOf(
             td(fields.dbField),
             td(buildDisplayableType(fields.simpleName, fields.isIterable)),
             td(fields.defaultValue),
             td(if (fields.isConstant) "X" else ""),
-            td(*buildComment(fields.comment))
+            td(*buildComment(fields.comment)),
         )
-    }
 
-    private fun buildComment(comments: Array<String>): Array<DomContent> {
-        return comments
+    private fun buildComment(comments: Array<String>): Array<DomContent> =
+        comments
             .map { p(UnescapedText(it)) }
             .toTypedArray()
-    }
 
     private fun buildDisplayableType(
         simpleName: String,
-        iterable: Boolean
-    ): String {
-        return if (iterable) {
+        iterable: Boolean,
+    ): String =
+        if (iterable) {
             "List<$simpleName>"
         } else {
             simpleName
         }
-    }
 
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"

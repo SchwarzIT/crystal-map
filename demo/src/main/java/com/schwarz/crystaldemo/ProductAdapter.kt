@@ -10,15 +10,20 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.schwarz.crystaldemo.entity.ProductEntity
 
-class ProductAdapter(context: Context) : ArrayAdapter<ProductEntity>(context, 0) {
+class ProductAdapter(
+    context: Context,
+) : ArrayAdapter<ProductEntity>(context, 0) {
     override fun getView(
         position: Int,
         convertView: View?,
-        parent: ViewGroup
+        parent: ViewGroup,
     ): View {
         var convertView = convertView
         if (convertView == null) {
-            val inflater = parent.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val inflater =
+                parent.context.getSystemService(
+                    Context.LAYOUT_INFLATER_SERVICE,
+                ) as LayoutInflater
             convertView = inflater.inflate(R.layout.product_item, null)
         }
 

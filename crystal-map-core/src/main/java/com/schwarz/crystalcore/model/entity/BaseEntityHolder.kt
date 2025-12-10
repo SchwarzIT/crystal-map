@@ -12,8 +12,9 @@ import com.schwarz.crystalcore.model.source.ISourceModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
-    IClassModel<T> by sourceElement,
+abstract class BaseEntityHolder<T>(
+    val sourceElement: ISourceModel<T>,
+) : IClassModel<T> by sourceElement,
     ModelHolderWithFields {
     val fields: MutableMap<String, CblFieldHolder> = mutableMapOf()
 
@@ -63,13 +64,22 @@ abstract class BaseEntityHolder<T>(val sourceElement: ISourceModel<T>) :
 
     fun collectAllSuperInterfaceNames(): List<TypeName> {
         val basedOnInterfaceTypeNames = basedOn.map { it.interfaceTypeName }
-        val reducesModelsInterfaceTypeNames = reducesModels.map { ClassName(sourcePackage, "I${it.namePrefix}$sourceClazzSimpleName") }
-        return listOf(*basedOnInterfaceTypeNames.toTypedArray(), *reducesModelsInterfaceTypeNames.toTypedArray())
+        val reducesModelsInterfaceTypeNames =
+            reducesModels.map {
+                ClassName(sourcePackage, "I${it.namePrefix}$sourceClazzSimpleName")
+            }
+        return listOf(
+            *basedOnInterfaceTypeNames.toTypedArray(),
+            *reducesModelsInterfaceTypeNames.toTypedArray(),
+        )
     }
 
     fun collectAllSuperInterfaceFields(): List<ModelHolderWithFields> {
         val basedOnInterfaceTypes = basedOn
         val reducesModelsInterfaceTypes = reducesModels
-        return listOf(*basedOnInterfaceTypes.toTypedArray(), *reducesModelsInterfaceTypes.toTypedArray())
+        return listOf(
+            *basedOnInterfaceTypes.toTypedArray(),
+            *reducesModelsInterfaceTypes.toTypedArray(),
+        )
     }
 }

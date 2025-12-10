@@ -52,36 +52,81 @@ import kotlin.metadata.KmTypeProjection
 import kotlin.metadata.isNullable
 import kotlin.metadata.jvm.KotlinClassMetadata
 
-data class SourceModel(override val source: Element) :
-    ISourceModel<Element>,
+data class SourceModel(
+    override val source: Element,
+) : ISourceModel<Element>,
     IClassModel<Element> by SourceClassModel(source) {
     override val fullQualifiedName: String
         get() = source.toString()
 
-    override val entityAnnotation: ISourceEntity? = source.getAnnotation(Entity::class.java)?.let { SourceEntity(it) }
+    override val entityAnnotation: ISourceEntity? =
+        source.getAnnotation(Entity::class.java)?.let {
+            SourceEntity(it)
+        }
     override val typeName: TypeName = source.asType().asTypeName()
     override val mapWrapperAnnotation: ISourceMapWrapper? =
         source.getAnnotation(MapWrapper::class.java)?.let { SourceMapWrapper(it) }
-    override val commentAnnotation: ISourceComment? = source.getAnnotation(Comment::class.java)?.let { SourceComment(it) }
-    override val deprecatedSource: ISourceDeprecated? = source.getAnnotation(Deprecated::class.java)?.let { SourceDeprecated(it) }
-    override val docIdAnnotation: ISourceDocId? = source.getAnnotation(DocId::class.java)?.let { SourceDocId(it) }
-    override val basedOnAnnotation: ISourceBasedOn? = source.getAnnotation(BasedOn::class.java)?.let { SourceBasedOn(it) }
+    override val commentAnnotation: ISourceComment? =
+        source
+            .getAnnotation(
+                Comment::class.java,
+            )?.let {
+                SourceComment(it)
+            }
+    override val deprecatedSource: ISourceDeprecated? =
+        source
+            .getAnnotation(
+                Deprecated::class.java,
+            )?.let {
+                SourceDeprecated(it)
+            }
+    override val docIdAnnotation: ISourceDocId? =
+        source.getAnnotation(DocId::class.java)?.let {
+            SourceDocId(it)
+        }
+    override val basedOnAnnotation: ISourceBasedOn? =
+        source
+            .getAnnotation(
+                BasedOn::class.java,
+            )?.let {
+                SourceBasedOn(it)
+            }
 
     override val reduceAnnotations: List<ISourceReduce> =
-        source.getAnnotation(Reduces::class.java)?.value?.toList()?.map { SourceReduce(it) } ?: emptyList()
+        source
+            .getAnnotation(Reduces::class.java)
+            ?.value
+            ?.toList()
+            ?.map { SourceReduce(it) }
+            ?: emptyList()
     override val fieldAnnotations: List<ISourceField> =
-        source.getAnnotation(Fields::class.java)?.value?.map { SourceField(it) }?.toList() ?: emptyList()
+        source
+            .getAnnotation(Fields::class.java)
+            ?.value
+            ?.map { SourceField(it) }
+            ?.toList()
+            ?: emptyList()
 
     override val queryAnnotations: List<ISourceQuery> =
-        source.getAnnotation(Queries::class.java)?.value?.toList()?.map { SourceQuery(it) } ?: emptyList()
+        source
+            .getAnnotation(Queries::class.java)
+            ?.value
+            ?.toList()
+            ?.map { SourceQuery(it) }
+            ?: emptyList()
     override val typeConverterImporter: ISourceTypeConverterImporter? =
-        source.getAnnotation(
-            TypeConverterImporter::class.java
-        )?.let { SourceTypeConverterImporter(it) }
+        source
+            .getAnnotation(
+                TypeConverterImporter::class.java,
+            )?.let { SourceTypeConverterImporter(it) }
 
     override val abstractParts: Set<String>
 
-    private val typeConverterKmClass = ITypeConverter::class.java.getAnnotation(Metadata::class.java).toKmClass()
+    private val typeConverterKmClass =
+        ITypeConverter::class.java
+            .getAnnotation(
+                Metadata::class.java,
+            ).toKmClass()
 
     override val typeConverterInterface: TypeConverterInterface? =
         source.getTypeConverterInterface()?.let {
@@ -90,7 +135,7 @@ data class SourceModel(override val source: Element) :
             TypeConverterInterface(
                 domainClassType.resolveToString().toClassName(),
                 mapClassType.resolveToString().toClassName(),
-                mapClassType.getGenericClassNames()
+                mapClassType.getGenericClassNames(),
             )
         }
 
@@ -102,7 +147,8 @@ data class SourceModel(override val source: Element) :
         }
     }
 
-    private fun Metadata.toKmClass(): KmClass = (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
+    private fun Metadata.toKmClass(): KmClass =
+        (KotlinClassMetadata.readStrict(this) as KotlinClassMetadata.Class).kmClass
 
     private fun String.toClassName(): ClassName =
         split('.').let {
@@ -123,7 +169,7 @@ data class SourceModel(override val source: Element) :
                     type.packageName,
                     type.simpleName,
                     generic.getGenericClassNames(),
-                    nullable = generic.type!!.isNullable
+                    nullable = generic.type!!.isNullable,
                 )
         }
 
@@ -150,7 +196,7 @@ data class SourceModel(override val source: Element) :
 
     override fun logError(
         logger: ILogger<Element>,
-        message: String
+        message: String,
     ) {
         logger.error(message, source)
     }
@@ -165,8 +211,16 @@ data class SourceModel(override val source: Element) :
         val relevantStaticsFunctions = mutableListOf<SourceMemberFunction>()
         parseStaticsFromStructure(source) {
 
-            val accessor = it.getAnnotation(GenerateAccessor::class.java)?.let { SourceGenerateAccessor(it) }
-            val docSegment = it.getAnnotation(DocIdSegment::class.java)?.let { SourceDocIdSegment(it) }
+            val accessor =
+                it
+                    .getAnnotation(
+                        GenerateAccessor::class.java,
+                    )?.let { SourceGenerateAccessor(it) }
+            val docSegment =
+                it
+                    .getAnnotation(
+                        DocIdSegment::class.java,
+                    )?.let { SourceDocIdSegment(it) }
 
             if (accessor != null || docSegment != null) {
 
@@ -177,11 +231,11 @@ data class SourceModel(override val source: Element) :
                                 it.simpleName.toString(),
                                 evaluateTypeName(
                                     it.asType(),
-                                    it.getAnnotation(Nullable::class.java) != null
+                                    it.getAnnotation(Nullable::class.java) != null,
                                 ),
                                 docSegment,
-                                accessor
-                            )
+                                accessor,
+                            ),
                         )
                     }
                     ElementKind.METHOD -> {
@@ -197,16 +251,16 @@ data class SourceModel(override val source: Element) :
                                             it.simpleName.toString(),
                                             evaluateTypeName(
                                                 it.asType(),
-                                                it.getAnnotation(Nullable::class.java) != null
-                                            )
-                                        )
+                                                it.getAnnotation(Nullable::class.java) != null,
+                                            ),
+                                        ),
                                     )
                                 }
                             }
 
                             val returnType =
                                 it.returnType.asTypeName().javaToKotlinType().copy(
-                                    it.getAnnotation(Nullable::class.java) != null
+                                    it.getAnnotation(Nullable::class.java) != null,
                                 )
 
                             relevantStaticsFunctions.add(
@@ -216,8 +270,8 @@ data class SourceModel(override val source: Element) :
                                     parameters = parameter,
                                     generateAccessor = accessor,
                                     docIdSegment = docSegment,
-                                    returnTypeName = returnType
-                                )
+                                    returnTypeName = returnType,
+                                ),
                             )
                         }
                     }
@@ -229,24 +283,23 @@ data class SourceModel(override val source: Element) :
         relevantStaticFields = relevantStaticsFields
     }
 
-    private fun isSuspendFunction(varElement: VariableElement): Boolean {
-        return varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
-    }
+    private fun isSuspendFunction(varElement: VariableElement): Boolean =
+        varElement.asType().toString().contains(Continuation::class.qualifiedName.toString())
 
     private fun evaluateTypeName(
         typeMirror: TypeMirror,
-        nullable: Boolean
-    ): TypeName {
-        return typeMirror.asTypeName().javaToKotlinType().copy(nullable = nullable)
-    }
+        nullable: Boolean,
+    ): TypeName = typeMirror.asTypeName().javaToKotlinType().copy(nullable = nullable)
 
     private fun parseStaticsFromStructure(
         cblEntityElement: Element,
-        mapper: (Element) -> Unit
+        mapper: (Element) -> Unit,
     ) {
         for (childElement in cblEntityElement.enclosedElements) {
             if (childElement.modifiers.contains(Modifier.STATIC)) {
-                if (childElement.kind == ElementKind.CLASS && childElement.simpleName.toString() == "Companion") {
+                if (childElement.kind == ElementKind.CLASS &&
+                    childElement.simpleName.toString() == "Companion"
+                ) {
                     for (companionMembers in childElement.enclosedElements) {
                         mapper.invoke(companionMembers)
                     }
@@ -260,7 +313,12 @@ data class SourceModel(override val source: Element) :
     private fun findPossibleOverrides(cblEntityElement: Element): HashSet<String> {
         var abstractSet = HashSet<String>()
         for (enclosedElement in cblEntityElement.enclosedElements) {
-            if (enclosedElement.modifiers.contains(Modifier.ABSTRACT) && (enclosedElement.kind == ElementKind.FIELD || enclosedElement.kind == ElementKind.METHOD)) {
+            if (enclosedElement.modifiers.contains(Modifier.ABSTRACT) &&
+                (
+                    enclosedElement.kind == ElementKind.FIELD ||
+                        enclosedElement.kind == ElementKind.METHOD
+                )
+            ) {
                 var name = enclosedElement.simpleName.toString()
                 if (name.startsWith("set")) {
                     abstractSet.add(WordUtils.uncapitalize(name.replace("set", "")))

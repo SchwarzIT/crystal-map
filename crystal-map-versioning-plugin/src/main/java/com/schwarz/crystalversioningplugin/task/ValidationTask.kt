@@ -43,15 +43,17 @@ open class ValidationTask : DefaultTask() {
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
-        val kotlinModule = KotlinModule.Builder()
-            .withReflectionCacheSize(512)
-            .configure(KotlinFeature.NullToEmptyCollection, false)
-            .configure(KotlinFeature.NullToEmptyMap, false)
-            .configure(KotlinFeature.NullIsSameAsDefault, false)
-            .configure(KotlinFeature.SingletonSupport, false)
-            .configure(KotlinFeature.StrictNullChecks, false)
-            .configure(KotlinFeature.StrictNullChecks, false)
-            .build()
+        val kotlinModule =
+            KotlinModule
+                .Builder()
+                .withReflectionCacheSize(512)
+                .configure(KotlinFeature.NullToEmptyCollection, false)
+                .configure(KotlinFeature.NullToEmptyMap, false)
+                .configure(KotlinFeature.NullIsSameAsDefault, false)
+                .configure(KotlinFeature.SingletonSupport, false)
+                .configure(KotlinFeature.StrictNullChecks, false)
+                .configure(KotlinFeature.StrictNullChecks, false)
+                .build()
         val mapper = JsonMapper.builder().addModule(kotlinModule).build()
         return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
     }

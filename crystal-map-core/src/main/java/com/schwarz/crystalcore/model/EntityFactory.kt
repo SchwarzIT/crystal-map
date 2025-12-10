@@ -22,7 +22,7 @@ object EntityFactory {
     fun <T> createEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
-        allBaseModels: Map<String, BaseModelHolder<T>>
+        allBaseModels: Map<String, BaseModelHolder<T>>,
     ): EntityHolder<T> {
         val annotation = sourceModel.entityAnnotation!!
         return create(
@@ -31,44 +31,42 @@ object EntityFactory {
                 annotation.database,
                 annotation.modifierOpen,
                 annotation.type,
-                sourceModel
+                sourceModel,
             ),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_SUFFIX
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as EntityHolder
     }
 
     fun <T> createWrapperBaseModelHolder(
         sourceModel: ISourceModel<T>,
-        allWrapperPaths: List<String>
-    ): BaseModelHolder<T> {
-        return create(
+        allWrapperPaths: List<String>,
+    ): BaseModelHolder<T> =
+        create(
             sourceModel,
             BaseModelHolder(sourceModel),
             allWrapperPaths,
             emptyMap(),
-            WRAPPER_SUB_ENTITY_SUFFIX
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as BaseModelHolder
-    }
 
     fun <T> createSchemaBaseModelHolder(
         sourceModel: ISourceModel<T>,
-        allSchemaClassPaths: List<String>
-    ): BaseModelHolder<T> {
-        return create(
+        allSchemaClassPaths: List<String>,
+    ): BaseModelHolder<T> =
+        create(
             sourceModel,
             BaseModelHolder(sourceModel),
             allSchemaClassPaths,
             emptyMap(),
-            SCHEMA_SUB_ENTITY_SUFFIX
+            SCHEMA_SUB_ENTITY_SUFFIX,
         ) as BaseModelHolder
-    }
 
     fun <T> createChildEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
-        allBaseModels: Map<String, BaseModelHolder<T>>
+        allBaseModels: Map<String, BaseModelHolder<T>>,
     ): WrapperEntityHolder<T> {
         val annotation = sourceModel.mapWrapperAnnotation!!
         return create(
@@ -76,21 +74,21 @@ object EntityFactory {
             WrapperEntityHolder(annotation.modifierOpen, sourceModel),
             allWrapperPaths,
             allBaseModels,
-            WRAPPER_SUB_ENTITY_SUFFIX
+            WRAPPER_SUB_ENTITY_SUFFIX,
         ) as WrapperEntityHolder
     }
 
     fun <T> createSchemaEntityHolder(
         sourceModel: ISourceModel<T>,
         allSchemaClassPaths: List<String>,
-        allBaseModels: Map<String, BaseModelHolder<T>>
+        allBaseModels: Map<String, BaseModelHolder<T>>,
     ): SchemaClassHolder<T> =
         create(
             sourceModel,
             SchemaClassHolder(sourceModel),
             allSchemaClassPaths,
             allBaseModels,
-            SCHEMA_SUB_ENTITY_SUFFIX
+            SCHEMA_SUB_ENTITY_SUFFIX,
         ) as SchemaClassHolder
 
     private fun <T> create(
@@ -98,7 +96,7 @@ object EntityFactory {
         content: BaseEntityHolder<T>,
         classPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
-        subEntityNameSuffix: String
+        subEntityNameSuffix: String,
     ): BaseEntityHolder<T> {
         content.reducesModels = createReduceModels(sourceModel, content)
         content.abstractParts = sourceModel.abstractParts
@@ -122,8 +120,8 @@ object EntityFactory {
                     CblGenerateAccessorHolder(
                         content.sourceClazzTypeName,
                         it,
-                        null
-                    )
+                        null,
+                    ),
                 )
             }
         }
@@ -133,8 +131,8 @@ object EntityFactory {
                     CblGenerateAccessorHolder(
                         content.sourceClazzTypeName,
                         null,
-                        it
-                    )
+                        it,
+                    ),
                 )
             }
         }
@@ -148,7 +146,7 @@ object EntityFactory {
 
     private fun <T> createReduceModels(
         sourceModel: ISourceModel<T>,
-        content: BaseEntityHolder<T>
+        content: BaseEntityHolder<T>,
     ): List<ReducedModelHolder<T>> {
         sourceModel.reduceAnnotations.let { reduce ->
             return reduce.map {
@@ -159,7 +157,7 @@ object EntityFactory {
                     it.includeAccessors,
                     it.includeDocId,
                     it.includeBasedOn,
-                    content
+                    content,
                 )
             }
         }
@@ -168,7 +166,7 @@ object EntityFactory {
     fun <T> addBasedOn(
         sourceModel: ISourceModel<T>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
-        content: BaseEntityHolder<T>
+        content: BaseEntityHolder<T>,
     ) {
         sourceModel.basedOnAnnotation?.basedOnFullQualifiedNames?.forEach { type ->
             allBaseModels[type]?.let {
@@ -198,7 +196,7 @@ object EntityFactory {
         sourceModel: ISourceModel<T>,
         content: BaseEntityHolder<T>,
         classPaths: List<String>,
-        subEntityNameSuffix: String
+        subEntityNameSuffix: String,
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
             if (cblField.readonly) {
@@ -212,7 +210,7 @@ object EntityFactory {
 
     private fun <T> parseQueries(
         sourceModel: ISourceModel<T>,
-        content: BaseEntityHolder<T>
+        content: BaseEntityHolder<T>,
     ) {
         val queries = sourceModel.queryAnnotations
 

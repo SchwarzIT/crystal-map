@@ -27,25 +27,23 @@ object TypeConverterExporterObjectGeneration {
 
     fun <T> generateTypeConverterExporterObject(
         typeConverterExporterHolder: TypeConverterExporterHolder<T>,
-        typeConverterHolders: List<TypeConverterHolder>
+        typeConverterHolders: List<TypeConverterHolder>,
     ): FileSpec {
         val typeSpec =
-            TypeSpec.classBuilder(typeConverterExporterHolder.name + "Instance")
+            TypeSpec
+                .classBuilder(typeConverterExporterHolder.name + "Instance")
                 .addSuperinterface(
                     ClassName(
                         typeConverterExporterHolder.sourcePackageName,
-                        typeConverterExporterHolder.name
-                    )
-                )
-                .addSuperinterface(ITypeConverterExporter::class)
+                        typeConverterExporterHolder.name,
+                    ),
+                ).addSuperinterface(ITypeConverterExporter::class)
                 .addAnnotations(getAnnotations(typeConverterHolders))
                 .addProperty(
-                    getTypeConvertersSpec(typeConverterHolders)
-                )
-                .addProperty(
-                    getTypeConverterImportablesSpec(typeConverterHolders)
-                )
-                .build()
+                    getTypeConvertersSpec(typeConverterHolders),
+                ).addProperty(
+                    getTypeConverterImportablesSpec(typeConverterHolders),
+                ).build()
 
         return FileSpec.get(typeConverterExporterHolder.sourcePackageName, typeSpec)
     }
@@ -97,38 +95,39 @@ object TypeConverterExporterObjectGeneration {
             if (importableGenericDeclarations.isNotEmpty()) {
                 importableBuilder.append(
                     "genericsTargetDefinitions = [${
-                    importableGenericDeclarations.joinToString(
-                        separator = ","
-                    )
-                    }]"
+                        importableGenericDeclarations.joinToString(
+                            separator = ",",
+                        )
+                    }]",
                 )
             } else {
                 importableBuilder.append("genericsTargetDefinitions = []")
-            }
-                .append("\n)")
+            }.append("\n)")
             importableConverterDeclarations.add(importableBuilder.toString())
         }
         exportConvertersAnnotation.addMember(
             "value = [${
-            exportConverterDeclarations.joinToString(
-                separator = ","
-            )
+                exportConverterDeclarations.joinToString(
+                    separator = ",",
+                )
             }]",
-            *exportConverterVars.toTypedArray()
+            *exportConverterVars.toTypedArray(),
         )
         importableConvertersAnnotation.addMember(
             "value = [${
-            importableConverterDeclarations.joinToString(
-                separator = ","
-            )
+                importableConverterDeclarations.joinToString(
+                    separator = ",",
+                )
             }]",
-            *importableConverterVars.toTypedArray()
+            *importableConverterVars.toTypedArray(),
         )
 
         return listOf(exportConvertersAnnotation.build(), importableConvertersAnnotation.build())
     }
 
-    private fun getTypeConvertersSpec(typeConverterHolders: List<TypeConverterHolder>): PropertySpec {
+    private fun getTypeConvertersSpec(
+        typeConverterHolders: List<TypeConverterHolder>,
+    ): PropertySpec {
         val codeBlockBuilder = CodeBlock.Builder()
 
         codeBlockBuilder.add("return mapOf(\n")
@@ -137,7 +136,7 @@ object TypeConverterExporterObjectGeneration {
             codeBlockBuilder.add(
                 "%T::class to %T,\n",
                 it.domainClassTypeName,
-                it.instanceClassTypeName
+                it.instanceClassTypeName,
             )
         }
 
@@ -145,17 +144,20 @@ object TypeConverterExporterObjectGeneration {
 
         val codeBlock = codeBlockBuilder.build()
 
-        return PropertySpec.builder("typeConverters", typeConverterMapType())
+        return PropertySpec
+            .builder("typeConverters", typeConverterMapType())
             .getter(
-                FunSpec.getterBuilder()
+                FunSpec
+                    .getterBuilder()
                     .addCode(codeBlock)
-                    .build()
-            )
-            .addModifiers(KModifier.OVERRIDE)
+                    .build(),
+            ).addModifiers(KModifier.OVERRIDE)
             .build()
     }
 
-    private fun getTypeConverterImportablesSpec(typeConverterHolders: List<TypeConverterHolder>): PropertySpec {
+    private fun getTypeConverterImportablesSpec(
+        typeConverterHolders: List<TypeConverterHolder>,
+    ): PropertySpec {
         val codeBlockBuilder = CodeBlock.Builder()
 
         codeBlockBuilder.add("return listOf(\n")
@@ -173,7 +175,7 @@ object TypeConverterExporterObjectGeneration {
                 typeConverterHolder.domainClassTypeName.simpleName,
                 ClassNameDefinition::class,
                 typeConverterHolder.mapClassTypeName.packageName,
-                typeConverterHolder.mapClassTypeName.simpleName
+                typeConverterHolder.mapClassTypeName.simpleName,
             )
         }
 
@@ -181,13 +183,14 @@ object TypeConverterExporterObjectGeneration {
 
         val codeBlock = codeBlockBuilder.build()
 
-        return PropertySpec.builder("typeConverterImportables", typeConverterImportablesListType())
+        return PropertySpec
+            .builder("typeConverterImportables", typeConverterImportablesListType())
             .getter(
-                FunSpec.getterBuilder()
+                FunSpec
+                    .getterBuilder()
                     .addCode(codeBlock)
-                    .build()
-            )
-            .addModifiers(KModifier.OVERRIDE)
+                    .build(),
+            ).addModifiers(KModifier.OVERRIDE)
             .build()
     }
 
@@ -241,12 +244,12 @@ object TypeConverterExporterObjectGeneration {
         ClassName("kotlin.collections", "Map")
             .parameterizedBy(
                 ClassName("kotlin.reflect", "KClass").parameterizedBy(STAR),
-                ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR)
+                ClassName("com.schwarz.crystalapi", "ITypeConverter").parameterizedBy(STAR, STAR),
             )
 
     private fun typeConverterImportablesListType() =
         ClassName("kotlin.collections", "List")
             .parameterizedBy(
-                ClassName("com.schwarz.crystalapi", "TypeConverterImportable")
+                ClassName("com.schwarz.crystalapi", "TypeConverterImportable"),
             )
 }

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 enum class TestEnum {
     FOO,
-    BAR
+    BAR,
 }
 
 object TestEnumConverter : ITypeConverter<TestEnum, String> by EnumConverter(TestEnum::class)
@@ -22,9 +22,13 @@ class EnumConverterTest {
 
     @Test
     fun `should throw an exception for incorrect string value`() {
-        val exception: Exception = assertThrows(IllegalArgumentException::class.java, {
-            TestEnumConverter.read("FOZ")
-        })
+        val exception: Exception =
+            assertThrows(
+                IllegalArgumentException::class.java,
+                {
+                    TestEnumConverter.read("FOZ")
+                },
+            )
 
         val expectedMessage = "For input string"
         val actualMessage = exception.message

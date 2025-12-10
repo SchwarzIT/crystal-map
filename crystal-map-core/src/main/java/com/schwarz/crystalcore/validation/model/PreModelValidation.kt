@@ -12,15 +12,21 @@ object PreModelValidation {
     @Throws(ClassNotFoundException::class)
     fun <T> validate(
         entityElement: ISourceModel<T>,
-        logger: ILogger<T>
+        logger: ILogger<T>,
     ) {
         if (entityElement.entityAnnotation != null || entityElement.mapWrapperAnnotation != null
         ) {
             if (entityElement.isPrivateModifier) {
-                logger.error(Entity::class.java.simpleName + " can not be private", entityElement.source)
+                logger.error(
+                    Entity::class.java.simpleName + " can not be private",
+                    entityElement.source,
+                )
             }
             if (entityElement.isFinalModifier) {
-                logger.error(Entity::class.java.simpleName + " can not be final", entityElement.source)
+                logger.error(
+                    Entity::class.java.simpleName + " can not be final",
+                    entityElement.source,
+                )
             }
         }
 
@@ -34,7 +40,10 @@ object PreModelValidation {
             }
 
             if (fieldAnnotation.readonly && fieldAnnotation.defaultValue.isEmpty()) {
-                logger.warn("defaultValue should not be empty for readonly fields", entityElement.source)
+                logger.warn(
+                    "defaultValue should not be empty for readonly fields",
+                    entityElement.source,
+                )
             }
             names.add(fieldAnnotation.name)
         }
@@ -42,61 +51,61 @@ object PreModelValidation {
         entityElement.firstNonParameterlessConstructor()?.let {
             logger.error(
                 Entity::class.java.simpleName + " should not have a constructor",
-                it
+                it,
             )
         }
     }
 
     fun <T> validateTypeConverter(
         typeConverterElement: ISourceModel<T>,
-        logger: ILogger<T>
+        logger: ILogger<T>,
     ) {
         if (typeConverterElement.isPrivateModifier) {
             logger.error(
                 TypeConverter::class.java.simpleName + " can not be private",
-                typeConverterElement.source
+                typeConverterElement.source,
             )
         }
         if (typeConverterElement.isFinalModifier) {
             logger.error(
                 TypeConverter::class.java.simpleName + " can not be final",
-                typeConverterElement.source
+                typeConverterElement.source,
             )
         }
         if (typeConverterElement.isClassSource.not()) {
             logger.error(
                 "Only classes can be annotated with ${TypeConverter::class.simpleName}",
-                typeConverterElement.source
+                typeConverterElement.source,
             )
         }
         if (typeConverterElement.typeConverterInterface == null) {
             logger.error(
                 "Class annotated with ${TypeConverter::class.simpleName} must implement the ${ITypeConverter::class.simpleName} interface",
-                typeConverterElement.source
+                typeConverterElement.source,
             )
         }
     }
 
     fun <T> validateTypeConverterExporter(
         element: ISourceModel<T>,
-        logger: ILogger<T>
+        logger: ILogger<T>,
     ) {
         if (element.isInterfaceSource) {
             logger.error(
                 "${TypeConverterExporter::class.simpleName} annotation has to be on an interface",
-                element.source
+                element.source,
             )
         }
     }
 
     fun <T> validateTypeConverterImporter(
         element: ISourceModel<T>,
-        logger: ILogger<T>
+        logger: ILogger<T>,
     ) {
         if (element.isInterfaceSource) {
             logger.error(
                 "${TypeConverterImporter::class.simpleName} annotation has to be on an interface",
-                element.source
+                element.source,
             )
         }
     }

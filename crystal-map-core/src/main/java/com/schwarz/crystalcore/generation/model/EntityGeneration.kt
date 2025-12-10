@@ -22,20 +22,20 @@ import com.squareup.kotlinpoet.jvm.throws
 class EntityGeneration {
     private val id: FunSpec
         get() =
-            FunSpec.builder("getId")
+            FunSpec
+                .builder("getId")
                 .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
                 .returns(string().copy(nullable = true))
                 .addStatement(
                     "return mDoc.get(%N) as %T",
                     "_ID",
-                    string().copy(nullable = true)
-                )
-                .build()
+                    string().copy(nullable = true),
+                ).build()
 
     fun <T> generateModel(
         holder: EntityHolder<T>,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.superclass(TypeUtil.crystalCreator(TypeUtil.any(), holder.entityTypeName))
@@ -63,7 +63,8 @@ class EntityGeneration {
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
         val typeBuilder =
-            TypeSpec.classBuilder(holder.entitySimpleName)
+            TypeSpec
+                .classBuilder(holder.entitySimpleName)
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(TypeUtil.iEntity())
                 .addSuperinterface(holder.interfaceTypeName)
@@ -73,35 +74,38 @@ class EntityGeneration {
                     EnsureTypesGeneration.ensureTypes(
                         holder,
                         false,
-                        typeConvertersByConvertedClass
-                    )
-                )
-                .addFunction(
+                        typeConvertersByConvertedClass,
+                    ),
+                ).addFunction(
                     CblDefaultGeneration.addDefaults(
                         holder,
                         false,
-                        typeConvertersByConvertedClass
-                    )
-                )
-                .addFunction(CblConstantGeneration.addConstants(holder, false))
+                        typeConvertersByConvertedClass,
+                    ),
+                ).addFunction(CblConstantGeneration.addConstants(holder, false))
                 .addFunction(ValidateMethodGeneration.generate(holder, true))
                 .addProperty(
-                    PropertySpec.builder(
-                        "mDoc",
-                        TypeUtil.mutableMapStringAny(),
-                        KModifier.PRIVATE
-                    ).mutable().initializer("%T()", TypeUtil.hashMapStringAny()).build()
-                )
-                .addProperty(
-                    PropertySpec.builder(
-                        "mDocChanges",
-                        TypeUtil.mutableMapStringAnyNullable(),
-                        KModifier.PRIVATE
-                    ).mutable().initializer("%T()", TypeUtil.hashMapStringAnyNullable()).build()
-                )
-                .addFunction(constructor(holder))
+                    PropertySpec
+                        .builder(
+                            "mDoc",
+                            TypeUtil.mutableMapStringAny(),
+                            KModifier.PRIVATE,
+                        ).mutable()
+                        .initializer("%T()", TypeUtil.hashMapStringAny())
+                        .build(),
+                ).addProperty(
+                    PropertySpec
+                        .builder(
+                            "mDocChanges",
+                            TypeUtil.mutableMapStringAnyNullable(),
+                            KModifier.PRIVATE,
+                        ).mutable()
+                        .initializer("%T()", TypeUtil.hashMapStringAnyNullable())
+                        .build(),
+                ).addFunction(constructor(holder))
                 .addFunction(SetAllMethodGeneration().generate(holder, true))
-                .addFunction(id).superclass(holder.sourceElement.typeName)
+                .addFunction(id)
+                .superclass(holder.sourceElement.typeName)
                 .addFunction(toMap(holder, useSuspend))
                 .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
@@ -122,15 +126,16 @@ class EntityGeneration {
         }
 
         for (fieldHolder in holder.allFields) {
-            fieldHolder.builderSetter(
-                holder.dbName,
-                holder.sourcePackage,
-                holder.entitySimpleName,
-                true,
-                holder.deprecated
-            )?.let {
-                builderBuilder.addFunction(it)
-            }
+            fieldHolder
+                .builderSetter(
+                    holder.dbName,
+                    holder.sourcePackage,
+                    holder.entitySimpleName,
+                    true,
+                    holder.deprecated,
+                )?.let {
+                    builderBuilder.addFunction(it)
+                }
 
             companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(
@@ -139,8 +144,8 @@ class EntityGeneration {
                     holder.abstractParts,
                     true,
                     holder.deprecated,
-                    typeConvertersByConvertedClass
-                )
+                    typeConvertersByConvertedClass,
+                ),
             )
         }
 
@@ -161,25 +166,28 @@ class EntityGeneration {
 
     private fun <T> findById(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ): FunSpec {
         val builder =
-            FunSpec.builder("findById").addModifiers(evaluateModifiers(useSuspend))
-                .addParameter("id", String::class).addAnnotation(JvmStatic::class)
+            FunSpec
+                .builder("findById")
+                .addModifiers(evaluateModifiers(useSuspend))
+                .addParameter("id", String::class)
+                .addAnnotation(JvmStatic::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
-            builder.addStatement(
-                "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
-                PersistenceConfig::class,
-                holder.dbName,
-                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
-            )
+            builder
                 .addStatement(
+                    "val result = %T.${getDocumentMethod(useSuspend)}(id, %S, %N)",
+                    PersistenceConfig::class,
+                    holder.dbName,
+                    CblReduceGeneration.PROPERTY_ONLY_INCLUDES,
+                ).addStatement(
                     "return if(result != null) %N(result) else null",
-                    holder.entitySimpleName
+                    holder.entitySimpleName,
                 )
         }
         return builder.returns(holder.entityTypeName.copy(true)).build()
@@ -187,10 +195,12 @@ class EntityGeneration {
 
     private fun <T> findByIds(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ): FunSpec {
         val builder =
-            FunSpec.builder("findByIds").addModifiers(evaluateModifiers(useSuspend))
+            FunSpec
+                .builder("findByIds")
+                .addModifiers(evaluateModifiers(useSuspend))
                 .addParameter("ids", TypeUtil.list(string()))
                 .addAnnotation(JvmStatic::class)
 
@@ -198,28 +208,30 @@ class EntityGeneration {
         if (holder.deprecated?.addDeprecatedFunctions(idFields.toTypedArray(), builder) == true) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
         } else {
-            builder.addStatement(
-                "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
-                PersistenceConfig::class,
-                holder.dbName,
-                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
-            )
+            builder
                 .addStatement(
+                    "val result = %T.${getDocumentsMethod(useSuspend)}(ids, %S, %N)",
+                    PersistenceConfig::class,
+                    holder.dbName,
+                    CblReduceGeneration.PROPERTY_ONLY_INCLUDES,
+                ).addStatement(
                     "return result.filterNotNull().mapNotNull { %N(it) }",
-                    holder.entitySimpleName
+                    holder.entitySimpleName,
                 )
         }
         return builder.returns(TypeUtil.list(holder.entityTypeName.copy(true))).build()
     }
 
-    private fun idConstant(): PropertySpec {
-        return PropertySpec.builder("_ID", String::class, KModifier.PUBLIC, KModifier.FINAL)
-            .initializer("%S", "_id").addAnnotation(JvmField::class).build()
-    }
+    private fun idConstant(): PropertySpec =
+        PropertySpec
+            .builder("_ID", String::class, KModifier.PUBLIC, KModifier.FINAL)
+            .initializer("%S", "_id")
+            .addAnnotation(JvmField::class)
+            .build()
 
     private fun <T> toMap(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ): FunSpec {
         var refreshDoc = "getId()?.let{%T.${getDocumentMethod(useSuspend)}(it, %S)} ?: mDoc"
 
@@ -228,7 +240,9 @@ class EntityGeneration {
         }
 
         val toMapBuilder =
-            FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE)
+            FunSpec
+                .builder("toMap")
+                .addModifiers(KModifier.OVERRIDE)
                 .returns(TypeUtil.mutableMapStringAny())
                 .addStatement("val doc = $refreshDoc", PersistenceConfig::class, holder.dbName)
 
@@ -236,28 +250,33 @@ class EntityGeneration {
             toMapBuilder.addStatement(
                 "mDocChanges.put(%S, %N)",
                 constantField.dbField,
-                constantField.constantValueAccessorName
+                constantField.constantValueAccessorName,
             )
         }
 
         toMapBuilder.addStatement(
             "var temp = mutableMapOf<%T, %T>()",
             string(),
-            TypeUtil.any()
+            TypeUtil.any(),
         )
         toMapBuilder.addCode(
-            CodeBlock.builder()
+            CodeBlock
+                .builder()
                 .beginControlFlow("if(doc != null)")
                 .addStatement("temp.putAll(doc)")
                 .endControlFlow()
                 .beginControlFlow("if(mDocChanges != null)")
                 .beginControlFlow("mDocChanges.forEach")
-                .beginControlFlow("if(it.value == null)").addStatement("temp.remove(it.key)")
+                .beginControlFlow("if(it.value == null)")
+                .addStatement("temp.remove(it.key)")
                 .endControlFlow()
-                .beginControlFlow("else").addStatement("temp[it.key] = it.value!!").endControlFlow()
+                .beginControlFlow("else")
+                .addStatement("temp[it.key] = it.value!!")
                 .endControlFlow()
                 .endControlFlow()
-                .addStatement("return temp").build()
+                .endControlFlow()
+                .addStatement("return temp")
+                .build(),
         )
 
         return toMapBuilder.build()
@@ -265,10 +284,12 @@ class EntityGeneration {
 
     private fun <T> delete(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ): FunSpec {
         val builder =
-            FunSpec.builder("delete").addModifiers(evaluateModifiers(useSuspend))
+            FunSpec
+                .builder("delete")
+                .addModifiers(evaluateModifiers(useSuspend))
                 .throws(PersistenceException::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
@@ -279,7 +300,7 @@ class EntityGeneration {
             builder.addStatement(
                 "getId()?.let{%T.${deleteDocumentMethod(useSuspend)}(it, %S)}",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
             )
         }
         return builder.build()
@@ -287,16 +308,18 @@ class EntityGeneration {
 
     private fun <T> save(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     ): FunSpec {
         val saveBuilder =
-            FunSpec.builder("save").addModifiers(evaluateModifiers(useSuspend))
+            FunSpec
+                .builder("save")
+                .addModifiers(evaluateModifiers(useSuspend))
                 .throws(PersistenceException::class)
 
         val idFields = holder.docId?.distinctFieldAccessors(holder) ?: emptyList()
         if (holder.deprecated?.addDeprecatedFunctions(
                 idFields.toTypedArray(),
-                saveBuilder
+                saveBuilder,
             ) == true
         ) {
             saveBuilder.addStatement("// workaround for kotlin poet to create brackets")
@@ -314,7 +337,7 @@ class EntityGeneration {
             saveBuilder.addStatement(
                 "val upsertedDoc = %T.${upsertDocumentMethod(useSuspend)}(doc, docId, %S)",
                 PersistenceConfig::class,
-                holder.dbName
+                holder.dbName,
             )
             saveBuilder.addStatement("rebind(upsertedDoc)")
         }
@@ -322,65 +345,76 @@ class EntityGeneration {
         return saveBuilder.build()
     }
 
-    private fun <T> constructor(holder: EntityHolder<T>): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC)
-            .addParameter("doc", TypeUtil.mapStringAny()).addStatement("rebind(ensureTypes(doc))")
+    private fun <T> constructor(holder: EntityHolder<T>): FunSpec =
+        FunSpec
+            .constructorBuilder()
+            .addModifiers(KModifier.PUBLIC)
+            .addParameter("doc", TypeUtil.mapStringAny())
+            .addStatement("rebind(ensureTypes(doc))")
             .build()
-    }
 
-    private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> {
-        return if (useSuspend) {
+    private fun evaluateModifiers(useSuspend: Boolean): List<KModifier> =
+        if (useSuspend) {
             listOf(
                 KModifier.PUBLIC,
-                KModifier.SUSPEND
+                KModifier.SUSPEND,
             )
         } else {
             listOf(KModifier.PUBLIC)
         }
-    }
 
     private fun <T> create(
         holder: EntityHolder<T>,
-        useSuspend: Boolean
-    ): List<FunSpec> {
-        return listOf(
-            FunSpec.builder("create").addModifiers(evaluateModifiers(useSuspend))
-                .addParameter("id", String::class).addAnnotation(JvmStatic::class).addStatement(
-                    "return %N(%T.${getDocumentMethod(useSuspend)}(id, %S) ?: mutableMapOf(_ID to id))",
+        useSuspend: Boolean,
+    ): List<FunSpec> =
+        listOf(
+            FunSpec
+                .builder("create")
+                .addModifiers(evaluateModifiers(useSuspend))
+                .addParameter("id", String::class)
+                .addAnnotation(JvmStatic::class)
+                .addStatement(
+                    "return %N(%T.${getDocumentMethod(
+                        useSuspend,
+                    )}(id, %S) ?: mutableMapOf(_ID to id))",
                     holder.entitySimpleName,
                     PersistenceConfig::class,
-                    holder.dbName
-                ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-                .addAnnotation(JvmStatic::class).addStatement(
+                    holder.dbName,
+                ).returns(holder.entityTypeName)
+                .build(),
+            FunSpec
+                .builder("create")
+                .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
+                .addAnnotation(JvmStatic::class)
+                .addStatement(
                     "return %N(%T())",
                     holder.entitySimpleName,
-                    TypeUtil.hashMapStringAny()
-                ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-                .addParameter("map", TypeUtil.mutableMapStringAny()).addAnnotation(JvmStatic::class)
+                    TypeUtil.hashMapStringAny(),
+                ).returns(holder.entityTypeName)
+                .build(),
+            FunSpec
+                .builder("create")
+                .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
+                .addParameter("map", TypeUtil.mutableMapStringAny())
+                .addAnnotation(JvmStatic::class)
                 .addStatement(
                     "return %N(map)",
-                    holder.entitySimpleName
-                ).returns(holder.entityTypeName).build()
+                    holder.entitySimpleName,
+                ).returns(holder.entityTypeName)
+                .build(),
         )
-    }
 
     companion object {
-        private fun getDocumentMethod(useSuspend: Boolean): String {
-            return "${if (useSuspend) "suspendingConnector" else "connector"}.getDocument"
-        }
+        private fun getDocumentMethod(useSuspend: Boolean): String =
+            "${if (useSuspend) "suspendingConnector" else "connector"}.getDocument"
 
-        private fun getDocumentsMethod(useSuspend: Boolean): String {
-            return "${if (useSuspend) "suspendingConnector" else "connector"}.getDocuments"
-        }
+        private fun getDocumentsMethod(useSuspend: Boolean): String =
+            "${if (useSuspend) "suspendingConnector" else "connector"}.getDocuments"
 
-        private fun deleteDocumentMethod(useSuspend: Boolean): String {
-            return "${if (useSuspend) "suspendingConnector" else "connector"}.deleteDocument"
-        }
+        private fun deleteDocumentMethod(useSuspend: Boolean): String =
+            "${if (useSuspend) "suspendingConnector" else "connector"}.deleteDocument"
 
-        private fun upsertDocumentMethod(useSuspend: Boolean): String {
-            return "${if (useSuspend) "suspendingConnector" else "connector"}.upsertDocument"
-        }
+        private fun upsertDocumentMethod(useSuspend: Boolean): String =
+            "${if (useSuspend) "suspendingConnector" else "connector"}.upsertDocument"
     }
 }

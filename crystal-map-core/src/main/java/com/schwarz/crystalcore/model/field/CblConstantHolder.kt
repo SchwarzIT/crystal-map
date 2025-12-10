@@ -6,14 +6,19 @@ import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
 import com.schwarz.crystalcore.model.source.ISourceField
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterProcessingException
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import java.util.Arrays
 
 /**
  * Created by sbra0902 on 21.06.17.
  */
 
-class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(field.name, field) {
+class CblConstantHolder(
+    private val field: ISourceField,
+) : CblBaseFieldHolder(field.name, field) {
     val constantValue: String = field.defaultValue
 
     val constantValueAccessorName = "DOC_$constantName"
@@ -22,7 +27,7 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
 
     override fun interfaceProperty(
         isOverride: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
     ): PropertySpec {
         val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
         val builder = PropertySpec.builder(accessorSuffix(), fieldType, modifiers)
@@ -35,7 +40,7 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): PropertySpec {
         val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
         val builder =
@@ -43,25 +48,31 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
 
         if (isNonConvertibleClass) {
             builder.getter(
-                FunSpec.getterBuilder().addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N)!!",
-                    CrystalWrap::class,
-                    fieldType,
-                    constantName
-                ).build()
+                FunSpec
+                    .getterBuilder()
+                    .addStatement(
+                        "return %T.get<%T>($mDocPhrase, %N)!!",
+                        CrystalWrap::class,
+                        fieldType,
+                        constantName,
+                    ).build(),
             )
         } else {
             val typeConverterHolder =
                 typeConvertersByConvertedClass[fieldType]
-                    ?: throw TypeConverterProcessingException("Missing type conversion for $fieldType")
+                    ?: throw TypeConverterProcessingException(
+                        "Missing type conversion for $fieldType",
+                    )
 
             builder.getter(
-                FunSpec.getterBuilder().addStatement(
-                    "return %T.get($mDocPhrase, %N, %T)!!",
-                    CrystalWrap::class,
-                    constantName,
-                    typeConverterHolder.instanceClassTypeName
-                ).build()
+                FunSpec
+                    .getterBuilder()
+                    .addStatement(
+                        "return %T.get($mDocPhrase, %N, %T)!!",
+                        CrystalWrap::class,
+                        constantName,
+                        typeConverterHolder.instanceClassTypeName,
+                    ).build(),
             )
         }
 
@@ -75,19 +86,24 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
 
     override fun createFieldConstant(): List<PropertySpec> {
         val fieldAccessorConstant =
-            PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC)
-                .initializer("%S", dbField).addAnnotation(JvmField::class).build()
+            PropertySpec
+                .builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC)
+                .initializer("%S", dbField)
+                .addAnnotation(JvmField::class)
+                .build()
 
         return Arrays.asList(
             fieldAccessorConstant,
-            PropertySpec.builder(
-                constantValueAccessorName,
-                field.javaToKotlinType,
-                KModifier.FINAL,
-                KModifier.PUBLIC
-            ).initializer(
-                ensureTypeEscape(constantValue)
-            ).addAnnotation(JvmField::class).build()
+            PropertySpec
+                .builder(
+                    constantValueAccessorName,
+                    field.javaToKotlinType,
+                    KModifier.FINAL,
+                    KModifier.PUBLIC,
+                ).initializer(
+                    ensureTypeEscape(constantValue),
+                ).addAnnotation(JvmField::class)
+                .build(),
         )
     }
 
@@ -96,8 +112,6 @@ class CblConstantHolder(private val field: ISourceField) : CblBaseFieldHolder(fi
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,
-        deprecated: DeprecatedModel?
-    ): FunSpec? {
-        return null
-    }
+        deprecated: DeprecatedModel?,
+    ): FunSpec? = null
 }

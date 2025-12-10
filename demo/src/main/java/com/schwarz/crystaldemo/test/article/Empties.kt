@@ -8,6 +8,6 @@ import com.schwarz.crystalapi.MapWrapper
 @Fields(
     Field(name = "emp_article_no", type = String::class),
     Field(name = "emp_quant", type = String::class),
-    Field(name = "emp_unit", type = String::class)
+    Field(name = "emp_unit", type = String::class),
 )
 open class Empties

@@ -26,6 +26,6 @@ interface ISourceField {
 
     fun parseMetaType(
         list: Boolean,
-        subEntity: String?
+        subEntity: String?,
     ): TypeName
 }

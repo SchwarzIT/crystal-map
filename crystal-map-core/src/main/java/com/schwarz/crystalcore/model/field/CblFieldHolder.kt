@@ -12,8 +12,11 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import org.apache.commons.lang3.StringUtils
 
-class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, subEntityNameSuffix: String) :
-    CblBaseFieldHolder(field.name, field) {
+class CblFieldHolder(
+    private val field: ISourceField,
+    classPaths: List<String>,
+    subEntityNameSuffix: String,
+) : CblBaseFieldHolder(field.name, field) {
     private var subEntityPackage: String? = null
 
     var subEntitySimpleName: String? = null
@@ -46,7 +49,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
 
     override fun interfaceProperty(
         isOverride: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
     ): PropertySpec {
         var returnType = field.parseMetaType(isIterable, subEntitySimpleName)
 
@@ -56,7 +59,8 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
 
         val modifiers = listOfNotNull(KModifier.PUBLIC, KModifier.OVERRIDE.takeIf { isOverride })
         val propertyBuilder =
-            PropertySpec.builder(accessorSuffix(), returnType, modifiers)
+            PropertySpec
+                .builder(accessorSuffix(), returnType, modifiers)
                 .mutable(true)
         deprecated?.addDeprecated(dbField, propertyBuilder)
         return propertyBuilder.build()
@@ -67,7 +71,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): PropertySpec {
         var returnType = field.parseMetaType(isIterable, subEntitySimpleName)
 
@@ -76,20 +80,30 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
         }
 
         val propertyBuilder =
-            PropertySpec.builder(
-                accessorSuffix(),
-                returnType,
-                KModifier.PUBLIC,
-                KModifier.OVERRIDE
-            ).mutable(true)
+            PropertySpec
+                .builder(
+                    accessorSuffix(),
+                    returnType,
+                    KModifier.PUBLIC,
+                    KModifier.OVERRIDE,
+                ).mutable(true)
 
         val getter = FunSpec.getterBuilder()
         val setter = FunSpec.setterBuilder().addParameter("value", String::class)
 
         deprecated?.addDeprecated(dbField, propertyBuilder)
 
-        crystalWrapGetStatement(getter, if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()", typeConvertersByConvertedClass)
-        crystalWrapSetStatement(setter, if (useMDocChanges) "mDocChanges" else "mDoc", typeConvertersByConvertedClass, "value")
+        crystalWrapGetStatement(
+            getter,
+            if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()",
+            typeConvertersByConvertedClass,
+        )
+        crystalWrapSetStatement(
+            setter,
+            if (useMDocChanges) "mDocChanges" else "mDoc",
+            typeConvertersByConvertedClass,
+            "value",
+        )
 
         if (comment.isNotEmpty()) {
             propertyBuilder.addKdoc(KDocGeneration.generate(comment))
@@ -101,48 +115,48 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
     fun crystalWrapGetStatement(
         getter: FunSpec.Builder,
         mDocPhrase: String,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ) {
         if (isNonConvertibleClass) {
             if (isIterable) {
                 getter.addStatement(
                     "return %T.getList<%T>($mDocPhrase, %N)".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     fieldType,
-                    constantName
+                    constantName,
                 )
             } else {
                 getter.addStatement(
                     "return %T.get<%T>($mDocPhrase, %N)".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     fieldType,
-                    constantName
+                    constantName,
                 )
             }
         } else if (isTypeOfSubEntity) {
             if (isIterable) {
                 getter.addStatement(
                     "return %T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
-                    subEntityTypeName
+                    subEntityTypeName,
                 )
             } else {
                 getter.addStatement(
                     "return %T.get<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
                     constantName,
-                    subEntityTypeName
+                    subEntityTypeName,
                 )
             }
         } else {
@@ -151,20 +165,20 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
             if (isIterable) {
                 getter.addStatement(
                     "return %T.getList($mDocPhrase, %N, %T)".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     constantName,
-                    typeConverterHolder.instanceClassTypeName
+                    typeConverterHolder.instanceClassTypeName,
                 )
             } else {
                 getter.addStatement(
                     "return %T.get($mDocPhrase, %N, %T)".forceCastIfMandatory(
-                        mandatory
+                        mandatory,
                     ),
                     CrystalWrap::class,
                     constantName,
-                    typeConverterHolder.instanceClassTypeName
+                    typeConverterHolder.instanceClassTypeName,
                 )
             }
         }
@@ -174,7 +188,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
         setter: FunSpec.Builder,
         mDocPhrase: String,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
-        valueName: String
+        valueName: String,
     ) {
         if (isNonConvertibleClass) {
             if (isIterable) {
@@ -183,7 +197,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     CrystalWrap::class,
                     mDocPhrase,
                     constantName,
-                    valueName
+                    valueName,
                 )
             } else {
                 setter.addStatement(
@@ -191,7 +205,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     CrystalWrap::class,
                     mDocPhrase,
                     constantName,
-                    valueName
+                    valueName,
                 )
             }
         } else if (isTypeOfSubEntity) {
@@ -202,7 +216,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     mDocPhrase,
                     constantName,
                     valueName,
-                    subEntityTypeName
+                    subEntityTypeName,
                 )
             } else {
                 setter.addStatement(
@@ -211,7 +225,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     mDocPhrase,
                     constantName,
                     valueName,
-                    subEntityTypeName
+                    subEntityTypeName,
                 )
             }
         } else {
@@ -224,7 +238,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     mDocPhrase,
                     constantName,
                     valueName,
-                    typeConverterHolder.instanceClassTypeName
+                    typeConverterHolder.instanceClassTypeName,
                 )
             } else {
                 setter.addStatement(
@@ -233,7 +247,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
                     mDocPhrase,
                     constantName,
                     valueName,
-                    typeConverterHolder.instanceClassTypeName
+                    typeConverterHolder.instanceClassTypeName,
                 )
             }
         }
@@ -244,11 +258,13 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
     ): FunSpec {
         val fieldType = field.parseMetaType(isIterable, subEntitySimpleName)
         val builder =
-            FunSpec.builder("set" + accessorSuffix().capitalize()).addModifiers(KModifier.PUBLIC)
+            FunSpec
+                .builder("set" + accessorSuffix().capitalize())
+                .addModifiers(KModifier.PUBLIC)
                 .addParameter("value", fieldType)
                 .returns(ClassName(packageName, "$entitySimpleName.Builder"))
 
@@ -258,7 +274,7 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
 
         if (deprecated?.addDeprecatedBuilderSetter(
                 dbField,
-                builder
+                builder,
             ) == true
         ) {
             builder.addStatement("throw %T()", UnsupportedOperationException::class)
@@ -272,8 +288,11 @@ class CblFieldHolder(private val field: ISourceField, classPaths: List<String>, 
 
     override fun createFieldConstant(): List<PropertySpec> {
         val fieldAccessorConstant =
-            PropertySpec.builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC)
-                .initializer("%S", dbField).addAnnotation(JvmField::class).build()
+            PropertySpec
+                .builder(constantName, String::class, KModifier.FINAL, KModifier.PUBLIC)
+                .initializer("%S", dbField)
+                .addAnnotation(JvmField::class)
+                .build()
         return listOf(fieldAccessorConstant)
     }
 

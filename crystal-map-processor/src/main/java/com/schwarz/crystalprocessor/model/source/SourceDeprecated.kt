@@ -6,7 +6,9 @@ import com.schwarz.crystalcore.model.source.ISourceDeprecated
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 import javax.lang.model.type.TypeMirror
 
-class SourceDeprecated(private val deprecatedAnnotation: Deprecated) : ISourceDeprecated {
+class SourceDeprecated(
+    private val deprecatedAnnotation: Deprecated,
+) : ISourceDeprecated {
     private val replacedByTypeMirror: TypeMirror? =
         FieldExtractionUtil.typeMirror(deprecatedAnnotation)
 
@@ -20,7 +22,8 @@ class SourceDeprecated(private val deprecatedAnnotation: Deprecated) : ISourceDe
         } ?: ""
     override val type: DeprecationType = deprecatedAnnotation.type
     override val fields: Array<ISourceDeprecated.ISourceDeprecatedField> =
-        deprecatedAnnotation.fields.map {
-            ISourceDeprecated.ISourceDeprecatedField(it.field, it.replacedBy, it.inUse)
-        }.toTypedArray()
+        deprecatedAnnotation.fields
+            .map {
+                ISourceDeprecated.ISourceDeprecatedField(it.field, it.replacedBy, it.inUse)
+            }.toTypedArray()
 }

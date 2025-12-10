@@ -13,7 +13,6 @@ import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystaldemo.entity.ProductEntity
 import com.schwarz.crystaldemo.entity.ProductEntity.Companion.create
 import com.schwarz.crystaldemo.entity.UserCommentWrapper
-import java.util.*
 
 class CommentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,12 +24,12 @@ class CommentActivity : AppCompatActivity() {
                 this,
                 R.layout.comment_item_view,
                 R.id.txt_comment,
-                map(data)
+                map(data),
             ) {
                 override fun getView(
                     position: Int,
                     convertView: View?,
-                    parent: ViewGroup
+                    parent: ViewGroup,
                 ): View {
                     val view = super.getView(position, convertView, parent)
                     view.findViewById<View>(R.id.btn_delete).setOnClickListener { v: View? ->
@@ -52,9 +51,13 @@ class CommentActivity : AppCompatActivity() {
         findViewById<View>(R.id.btn_post).setOnClickListener { v: View? ->
             val mComments = parentEntity.comments?.toMutableList()
             mComments?.add(
-                UserCommentWrapper.create().builder().setComment(
-                    (findViewById<View>(R.id.edit_text) as EditText).text.toString()
-                ).setUser("you").exit()
+                UserCommentWrapper
+                    .create()
+                    .builder()
+                    .setComment(
+                        (findViewById<View>(R.id.edit_text) as EditText).text.toString(),
+                    ).setUser("you")
+                    .exit(),
             )
             try {
                 val entity = parentEntity
@@ -75,14 +78,14 @@ class CommentActivity : AppCompatActivity() {
                 """
                 ${entity.comment}
                 [${entity.user}(${entity.age})]
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
         return result
     }
 
     private val parentEntity: ProductEntity
-        private get() = create(intent.getStringExtra("id")!!)
+        get() = create(intent.getStringExtra("id")!!)
 
     companion object {
         private val TAG = CommentActivity::class.java.name
@@ -90,7 +93,7 @@ class CommentActivity : AppCompatActivity() {
         @JvmStatic
         fun buildIntent(
             activity: MainActivity?,
-            id: String?
+            id: String?,
         ): Intent {
             val intent = Intent(activity, CommentActivity::class.java)
             intent.putExtra("id", id)

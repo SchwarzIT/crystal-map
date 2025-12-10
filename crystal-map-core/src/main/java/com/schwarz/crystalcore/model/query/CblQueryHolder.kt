@@ -18,7 +18,9 @@ import org.apache.commons.lang3.text.WordUtils
  * Created by sbra0902 on 21.06.17.
  */
 
-class CblQueryHolder(private val mQuerySource: ISourceQuery) {
+class CblQueryHolder(
+    private val mQuerySource: ISourceQuery,
+) {
     val fields: Array<String>
         get() = mQuerySource.fields
 
@@ -26,10 +28,11 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
         dbName: String,
         entityHolder: BaseEntityHolder<T>,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FunSpec {
         val builder =
-            FunSpec.builder(queryFunName)
+            FunSpec
+                .builder(queryFunName)
                 .addModifiers(KModifier.PUBLIC)
                 .addAnnotation(JvmStatic::class)
                 .throws(PersistenceException::class)
@@ -45,20 +48,24 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
             builder.addStatement(
                 "val queryParams = mutableMapOf<%T, %T>()",
                 TypeUtil.string(),
-                TypeUtil.any()
+                TypeUtil.any(),
             )
 
             fields.forEach {
                 entityHolder.fields[it]?.apply {
                     builder.addParameter(dbField, fieldType)
 
-                    builder.addQueryParamComparisonStatement(this, dbField, typeConvertersByConvertedClass)
+                    builder.addQueryParamComparisonStatement(
+                        this,
+                        dbField,
+                        typeConvertersByConvertedClass,
+                    )
                 }
                 entityHolder.fieldConstants[it]?.apply {
                     builder.addStatement(
                         "queryParams[%N] = %N",
                         constantName,
-                        constantValueAccessorName
+                        constantValueAccessorName,
                     )
                 }
             }
@@ -67,7 +74,7 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
                 "return %T.${queryDocumentMethod(useSuspend)}(%S, queryParams, null, %N).map",
                 PersistenceConfig::class,
                 dbName,
-                CblReduceGeneration.PROPERTY_ONLY_INCLUDES
+                CblReduceGeneration.PROPERTY_ONLY_INCLUDES,
             )
             builder.addStatement("%T(it)", entityHolder.entityTypeName)
             builder.endControlFlow()
@@ -78,33 +85,32 @@ class CblQueryHolder(private val mQuerySource: ISourceQuery) {
     private fun FunSpec.Builder.addQueryParamComparisonStatement(
         fieldHolder: CblFieldHolder,
         value: String,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ) {
         if (fieldHolder.isNonConvertibleClass) {
             addStatement(
                 "queryParams[%N] = %N",
                 fieldHolder.constantName,
-                value
+                value,
             )
         } else {
             addStatement(
                 "queryParams[%N] = %T.write(%N) ?:\nthrow PersistenceException(\"Invalid·type-conversion:·value·must·not·be·null\")",
                 fieldHolder.constantName,
                 typeConvertersByConvertedClass.get(fieldHolder.fieldType)!!.instanceClassTypeName,
-                value
+                value,
             )
         }
     }
 
     private val queryFunName: String = "findBy${
-    fields.joinToString(separator = "And") {
-        WordUtils.capitalize(it.replace("_", " ")).replace(" ", "")
-    }
+        fields.joinToString(separator = "And") {
+            WordUtils.capitalize(it.replace("_", " ")).replace(" ", "")
+        }
     }"
 
     companion object {
-        private fun queryDocumentMethod(useSuspend: Boolean): String {
-            return "${if (useSuspend) "suspendingConnector" else "connector"}.queryDoc"
-        }
+        private fun queryDocumentMethod(useSuspend: Boolean): String =
+            "${if (useSuspend) "suspendingConnector" else "connector"}.queryDoc"
     }
 }

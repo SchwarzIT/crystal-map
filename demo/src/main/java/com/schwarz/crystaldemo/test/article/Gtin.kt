@@ -6,8 +6,8 @@ import com.schwarz.crystalapi.MapWrapper
 
 @MapWrapper
 @Fields(
-    Field(name = "comp_article", type = String::class),
-    Field(name = "comp_qty", type = String::class),
-    Field(name = "comp_unit", type = String::class)
+    Field(name = "gtin_no", type = String::class),
+    Field(name = "gtin_category", type = String::class),
+    Field(name = "main_gtin", type = Boolean::class),
 )
-open class Display
+open class Gtin

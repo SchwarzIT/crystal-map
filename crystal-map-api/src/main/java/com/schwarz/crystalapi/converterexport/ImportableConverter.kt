@@ -5,5 +5,5 @@ annotation class ImportableConverter(
     val typeConverterInstanceTargetDefinition: TargetDefinition,
     val domainTargetDefinition: TargetDefinition,
     val mapTargetDefinition: TargetDefinition,
-    val genericsTargetDefinitions: Array<TargetDefinition>
+    val genericsTargetDefinitions: Array<TargetDefinition>,
 )

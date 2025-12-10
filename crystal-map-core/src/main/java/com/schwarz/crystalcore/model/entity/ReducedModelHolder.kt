@@ -7,7 +7,7 @@ data class ReducedModelHolder<T>(
     val includeAccessor: Boolean,
     val includeDocId: Boolean,
     val includeBasedOn: Boolean,
-    private val parentModel: BaseEntityHolder<T>
+    private val parentModel: BaseEntityHolder<T>,
 ) : ModelHolderWithFields {
     override fun hasFieldWithName(name: String): Boolean = includedElements.contains(name)
 

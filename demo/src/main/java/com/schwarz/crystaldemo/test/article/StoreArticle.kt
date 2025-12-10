@@ -1,7 +1,12 @@
-package schwarz.fwws.shared.model.article
+package com.schwarz.crystaldemo.test.article
 
-import com.schwarz.crystalapi.*
-import java.util.*
+import com.schwarz.crystalapi.DocId
+import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.Field
+import com.schwarz.crystalapi.Fields
+import com.schwarz.crystalapi.SchemaClass
+import schwarz.fwws.shared.model.article.Supplier
+import java.util.Date
 
 @Entity(type = Entity.Type.READONLY)
 @Fields(
@@ -29,7 +34,7 @@ import java.util.*
     Field(name = "src_of_supply", type = String::class),
     Field(name = "dispo_sign", type = String::class),
     Field(name = "max_stock", type = String::class),
-    Field(name = "supplier", type = Supplier::class)
+    Field(name = "supplier", type = Supplier::class),
 )
 @DocId("art:%storeId%:%article_no%")
 @SchemaClass
@@ -40,10 +45,8 @@ open class StoreArticle {
 
         fun documentId(
             storeId: String,
-            article_no: String
-        ): String {
-            return "$PREFIX:$storeId:$article_no"
-        }
+            article_no: String,
+        ): String = "$PREFIX:$storeId:$article_no"
     }
 
 //    override fun documentId(): String {

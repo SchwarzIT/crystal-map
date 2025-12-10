@@ -4,4 +4,6 @@ import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class TypeConverterImporter(val typeConverterExporter: KClass<out ITypeConverterExporter>)
+annotation class TypeConverterImporter(
+    val typeConverterExporter: KClass<out ITypeConverterExporter>,
+)

@@ -34,7 +34,7 @@ import kotlin.metadata.ClassName
 class CrystalProcessor(
     codeGenerator: CodeGenerator,
     val logger: KSPLogger,
-    val processingEnvironmentWrapper: ProcessingEnvironmentWrapper
+    val processingEnvironmentWrapper: ProcessingEnvironmentWrapper,
 ) : SymbolProcessor {
     private val mLogger = Logger(logger)
 
@@ -50,7 +50,7 @@ class CrystalProcessor(
         val allTypeConverterElements: HashSet<KSAnnotated> = hashSetOf(),
         val allTypeConverterExporterElements: HashSet<KSAnnotated> = hashSetOf(),
         val allTypeConverterImporterElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allMapperElements: HashSet<KSAnnotated> = hashSetOf()
+        val allMapperElements: HashSet<KSAnnotated> = hashSetOf(),
     )
 
     private val cachedPreWorkset = CachedWorkSet()
@@ -59,13 +59,15 @@ class CrystalProcessor(
         ProcessingContext.resolver = resolver
         ProcessingContext.logger = mLogger
 
-        resolver.getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
+        resolver
+            .getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
             .addProcessingTypes("Entity")
             .forEach {
                 cachedPreWorkset.allEntityElements.add(it)
             }
 
-        resolver.getSymbolsWithAnnotation(MapWrapper::class.qualifiedName!!)
+        resolver
+            .getSymbolsWithAnnotation(MapWrapper::class.qualifiedName!!)
             .addProcessingTypes("Wrapper")
             .forEach {
                 cachedPreWorkset.allWrapperElements.add(it)
@@ -108,12 +110,22 @@ class CrystalProcessor(
                     ModelWorkSet(
                         allEntityElements = cachedPreWorkset.allEntityElements.toSourceModel(),
                         allWrapperElements = cachedPreWorkset.allWrapperElements.toSourceModel(),
-                        allSchemaClassElements = cachedPreWorkset.allSchemaClassElements.toSourceModel(),
-                        allBaseModelElements = cachedPreWorkset.allBaseModelElements.toSourceModel(),
-                        allTypeConverterElements = cachedPreWorkset.allTypeConverterElements.toSourceModel(),
-                        allTypeConverterExporterElements = cachedPreWorkset.allTypeConverterExporterElements.toSourceModel(),
-                        allTypeConverterImporterElements = cachedPreWorkset.allTypeConverterImporterElements.toSourceModel()
-                    )
+                        allSchemaClassElements =
+                            cachedPreWorkset.allSchemaClassElements
+                                .toSourceModel(),
+                        allBaseModelElements =
+                            cachedPreWorkset.allBaseModelElements
+                                .toSourceModel(),
+                        allTypeConverterElements =
+                            cachedPreWorkset.allTypeConverterElements
+                                .toSourceModel(),
+                        allTypeConverterExporterElements =
+                            cachedPreWorkset.allTypeConverterExporterElements
+                                .toSourceModel(),
+                        allTypeConverterImporterElements =
+                            cachedPreWorkset.allTypeConverterImporterElements
+                                .toSourceModel(),
+                    ),
                 ),
                 MapperWorker(
                     mLogger,
@@ -121,9 +133,9 @@ class CrystalProcessor(
                     processingEnvironmentWrapper,
                     MapperWorkSet(
                         allMapperElements = cachedPreWorkset.allMapperElements.toMapperSourceModel(),
-                        PreMapperValidation::validate
-                    )
-                )
+                        PreMapperValidation::validate,
+                    ),
+                ),
             )
 
         workers.forEach { it.init() }
@@ -141,13 +153,12 @@ class CrystalProcessor(
         }
     }
 
-    private fun unboxError(value: Any?): List<KSNode> {
-        return when (value) {
+    private fun unboxError(value: Any?): List<KSNode> =
+        when (value) {
             is List<*> -> value.map { it as KSNode }
             is KSNode -> listOf(value as KSNode)
             else -> emptyList()
         }
-    }
 
     private fun Sequence<KSAnnotated>.addProcessingTypes(suffix: String): Sequence<KSAnnotated> {
         forEach {
@@ -155,11 +166,14 @@ class CrystalProcessor(
             val className =
                 com.squareup.kotlinpoet.ClassName(
                     clazz.packageName.asString(),
-                    clazz.simpleName.asString() + suffix
+                    clazz.simpleName.asString() + suffix,
                 )
-            if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) && className.toString() != ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()) {
+            if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) &&
+                className.toString() !=
+                ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()
+            ) {
                 logger.error(
-                    "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}"
+                    "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}",
                 )
             }
             ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
@@ -167,15 +181,15 @@ class CrystalProcessor(
         return this
     }
 
-    private fun Set<KSAnnotated>.toSourceModel(): Set<ISourceModel<KSNode>> {
-        return map {
+    private fun Set<KSAnnotated>.toSourceModel(): Set<ISourceModel<KSNode>> =
+        map {
             SourceModel(it as KSClassDeclaration)
         }.toSet()
-    }
 
-    private fun Set<KSAnnotated>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> {
-        return map { SourceMapperModel(it as KSClassDeclaration) }.toSet()
-    }
+    private fun Set<KSAnnotated>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> =
+        map {
+            SourceMapperModel(it as KSClassDeclaration)
+        }.toSet()
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
@@ -199,7 +213,7 @@ class CrystalProcessorProvider : SymbolProcessorProvider {
         return CrystalProcessor(
             environment.codeGenerator,
             environment.logger,
-            ProcessingEnvironmentWrapper(environment.options)
+            ProcessingEnvironmentWrapper(environment.options),
         )
     }
 }
