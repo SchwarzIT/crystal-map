@@ -25,7 +25,10 @@ object PersistenceConfig {
         ): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
-        fun deleteDocument(id: String, dbName: String)
+        fun deleteDocument(
+            id: String,
+            dbName: String
+        )
 
         @Throws(PersistenceException::class)
         fun upsertDocument(
@@ -36,7 +39,6 @@ object PersistenceConfig {
     }
 
     interface SuspendingConnector : TypeConversionErrorCallback {
-
         suspend fun getDocument(
             id: String,
             dbName: String,
@@ -57,7 +59,10 @@ object PersistenceConfig {
         ): List<Map<String, Any>>
 
         @Throws(PersistenceException::class)
-        suspend fun deleteDocument(id: String, dbName: String)
+        suspend fun deleteDocument(
+            id: String,
+            dbName: String
+        )
 
         @Throws(PersistenceException::class)
         suspend fun upsertDocument(

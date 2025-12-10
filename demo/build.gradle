@@ -1,13 +1,13 @@
 
 buildscript {
-    ext.kotlin_version = '2.1.20'
+    ext.kotlin_version = '2.1.21'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:8.2.0")
-        classpath("com.android.application:com.android.application.gradle.plugin:8.2.0")
+        classpath("com.android.library:com.android.library.gradle.plugin:8.13.1")
+        classpath("com.android.application:com.android.application.gradle.plugin:8.13.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -20,6 +20,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: "com.google.devtools.ksp"
 
 //TODO enable to localy test plugin
 //apply plugin: 'andcouchbase-entity-versioning-plugin'
@@ -86,6 +87,14 @@ kapt {
     }
 }
 
+ksp {
+    arg("crystal.entityframework.useSuspend", "false")
+    arg("crystal.entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
+    arg("crystal.entityframework.documentation.fileName", "demo.html")
+    arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
+    arg("crystal.entityframework.schema.fileName", "demo_schema.json")
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -93,7 +102,8 @@ dependencies {
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
     implementation project(path: ':dummy')
-    kapt project(path: ':crystal-map-processor')
+    //kapt project(path: ':crystal-map-processor')
+    ksp ksp(project(':crystal-map-ksp',))
     compileOnly project(path: ':crystal-map-processor')
     implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

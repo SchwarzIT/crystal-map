@@ -9,48 +9,69 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class DummyMapperSourceTest {
-
     @Before
     fun init() {
-        PersistenceConfig.configure(object : PersistenceConfig.Connector {
+        PersistenceConfig.configure(
+            object : PersistenceConfig.Connector {
+                override fun getDocument(
+                    id: String,
+                    dbName: String,
+                    onlyInclude: List<String>?
+                ): Map<String, Any>? {
+                    return null
+                }
 
-            override fun getDocument(id: String, dbName: String, onlyInclude: List<String>?): Map<String, Any>? {
-                return null
-            }
+                override fun getDocuments(
+                    ids: List<String>,
+                    dbName: String,
+                    onlyInclude: List<String>?
+                ): List<Map<String, Any>?> {
+                    TODO("Not yet implemented")
+                }
 
-            override fun getDocuments(ids: List<String>, dbName: String, onlyInclude: List<String>?): List<Map<String, Any>?> {
-                TODO("Not yet implemented")
-            }
+                override fun queryDoc(
+                    dbName: String,
+                    queryParams: Map<String, Any>,
+                    limit: Int?,
+                    onlyInclude: List<String>?
+                ): List<Map<String, Any>> {
+                    return emptyList()
+                }
 
-            override fun queryDoc(dbName: String, queryParams: Map<String, Any>, limit: Int?, onlyInclude: List<String>?): List<Map<String, Any>> {
-                return emptyList()
-            }
+                override fun deleteDocument(
+                    id: String,
+                    dbName: String
+                ) {
+                    // nope
+                }
 
-            override fun deleteDocument(id: String, dbName: String) {
-                // nope
-            }
+                override fun upsertDocument(
+                    document: MutableMap<String, Any>,
+                    id: String?,
+                    dbName: String
+                ): Map<String, Any> {
+                    TODO("Not yet implemented")
+                }
 
-            override fun upsertDocument(document: MutableMap<String, Any>, id: String?, dbName: String): Map<String, Any> {
-                TODO("Not yet implemented")
+                override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+                    TODO("Not yet implemented")
+                }
             }
-
-            override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
-                TODO("Not yet implemented")
-            }
-        })
+        )
     }
 
     @Test
     fun `check toMap`() {
         val mapper = DummyMapperSourceMapper()
-        val obj = DummyMapperSource("oldValue").apply {
-            bigDecimalValue = BigDecimal.valueOf(1.2)
-            booleanValue = true
-            product = ProductEntity.create().builder().setName("Foo").exit()
-            testSerializable = DummyMapperSource.TestSerializable("Bar", 1)
-            liveData.exposedVal = DummyMapperSource.TestSerializable("myLiveVal", 1)
-            nullableList.add("1")
-        }
+        val obj =
+            DummyMapperSource("oldValue").apply {
+                bigDecimalValue = BigDecimal.valueOf(1.2)
+                booleanValue = true
+                product = ProductEntity.create().builder().setName("Foo").exit()
+                testSerializable = DummyMapperSource.TestSerializable("Bar", 1)
+                liveData.exposedVal = DummyMapperSource.TestSerializable("myLiveVal", 1)
+                nullableList.add("1")
+            }
         val mapToPersist = mapper.toMap(obj)
 
         val newObj = DummyMapperSource("newValue")

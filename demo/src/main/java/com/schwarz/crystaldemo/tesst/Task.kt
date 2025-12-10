@@ -18,15 +18,18 @@ import com.schwarz.crystalapi.query.Query
     Query(fields = ["type", "item_type"])
 )
 open class Task {
-
     companion object {
-
         const val TYPE: String = "Task"
 
         @GenerateAccessor
         const val PREFIX: String = "task"
 
-        fun documentId(storeId: String, article_no: String, process: String, uuid: String): String {
+        fun documentId(
+            storeId: String,
+            article_no: String,
+            process: String,
+            uuid: String
+        ): String {
             return "$PREFIX:$storeId:$article_no:$process:$uuid"
         }
 

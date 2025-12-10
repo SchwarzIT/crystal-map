@@ -7,6 +7,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
@@ -42,9 +44,9 @@ public class LoggerTest {
     public void testErrorAbort() {
 
         try {
-            new Logger(mMock).abortWithError("abortMessage", null, null);
+            new Logger(mMock).abortWithError("abortMessage", new ArrayList<>(), null);
             Assert.fail("Should throw Exception");
-        } catch (RuntimeException ignored) {
+        } catch (Exception ignored) {
 
         }
         Mockito.verify(mMessagerMock).printMessage(Diagnostic.Kind.ERROR, "abortMessage", null);

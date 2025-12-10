@@ -24,7 +24,11 @@ open class Price {
         const val TYPE: String = "Price"
         const val PREFIX: String = "price"
 
-        fun documentId(storeId: String, articleNo: String, uuid: String): String {
+        fun documentId(
+            storeId: String,
+            articleNo: String,
+            uuid: String
+        ): String {
             return "$PREFIX:$storeId:$articleNo:$uuid"
         }
     }

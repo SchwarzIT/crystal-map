@@ -1,7 +1,6 @@
 package com.schwarz.crystalapi
 
 abstract class WrapperCompanion<T : MapSupport> : CrystalCreator<T, Any?>() {
-
     fun fromMap(obj: MutableMap<String, Any?>?): T? {
         if (obj == null) {
             return null

@@ -3,7 +3,6 @@ package com.schwarz.crystalapi
 import kotlin.reflect.KClass
 
 interface ITypeConverterExporter {
-
     val typeConverters: Map<KClass<*>, ITypeConverter<*, *>>
 
     val typeConverterImportables: List<TypeConverterImportable>
