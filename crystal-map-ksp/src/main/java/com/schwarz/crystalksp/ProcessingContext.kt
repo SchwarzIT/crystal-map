@@ -76,10 +76,15 @@ object ProcessingContext {
 
     private fun hackyResolving(stringValue: String): TypeName {
         // error types looks like this List<INVARIANT TaskEntity>
-        val splitted = stringValue.replace(
+        val splitted = stringValue
+            .replace(
                 "Unresolved type for ",
                 "",
-            ).replace("[", "").replace("]", "").replace('<', ' ').replace('>', ' ').split(" ")
+            ).replace("[", "")
+            .replace("]", "")
+            .replace('<', ' ')
+            .replace('>', ' ')
+            .split(" ")
         var isList = false
         for (item in splitted) {
             if (item == "INVARIANT" || item == "Error" || item == "type:" || item == "ERROR" || item == "TYPE:" || item.trim().isEmpty()) {
@@ -206,8 +211,8 @@ object ProcessingContext {
                 is KSTypeParameter -> declaration.toTypeVariableName().copy(nullable = isNullable())
                 is KSClassDeclaration -> declaration.toClassName().copy(nullable = isNullable())
                 is KSPropertyDeclaration -> declaration.type.resolveTypeNameWithProcessingTypes().copy(
-                        isNullable(),
-                    )
+                    isNullable(),
+                )
 
                 is KSTypeReference -> declaration.resolveTypeNameWithProcessingTypes().copy(
                     isNullable(),
@@ -239,7 +244,11 @@ object ProcessingContext {
             if (declaration !is KSClassDeclaration) return false
 
             return declaration.declarations.any {
-                it is KSFunctionDeclaration && it.functionKind == FunctionKind.MEMBER && it.simpleName.asString() == "<init>" && it.parameters.isEmpty() && it.modifiers.none { modifier -> modifier == Modifier.PRIVATE }
+                it is KSFunctionDeclaration &&
+                    it.functionKind == FunctionKind.MEMBER &&
+                    it.simpleName.asString() == "<init>" &&
+                    it.parameters.isEmpty() &&
+                    it.modifiers.none { modifier -> modifier == Modifier.PRIVATE }
             }
         }
 
