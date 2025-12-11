@@ -9,5 +9,9 @@ interface ISourceDeprecated {
 
     val fields: Array<ISourceDeprecatedField>
 
-    data class ISourceDeprecatedField(val field: String, val replacedBy: String, val inUse: Boolean)
+    data class ISourceDeprecatedField(
+        val field: String,
+        val replacedBy: String,
+        val inUse: Boolean,
+    )
 }

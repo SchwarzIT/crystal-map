@@ -7,7 +7,8 @@ import com.squareup.kotlinpoet.TypeSpec
 object TypeConverterObjectGeneration {
     fun generateTypeConverterObject(typeConverterHolder: TypeConverterHolder): FileSpec {
         val typeSpec =
-            TypeSpec.objectBuilder(typeConverterHolder.instanceClassTypeName)
+            TypeSpec
+                .objectBuilder(typeConverterHolder.instanceClassTypeName)
                 .superclass(typeConverterHolder.classTypeName)
                 .build()
 

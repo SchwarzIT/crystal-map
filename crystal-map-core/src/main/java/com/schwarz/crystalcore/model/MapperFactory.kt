@@ -14,14 +14,19 @@ object MapperFactory {
             mapperElement.fields.map {
                 it.key to
                     MapifyHolder(
-                        MapifyElementTypeField(it.value.field, it.value.mapify)
+                        MapifyElementTypeField(it.value.field, it.value.mapify),
                     )
-            }
+            },
         )
 
-        mapperElement.getterSetters.filter { it.value.getterElement != null && it.value.setterElement != null }?.forEach {
-            result.fields[it.key] = MapifyHolder(MapifyElementTypeGetterSetter(it.value, fieldName = it.key))
-        }
+        mapperElement.getterSetters
+            .filter {
+                it.value.getterElement != null &&
+                    it.value.setterElement != null
+            }?.forEach {
+                result.fields[it.key] =
+                    MapifyHolder(MapifyElementTypeGetterSetter(it.value, fieldName = it.key))
+            }
 
         return result
     }

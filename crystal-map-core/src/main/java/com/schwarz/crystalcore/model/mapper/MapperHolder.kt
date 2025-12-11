@@ -4,7 +4,9 @@ import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-class MapperHolder<T>(val sourceElement: ISourceMapperModel<T>) {
+class MapperHolder<T>(
+    val sourceElement: ISourceMapperModel<T>,
+) {
     val fields: MutableMap<String, MapifyHolder<T>> = mutableMapOf()
 
     val sourceClazzSimpleName: String

@@ -6,7 +6,9 @@ import com.schwarz.crystalapi.TypeConverterImporter
 import com.schwarz.crystalcore.model.source.ISourceTypeConverterImporter
 import com.schwarz.crystalprocessor.util.FieldExtractionUtil
 
-class SourceTypeConverterImporter(private val typeConverterImporterAnnotation: TypeConverterImporter) : ISourceTypeConverterImporter {
+class SourceTypeConverterImporter(
+    private val typeConverterImporterAnnotation: TypeConverterImporter,
+) : ISourceTypeConverterImporter {
     private val typeMirrorExporter = FieldExtractionUtil.typeMirror(typeConverterImporterAnnotation)
 
     private val exporterClassName: String
@@ -14,6 +16,7 @@ class SourceTypeConverterImporter(private val typeConverterImporterAnnotation: T
     override val typeConverterImportable: List<TypeConverterImportable>
         get() {
             val typeConverterExporterClazz = javaClass.classLoader.loadClass(exporterClassName)
-            return (typeConverterExporterClazz.constructors[0].newInstance() as ITypeConverterExporter).typeConverterImportables
+            return (typeConverterExporterClazz.constructors[0].newInstance() as ITypeConverterExporter)
+                .typeConverterImportables
         }
 }

@@ -16,7 +16,10 @@ import org.apache.commons.lang3.text.WordUtils
  * Created by sbra0902 on 21.06.17.
  */
 
-abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField) {
+abstract class CblBaseFieldHolder(
+    val dbField: String,
+    val mField: ISourceField,
+) {
     open val isIterable: Boolean
         get() = mField.list
 
@@ -40,13 +43,12 @@ abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField)
 
     val simpleName: String = mField.simpleName
 
-    fun ensureTypeEscape(value: String): String {
-        return if (mField.javaToKotlinType == TypeUtil.string()) {
+    fun ensureTypeEscape(value: String): String =
+        if (mField.javaToKotlinType == TypeUtil.string()) {
             "\"" + value + "\""
         } else {
             value
         }
-    }
 
     abstract val fieldType: TypeName
 
@@ -56,15 +58,14 @@ abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField)
             return nonConvertibleClassesTypeNames.contains(rawFieldType)
         }
 
-    fun accessorSuffix(): String {
-        return WordUtils.uncapitalize(
-            WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), "")
+    fun accessorSuffix(): String =
+        WordUtils.uncapitalize(
+            WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""),
         )
-    }
 
     abstract fun interfaceProperty(
         isOverride: Boolean = false,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
     ): PropertySpec
 
     abstract fun property(
@@ -72,7 +73,7 @@ abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField)
         possibleOverrides: Set<String>,
         useMDocChanges: Boolean,
         deprecated: DeprecatedModel?,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): PropertySpec
 
     abstract fun builderSetter(
@@ -80,7 +81,7 @@ abstract class CblBaseFieldHolder(val dbField: String, val mField: ISourceField)
         packageName: String,
         entitySimpleName: String,
         useMDocChanges: Boolean,
-        deprecated: DeprecatedModel?
+        deprecated: DeprecatedModel?,
     ): FunSpec?
 
     abstract fun createFieldConstant(): List<PropertySpec>

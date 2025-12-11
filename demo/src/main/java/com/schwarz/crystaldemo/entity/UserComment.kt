@@ -8,6 +8,6 @@ import com.schwarz.crystalapi.MapWrapper
 @Fields(
     Field(name = "comment", type = String::class),
     Field(name = "user", type = String::class, defaultValue = "anonymous"),
-    Field("age", type = Int::class, defaultValue = "0")
+    Field("age", type = Int::class, defaultValue = "0"),
 )
 open class UserComment

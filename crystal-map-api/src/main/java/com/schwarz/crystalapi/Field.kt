@@ -10,5 +10,5 @@ annotation class Field(
     val defaultValue: String = "",
     val readonly: Boolean = false,
     val comment: Array<String> = [],
-    val mandatory: Boolean = false
+    val mandatory: Boolean = false,
 )

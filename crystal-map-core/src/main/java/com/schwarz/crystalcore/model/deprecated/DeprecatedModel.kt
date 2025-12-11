@@ -7,7 +7,9 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 
-class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
+class DeprecatedModel(
+    private val sourceDeprecated: ISourceDeprecated,
+) {
     val deprecationType: DeprecationType = sourceDeprecated.type
 
     val deprecatedFields: Map<String, ISourceDeprecated.ISourceDeprecatedField> =
@@ -23,7 +25,7 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
 
     fun addDeprecated(
         field: String,
-        spec: PropertySpec.Builder
+        spec: PropertySpec.Builder,
     ) {
         if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
@@ -45,21 +47,23 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
         return deprecatedFields[field]?.let { evaluateDeprecationLevel(it.inUse) }
     }
 
-    fun evaluateSummedFieldDeprecationLevel(vararg fields: String): DeprecationLevel? {
-        return fields.mapNotNull { evaluateFieldDeprecationLevel(it) }.maxByOrNull { it.ordinal }
-    }
+    fun evaluateSummedFieldDeprecationLevel(vararg fields: String): DeprecationLevel? =
+        fields
+            .mapNotNull {
+                evaluateFieldDeprecationLevel(it)
+            }.maxByOrNull { it.ordinal }
 
     fun addDeprecatedFunctions(
         fields: Array<String>,
-        spec: FunSpec.Builder
-    ): Boolean {
-        return if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
+        spec: FunSpec.Builder,
+    ): Boolean =
+        if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             spec.addAnnotation(
                 buildDeprecatedAnnotation(
                     inUse,
-                    "check corresponding field replacement"
-                )
+                    "check corresponding field replacement",
+                ),
             )
             inUse.not()
         } else {
@@ -68,19 +72,18 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
                 spec.addAnnotation(
                     buildDeprecatedAnnotation(
                         inUse,
-                        "check corresponding field replacement"
-                    )
+                        "check corresponding field replacement",
+                    ),
                 )
                 inUse.not()
             } ?: false
         }
-    }
 
     fun addDeprecatedBuilderSetter(
         field: String,
-        spec: FunSpec.Builder
-    ): Boolean {
-        return if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
+        spec: FunSpec.Builder,
+    ): Boolean =
+        if (deprecationType != DeprecationType.FIELD_DEPRECATION) {
             val inUse = deprecationType == DeprecationType.ENTITY_DEPRECATION
             spec.addAnnotation(buildDeprecatedAnnotation(inUse, ""))
             inUse.not()
@@ -91,7 +94,6 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
                 it.inUse.not()
             } ?: false
         }
-    }
 
     private fun evaluateDeprecationLevel(inUse: Boolean) =
         if (inUse) {
@@ -102,13 +104,13 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
 
     private fun buildDeprecatedAnnotation(
         inUse: Boolean,
-        replaceWith: String?
+        replaceWith: String?,
     ): AnnotationSpec {
         val builder = AnnotationSpec.builder(kotlin.Deprecated::class.java)
         builder.addMember("message = %S", "will be removed in future release")
         builder.addMember(
             "level = %T.${evaluateDeprecationLevel(inUse)}",
-            DeprecationLevel::class.java
+            DeprecationLevel::class.java,
         )
         replaceWith?.let {
             if (it.isNotBlank()) {
@@ -119,7 +121,9 @@ class DeprecatedModel(private val sourceDeprecated: ISourceDeprecated) {
     }
 
     fun addDeprecated(spec: TypeSpec.Builder) {
-        if (deprecationType == DeprecationType.ENTITY_DEPRECATION || deprecationType == DeprecationType.ENTITY_DEPRECATION_NOT_IN_USE) {
+        if (deprecationType == DeprecationType.ENTITY_DEPRECATION ||
+            deprecationType == DeprecationType.ENTITY_DEPRECATION_NOT_IN_USE
+        ) {
             spec.addAnnotation(buildDeprecatedAnnotation(true, sourceDeprecated.replacedBy))
         }
     }

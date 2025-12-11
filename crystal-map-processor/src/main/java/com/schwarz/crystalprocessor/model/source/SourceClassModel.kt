@@ -11,16 +11,24 @@ import com.sun.tools.javac.code.Symbol
 import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 
-class SourceClassModel(override val source: Element) : IClassModel<Element> {
+class SourceClassModel(
+    override val source: Element,
+) : IClassModel<Element> {
     override val sourceClazzSimpleName: String = source.simpleName.toString()
 
-    override val sourcePackage: String = if (source is Symbol.ClassSymbol) source.packge().toString() else ""
+    override val sourcePackage: String =
+        if (source is Symbol.ClassSymbol) {
+            source
+                .packge()
+                .toString()
+        } else {
+            ""
+        }
 
     override val sourceClazzTypeName: TypeName = ClassName(sourcePackage, sourceClazzSimpleName)
     override val typeName: TypeName = source.asType().asTypeName().javaToKotlinType()
     override val accessible: Boolean = source.modifiers.contains(Modifier.PUBLIC)
 
-    override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName {
-        return source.asDeclaringName(optinalIndexes)
-    }
+    override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName =
+        source.asDeclaringName(optinalIndexes)
 }

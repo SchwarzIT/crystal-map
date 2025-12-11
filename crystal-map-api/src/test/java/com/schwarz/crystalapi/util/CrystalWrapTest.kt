@@ -1,7 +1,7 @@
 package com.schwarz.crystalapi.util
 
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.Test
 
 class CrystalWrapTest {
     @Test
@@ -9,7 +9,7 @@ class CrystalWrapTest {
         val values = mutableMapOf<String, Any>("foo" to "bar")
         try {
             CrystalWrap.validate(values, arrayOf("foo", "foobar"))
-            Assert.fail("there should be an exception")
+            fail("there should be an exception")
         } catch (e: NullPointerException) {
         }
     }

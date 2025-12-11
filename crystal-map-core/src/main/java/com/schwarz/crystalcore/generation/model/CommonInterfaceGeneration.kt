@@ -4,8 +4,14 @@ import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.BaseModelHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
-import com.squareup.kotlinpoet.*
-import java.util.*
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.TypeSpec
+import java.util.Arrays
 
 private const val GENERATED_REPRESENT_NAME = "Represent"
 
@@ -13,7 +19,7 @@ class CommonInterfaceGeneration {
     fun <T> generateModel(
         holder: BaseEntityHolder<T>,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FileSpec {
         val interfaceSpec = TypeSpec.interfaceBuilder(holder.interfaceSimpleName)
         interfaceSpec.addSuperinterface(TypeUtil.mapSupport())
@@ -27,7 +33,8 @@ class CommonInterfaceGeneration {
         for (fieldHolder in holder.allFields) {
             val isBaseField =
                 holder.collectAllSuperInterfaceFields().any {
-                    it.hasFieldWithName(fieldHolder.dbField) || it.hasFieldConstantWithName(fieldHolder.dbField)
+                    it.hasFieldWithName(fieldHolder.dbField) ||
+                        it.hasFieldConstantWithName(fieldHolder.dbField)
                 }
             val propertySpec = fieldHolder.interfaceProperty(isBaseField, holder.deprecated)
             interfaceSpec.addProperty(propertySpec)
@@ -48,10 +55,11 @@ class CommonInterfaceGeneration {
         holder: BaseModelHolder<T>,
         parent: TypeSpec.Builder,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ) {
         val typeBuilder =
-            TypeSpec.classBuilder(GENERATED_REPRESENT_NAME)
+            TypeSpec
+                .classBuilder(GENERATED_REPRESENT_NAME)
                 .addSuperinterface(TypeUtil.mapSupport())
                 .addModifiers(KModifier.PRIVATE)
                 .addSuperinterface(holder.interfaceTypeName)
@@ -59,18 +67,24 @@ class CommonInterfaceGeneration {
                     EnsureTypesGeneration.ensureTypes(
                         holder,
                         true,
-                        typeConvertersByConvertedClass
-                    )
-                )
-                .addFunction(CblConstantGeneration.addConstants(holder, true))
+                        typeConvertersByConvertedClass,
+                    ),
+                ).addFunction(CblConstantGeneration.addConstants(holder, true))
                 .addFunction(SetAllMethodGeneration().generate(holder, false))
                 .addFunction(MapSupportGeneration.toMap(holder))
                 .addProperty(
-                    PropertySpec.builder("mDoc", TypeUtil.mutableMapStringAnyNullable()).addModifiers(
-                        KModifier.PRIVATE
-                    ).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
-                )
-                .addFunction(constructorMap())
+                    PropertySpec
+                        .builder(
+                            "mDoc",
+                            TypeUtil.mutableMapStringAnyNullable(),
+                        ).addModifiers(
+                            KModifier.PRIVATE,
+                        ).mutable()
+                        .initializer(
+                            "%T()",
+                            TypeUtil.linkedHashMapStringAnyNullable(),
+                        ).build(),
+                ).addFunction(constructorMap())
                 .superclass(holder.sourceElement.typeName)
 
         holder.deprecated?.addDeprecated(typeBuilder)
@@ -81,7 +95,13 @@ class CommonInterfaceGeneration {
 
         for (fieldHolder in holder.allFields) {
             typeBuilder.addProperty(
-                fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass)
+                fieldHolder.property(
+                    null,
+                    holder.abstractParts,
+                    false,
+                    holder.deprecated,
+                    typeConvertersByConvertedClass,
+                ),
             )
         }
 
@@ -94,77 +114,165 @@ class CommonInterfaceGeneration {
         parent.addType(typeBuilder.build())
     }
 
-    private fun constructorMap(): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(
-            KModifier.PUBLIC
-        ).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("mDoc = ensureTypes(doc).toMutableMap()").build()
-    }
+    private fun constructorMap(): FunSpec =
+        FunSpec
+            .constructorBuilder()
+            .addModifiers(
+                KModifier.PUBLIC,
+            ).addParameter(
+                "doc",
+                TypeUtil.mutableMapStringAnyNullable(),
+            ).addStatement("mDoc = ensureTypes(doc).toMutableMap()")
+            .build()
 
     private fun <T> toMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
         val nullCheck =
-            CodeBlock.builder().beginControlFlow(
-                "if(obj == null)"
-            ).addStatement("return mutableMapOf()").endControlFlow().build()
-        val nullCheckList = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return listOf()").endControlFlow().build()
+            CodeBlock
+                .builder()
+                .beginControlFlow(
+                    "if(obj == null)",
+                ).addStatement("return mutableMapOf()")
+                .endControlFlow()
+                .build()
+        val nullCheckList =
+            CodeBlock
+                .builder()
+                .beginControlFlow(
+                    "if(obj == null)",
+                ).addStatement("return listOf()")
+                .endControlFlow()
+                .build()
 
         return Arrays.asList(
-            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", holder.representTypeName.copy(nullable = true)).returns(
-                    TypeUtil.mutableMapStringAny()
-                )
-                .addAnnotation(JvmStatic::class)
-                .addCode(nullCheck).addStatement("var result = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
-                .beginControlFlow("obj.mDoc.forEach")
-                .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
+            FunSpec
+                .builder("toMap")
+                .addModifiers(KModifier.PUBLIC)
+                .addParameter("obj", holder.representTypeName.copy(nullable = true))
+                .returns(
+                    TypeUtil.mutableMapStringAny(),
+                ).addAnnotation(JvmStatic::class)
+                .addCode(
+                    nullCheck,
+                ).addStatement(
+                    "var result = mutableMapOf<%T,%T>()",
+                    TypeUtil.string(),
+                    TypeUtil.any(),
+                ).beginControlFlow("obj.mDoc.forEach")
+                .beginControlFlow(
+                    "if(it.value != null)",
+                ).addStatement("result[it.key] = it.value!!")
                 .endControlFlow()
-                .addStatement("return result").build(),
-            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.list(holder.representTypeName).copy(nullable = true)).addAnnotation(JvmStatic::class)
-                .returns(TypeUtil.listWithMutableMapStringAny()).addCode(nullCheckList)
+                .endControlFlow()
+                .addStatement("return result")
+                .build(),
+            FunSpec
+                .builder("toMap")
+                .addModifiers(KModifier.PUBLIC)
+                .addParameter(
+                    "obj",
+                    TypeUtil.list(holder.representTypeName).copy(nullable = true),
+                ).addAnnotation(JvmStatic::class)
+                .returns(TypeUtil.listWithMutableMapStringAny())
+                .addCode(nullCheckList)
                 .addStatement("var result = %T()", TypeUtil.arrayListWithMutableMapStringAny())
                 .addCode(
-                    CodeBlock.builder()
+                    CodeBlock
+                        .builder()
                         .beginControlFlow("for(entry in obj)")
-                        .addStatement("var temp = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
-                        .addStatement("temp.putAll(%N.toMap(entry)!!)", GENERATED_REPRESENT_NAME)
-                        .addStatement("result.add(temp)").endControlFlow().build()
-                )
-                .addStatement("return result").build()
+                        .addStatement(
+                            "var temp = mutableMapOf<%T,%T>()",
+                            TypeUtil.string(),
+                            TypeUtil.any(),
+                        ).addStatement("temp.putAll(%N.toMap(entry)!!)", GENERATED_REPRESENT_NAME)
+                        .addStatement("result.add(temp)")
+                        .endControlFlow()
+                        .build(),
+                ).addStatement("return result")
+                .build(),
         )
     }
 
     private fun <T> fromMapRepresent(holder: BaseModelHolder<T>): List<FunSpec> {
-        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
+        val nullCheck =
+            CodeBlock
+                .builder()
+                .beginControlFlow(
+                    "if(obj == null)",
+                ).addStatement("return null")
+                .endControlFlow()
+                .build()
 
         return Arrays.asList(
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
-                .returns(holder.representTypeName.copy(nullable = true)).addCode(nullCheck)
-                .addStatement("return %T(obj)", holder.representTypeName).build(),
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
-                .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
-                .returns(TypeUtil.list(holder.representTypeName).copy(nullable = true)).addCode(nullCheck)
+            FunSpec
+                .builder("fromMap")
+                .addModifiers(KModifier.PUBLIC)
+                .addParameter(
+                    "obj",
+                    TypeUtil.mutableMapStringAnyNullable().copy(nullable = true),
+                ).addAnnotation(JvmStatic::class)
+                .returns(holder.representTypeName.copy(nullable = true))
+                .addCode(nullCheck)
+                .addStatement("return %T(obj)", holder.representTypeName)
+                .build(),
+            FunSpec
+                .builder(
+                    "fromMap",
+                ).addModifiers(KModifier.PUBLIC)
+                .addAnnotation(JvmStatic::class)
+                .addParameter(
+                    "obj",
+                    TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true),
+                ).returns(
+                    TypeUtil.list(holder.representTypeName).copy(nullable = true),
+                ).addCode(nullCheck)
                 .addStatement("var result = %T()", TypeUtil.arrayList(holder.representTypeName))
                 .addCode(
-                    CodeBlock.builder().beginControlFlow("for(entry in obj)")
+                    CodeBlock
+                        .builder()
+                        .beginControlFlow("for(entry in obj)")
                         .addStatement("result.add(%N(entry))", GENERATED_REPRESENT_NAME)
-                        .endControlFlow().build()
-                ).addStatement("return result").build()
+                        .endControlFlow()
+                        .build(),
+                ).addStatement("return result")
+                .build(),
         )
     }
 
     private fun <T> fromMap(holder: BaseModelHolder<T>): List<FunSpec> {
-        val nullCheck = CodeBlock.builder().beginControlFlow("if(obj == null)").addStatement("return null").endControlFlow().build()
+        val nullCheck =
+            CodeBlock
+                .builder()
+                .beginControlFlow(
+                    "if(obj == null)",
+                ).addStatement("return null")
+                .endControlFlow()
+                .build()
 
         return Arrays.asList(
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC)
-                .addParameter("obj", TypeUtil.mutableMapStringAnyNullable().copy(nullable = true)).addAnnotation(JvmStatic::class)
-                .returns(holder.interfaceTypeName.copy(nullable = true)).addCode(nullCheck)
-                .addStatement("return %N.fromMap(obj)", GENERATED_REPRESENT_NAME).build(),
-            FunSpec.builder("fromMap").addModifiers(KModifier.PUBLIC).addAnnotation(JvmStatic::class)
-                .addParameter("obj", TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true))
-                .returns(TypeUtil.list(holder.interfaceTypeName).copy(nullable = true)).addCode(nullCheck)
-                .addStatement("return %N.fromMap(obj)", GENERATED_REPRESENT_NAME).build()
+            FunSpec
+                .builder("fromMap")
+                .addModifiers(KModifier.PUBLIC)
+                .addParameter(
+                    "obj",
+                    TypeUtil.mutableMapStringAnyNullable().copy(nullable = true),
+                ).addAnnotation(JvmStatic::class)
+                .returns(holder.interfaceTypeName.copy(nullable = true))
+                .addCode(nullCheck)
+                .addStatement("return %N.fromMap(obj)", GENERATED_REPRESENT_NAME)
+                .build(),
+            FunSpec
+                .builder(
+                    "fromMap",
+                ).addModifiers(KModifier.PUBLIC)
+                .addAnnotation(JvmStatic::class)
+                .addParameter(
+                    "obj",
+                    TypeUtil.listWithMutableMapStringAnyNullable().copy(nullable = true),
+                ).returns(
+                    TypeUtil.list(holder.interfaceTypeName).copy(nullable = true),
+                ).addCode(nullCheck)
+                .addStatement("return %N.fromMap(obj)", GENERATED_REPRESENT_NAME)
+                .build(),
         )
     }
 }

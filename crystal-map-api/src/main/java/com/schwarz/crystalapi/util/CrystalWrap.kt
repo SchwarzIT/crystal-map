@@ -10,7 +10,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
-        mapper: ((MutableMap<String, Any?>?) -> T?)
+        mapper: ((MutableMap<String, Any?>?) -> T?),
     ): T? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -22,7 +22,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
-        typeConverter: ITypeConverter<T, U>
+        typeConverter: ITypeConverter<T, U>,
     ): T? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -33,7 +33,7 @@ object CrystalWrap {
     inline fun <reified T> get(
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
-        fieldName: String
+        fieldName: String,
     ): T? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -45,7 +45,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
-        mapper: ((MutableMap<String, Any?>?) -> T?)
+        mapper: ((MutableMap<String, Any?>?) -> T?),
     ): List<T>? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -61,7 +61,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
         fieldName: String,
-        typeConverter: ITypeConverter<T, U>
+        typeConverter: ITypeConverter<T, U>,
     ): List<T>? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -76,7 +76,7 @@ object CrystalWrap {
     inline fun <reified T> getList(
         changes: MutableMap<String, Any?>,
         doc: MutableMap<String, out Any?>,
-        fieldName: String
+        fieldName: String,
     ): List<T>? =
         (changes[fieldName] ?: doc[fieldName])?.let { value ->
             catchTypeConversionError(fieldName, value) {
@@ -92,7 +92,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         fieldName: String,
         value: T,
-        mapper: ((T) -> MutableMap<String, Any>)
+        mapper: ((T) -> MutableMap<String, Any>),
     ) {
         changes[fieldName] = mapper.invoke(value)
     }
@@ -101,7 +101,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         fieldName: String,
         value: T?,
-        typeConverter: ITypeConverter<T, *>
+        typeConverter: ITypeConverter<T, *>,
     ) {
         changes[fieldName] = typeConverter.write(value)
     }
@@ -109,7 +109,7 @@ object CrystalWrap {
     inline fun <T> set(
         changes: MutableMap<String, Any?>,
         fieldName: String,
-        value: T?
+        value: T?,
     ) {
         changes[fieldName] = value
     }
@@ -118,7 +118,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         fieldName: String,
         value: List<T>?,
-        mapper: ((List<T>) -> List<MutableMap<String, Any>>)
+        mapper: ((List<T>) -> List<MutableMap<String, Any>>),
     ) {
         changes[fieldName] = if (value != null) mapper.invoke(value) else emptyList()
     }
@@ -127,7 +127,7 @@ object CrystalWrap {
         changes: MutableMap<String, Any?>,
         fieldName: String,
         value: List<T>?,
-        typeConverter: ITypeConverter<T, *>
+        typeConverter: ITypeConverter<T, *>,
     ) {
         changes[fieldName] = value?.map { typeConverter.write(it) }
     }
@@ -135,14 +135,14 @@ object CrystalWrap {
     inline fun <T> setList(
         changes: MutableMap<String, Any?>,
         fieldName: String,
-        value: List<T>?
+        value: List<T>?,
     ) {
         changes[fieldName] = value
     }
 
     fun validate(
         doc: MutableMap<String, Any>,
-        mandatoryFields: Array<String>
+        mandatoryFields: Array<String>,
     ) {
         for (mandatoryField in mandatoryFields) {
             doc[mandatoryField]!!
@@ -152,7 +152,7 @@ object CrystalWrap {
     inline fun <reified DomainType> ensureType(
         map: HashMap<String, in Any>,
         key: String,
-        typeConverter: ITypeConverter<DomainType, *>
+        typeConverter: ITypeConverter<DomainType, *>,
     ) {
         val value = map[key]
         catchTypeConversionError(key, value) {
@@ -166,7 +166,7 @@ object CrystalWrap {
     inline fun <reified DomainType, reified MapType> ensureListType(
         map: HashMap<String, in Any>,
         key: String,
-        typeConverter: ITypeConverter<DomainType, MapType>
+        typeConverter: ITypeConverter<DomainType, MapType>,
     ) {
         val value = map[key]
         if (value != null && value is List<*>) {
@@ -187,7 +187,7 @@ object CrystalWrap {
     inline fun <reified T> catchTypeConversionError(
         fieldName: String,
         value: Any?,
-        task: () -> T
+        task: () -> T,
     ): T? =
         try {
             task()
@@ -197,8 +197,8 @@ object CrystalWrap {
                     e,
                     fieldName,
                     value,
-                    T::class
-                )
+                    T::class,
+                ),
             )
             null
         }

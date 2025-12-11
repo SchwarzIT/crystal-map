@@ -25,7 +25,17 @@ import javax.lang.model.type.TypeMirror
 import kotlin.reflect.KClass
 
 private val plainTypes =
-    listOf(String::class.java.canonicalName, Int::class.java.canonicalName, "java.lang.Integer", "java.lang.Double", "java.lang.Boolean", Double::class.java.canonicalName, Long::class.java.canonicalName, BigDecimal::class.java.canonicalName, Boolean::class.java.canonicalName)
+    listOf(
+        String::class.java.canonicalName,
+        Int::class.java.canonicalName,
+        "java.lang.Integer",
+        "java.lang.Double",
+        "java.lang.Boolean",
+        Double::class.java.canonicalName,
+        Long::class.java.canonicalName,
+        BigDecimal::class.java.canonicalName,
+        Boolean::class.java.canonicalName,
+    )
 
 object ProcessingContext {
     lateinit var roundEnv: RoundEnvironment
@@ -34,9 +44,14 @@ object ProcessingContext {
 
     val createdQualifiedClazzNames: MutableSet<ClassName> = hashSetOf()
 
-    fun Element.asDeclaringName(optinalIndexes: Array<Int>): DeclaringName = DeclaringName(this.asType(), 0, optinalIndexes)
+    fun Element.asDeclaringName(optinalIndexes: Array<Int>): DeclaringName =
+        DeclaringName(this.asType(), 0, optinalIndexes)
 
-    data class DeclaringName(private val typeMirror: TypeMirror, private val relevantIndex: Int = 0, private val nullableIndexes: Array<Int> = emptyArray()) : ISourceDeclaringName {
+    data class DeclaringName(
+        private val typeMirror: TypeMirror,
+        private val relevantIndex: Int = 0,
+        private val nullableIndexes: Array<Int> = emptyArray(),
+    ) : ISourceDeclaringName {
         override val name: String
 
         override val typeParams: List<DeclaringName>
@@ -49,8 +64,8 @@ object ProcessingContext {
                         ?: emptyList()
                 typeParams =
                     typeArgs.mapIndexed {
-                            index,
-                            typeMirror
+                        index,
+                        typeMirror,
                         ->
                         DeclaringName(typeMirror, relevantIndex + index + 1, nullableIndexes)
                     }
@@ -59,12 +74,26 @@ object ProcessingContext {
 
         override fun asTypeName(): TypeName? =
             createdQualifiedClazzNames.firstOrNull { it.simpleName == name }
-                ?: if (isTypeVar()) TypeVariableName(name).copy(nullable = isNullable()) else asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(nullable = isNullable())
+                ?: if (isTypeVar()) {
+                    TypeVariableName(
+                        name,
+                    ).copy(
+                        nullable = isNullable(),
+                    )
+                } else {
+                    asTypeElement()?.asClassName()?.javaToKotlinType()?.copy(
+                        nullable = isNullable(),
+                    )
+                }
 
         override fun asFullTypeName(): TypeName? =
             asTypeName()?.let {
                 if (it is ClassName && typeParams.isNotEmpty()) {
-                    it.parameterizedBy(typeParams.mapNotNull { if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName() })
+                    it.parameterizedBy(
+                        typeParams.mapNotNull {
+                            if (it.isTypeVar()) TypeVariableName(it.name) else it.asFullTypeName()
+                        },
+                    )
                 } else {
                     it
                 }
@@ -73,34 +102,42 @@ object ProcessingContext {
         override fun hasEmptyConstructor() =
             (typeMirror as? Type.ClassType?)?.let {
                 it.asElement().enclosedElements.any {
-                    it.getKind() == ElementKind.CONSTRUCTOR && (it as? Symbol.MethodSymbol)?.parameters?.size == 0 && !it.modifiers.contains(Modifier.PRIVATE)
+                    it.getKind() == ElementKind.CONSTRUCTOR &&
+                        (it as? Symbol.MethodSymbol)?.parameters?.size == 0 &&
+                        !it.modifiers.contains(Modifier.PRIVATE)
                 }
             } ?: false
 
         override fun isPlainType() = plainTypes.contains(name)
 
-        override fun isTypeVar(): Boolean {
-            return typeMirror is Type.TypeVar
-        }
+        override fun isTypeVar(): Boolean = typeMirror is Type.TypeVar
 
         override fun isNullable() = nullableIndexes.contains(relevantIndex)
 
-        override fun isProcessingType(): Boolean {
-            return createdQualifiedClazzNames.any { it.simpleName == name } && name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
-        }
+        override fun isProcessingType(): Boolean =
+            createdQualifiedClazzNames.any { it.simpleName == name } &&
+                name.let { it.endsWith("Wrapper") || it.endsWith("Entity") }
 
         override fun isAssignable(clazz: KClass<*>) =
             env.let {
                 return@let asTypeElement()?.let {
-                    env.typeUtils.isAssignable(it.asType(), env.elementUtils.getTypeElement(clazz.java.canonicalName).asType())
+                    env.typeUtils.isAssignable(
+                        it.asType(),
+                        env.elementUtils.getTypeElement(clazz.java.canonicalName).asType(),
+                    )
                 } ?: false
             }
 
         override fun <A : Annotation?, B> getAnnotationRepresent(annotationType: Class<A>?): B? {
             env.let {
                 return when (annotationType) {
-                    Mapifyable::class.java -> SourceMapifyable(it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)) as B
-                    else -> throw NotImplementedError("Unsupported annotation type: ${annotationType?.canonicalName}")
+                    Mapifyable::class.java ->
+                        SourceMapifyable(
+                            it.typeUtils.asElement(typeMirror).getAnnotation(annotationType),
+                        ) as B
+                    else -> throw NotImplementedError(
+                        "Unsupported annotation type: ${annotationType?.canonicalName}",
+                    )
                 }
                 // return it.typeUtils.asElement(typeMirror).getAnnotation(annotationType)
             }
@@ -115,6 +152,10 @@ object ProcessingContext {
         private fun asTypeElement(): TypeElement? =
             (typeMirror as? PrimitiveType?)?.let {
                 env.typeUtils.boxedClass(it)
-            } ?: env.elementUtils.getTypeElement(ElementUtil.splitGenericIfNeeded(typeMirror.toString())[0]) ?: env.elementUtils.getTypeElement(name)
+            }
+                ?: env.elementUtils.getTypeElement(
+                    ElementUtil.splitGenericIfNeeded(typeMirror.toString())[0],
+                )
+                ?: env.elementUtils.getTypeElement(name)
     }
 }

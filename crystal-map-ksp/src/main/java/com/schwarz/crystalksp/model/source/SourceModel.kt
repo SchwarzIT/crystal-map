@@ -50,31 +50,69 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.toClassName
 
-data class SourceModel(override val source: KSClassDeclaration) :
-    ISourceModel<KSNode>,
+data class SourceModel(
+    override val source: KSClassDeclaration,
+) : ISourceModel<KSNode>,
     IClassModel<KSNode> by SourceClassModel(source) {
     override val fullQualifiedName: String
         get() = source.qualifiedName?.asString() ?: ""
 
-    override val entityAnnotation: ISourceEntity? = source.getAnnotation(Entity::class)?.let { SourceEntity(it) }
+    override val entityAnnotation: ISourceEntity? =
+        source.getAnnotation(Entity::class)?.let {
+            SourceEntity(it)
+        }
     override val typeName: TypeName = source.toClassName()
-    override val mapWrapperAnnotation: ISourceMapWrapper? = source.getAnnotation(MapWrapper::class)?.let { SourceMapWrapper(it) }
-    override val commentAnnotation: ISourceComment? = source.getAnnotation(Comment::class)?.let { SourceComment(it) }
-    override val deprecatedSource: ISourceDeprecated? = source.getAnnotation(Deprecated::class)?.let { SourceDeprecated(it) }
-    override val docIdAnnotation: ISourceDocId? = source.getAnnotation(DocId::class)?.let { SourceDocId(it) }
-    override val basedOnAnnotation: ISourceBasedOn? = source.getAnnotation(BasedOn::class)?.let { SourceBasedOn(it) }
+    override val mapWrapperAnnotation: ISourceMapWrapper? =
+        source
+            .getAnnotation(
+                MapWrapper::class,
+            )?.let {
+                SourceMapWrapper(it)
+            }
+    override val commentAnnotation: ISourceComment? =
+        source.getAnnotation(Comment::class)?.let {
+            SourceComment(it)
+        }
+    override val deprecatedSource: ISourceDeprecated? =
+        source
+            .getAnnotation(
+                Deprecated::class,
+            )?.let {
+                SourceDeprecated(it)
+            }
+    override val docIdAnnotation: ISourceDocId? =
+        source.getAnnotation(DocId::class)?.let {
+            SourceDocId(it)
+        }
+    override val basedOnAnnotation: ISourceBasedOn? =
+        source.getAnnotation(BasedOn::class)?.let {
+            SourceBasedOn(it)
+        }
     override val reduceAnnotations: List<ISourceReduce> =
-        source.getAnnotation(Reduces::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map {
-            SourceReduce(it)
-        } ?: emptyList()
+        source
+            .getAnnotation(
+                Reduces::class,
+            )?.getArgument<List<KSAnnotation>>("value")
+            ?.toList()
+            ?.map {
+                SourceReduce(it)
+            } ?: emptyList()
     override val fieldAnnotations: List<ISourceField> =
-        source.getAnnotation(Fields::class)?.getArgument<List<KSAnnotation>>("value")?.map {
-            SourceField(it)
-        }?.toList() ?: emptyList()
+        source
+            .getAnnotation(Fields::class)
+            ?.getArgument<List<KSAnnotation>>("value")
+            ?.map {
+                SourceField(it)
+            }?.toList() ?: emptyList()
     override val queryAnnotations: List<ISourceQuery> =
-        source.getAnnotation(Queries::class)?.getArgument<List<KSAnnotation>>("value")?.toList()?.map {
-            SourceQuery(it)
-        } ?: emptyList()
+        source
+            .getAnnotation(
+                Queries::class,
+            )?.getArgument<List<KSAnnotation>>("value")
+            ?.toList()
+            ?.map {
+                SourceQuery(it)
+            } ?: emptyList()
     override val typeConverterImporter: ISourceTypeConverterImporter? =
         source.getAnnotation(TypeConverterImporter::class)?.let {
             SourceTypeConverterImporter(it)
@@ -84,14 +122,19 @@ data class SourceModel(override val source: KSClassDeclaration) :
 
     private val typeConverterClazzName = ITypeConverter::class.qualifiedName
     override val typeConverterInterface: TypeConverterInterface? =
-        source.getAllSuperTypes().firstOrNull { it.declaration.qualifiedName?.asString() == typeConverterClazzName }?.let {
-            val (domainClassType, mapClassType) = it.arguments
-            TypeConverterInterface(
-                domainClassType.resolveToString().toClassName(),
-                mapClassType.resolveToString().toClassName(),
-                mapClassType.getGenericClassNames()
-            )
-        }
+        source
+            .getAllSuperTypes()
+            .firstOrNull {
+                it.declaration.qualifiedName?.asString() ==
+                    typeConverterClazzName
+            }?.let {
+                val (domainClassType, mapClassType) = it.arguments
+                TypeConverterInterface(
+                    domainClassType.resolveToString().toClassName(),
+                    mapClassType.resolveToString().toClassName(),
+                    mapClassType.getGenericClassNames(),
+                )
+            }
 
     private fun String.toClassName(): ClassName =
         split('.').let {
@@ -99,7 +142,13 @@ data class SourceModel(override val source: KSClassDeclaration) :
         }
 
     private fun KSTypeArgument.resolveToString(): String {
-        val typeName = this.type?.resolve()?.declaration?.qualifiedName?.asString()?.replace('/', '.') ?: ""
+        val typeName =
+            this.type
+                ?.resolve()
+                ?.declaration
+                ?.qualifiedName
+                ?.asString()
+                ?.replace('/', '.') ?: ""
         return typeName
     }
 
@@ -111,15 +160,16 @@ data class SourceModel(override val source: KSClassDeclaration) :
                     type.packageName,
                     type.simpleName,
                     generic.getGenericClassNames(),
-                    nullable = generic.type!!.resolve().isMarkedNullable
+                    nullable = generic.type!!.resolve().isMarkedNullable,
                 )
         }
 
     override val isFinalModifier: Boolean = !source.isOpen()
 
-    override fun firstNonParameterlessConstructor(): KSFunctionDeclaration? {
-        return source.getConstructors().firstOrNull { it.parameters.isNotEmpty() }
-    }
+    override fun firstNonParameterlessConstructor(): KSFunctionDeclaration? =
+        source.getConstructors().firstOrNull {
+            it.parameters.isNotEmpty()
+        }
 
     override val isClassSource: Boolean = true
     override val isInterfaceSource: Boolean = false
@@ -127,7 +177,7 @@ data class SourceModel(override val source: KSClassDeclaration) :
 
     override fun logError(
         logger: ILogger<KSNode>,
-        message: String
+        message: String,
     ) {
         logger.error(message, source)
     }
@@ -140,8 +190,15 @@ data class SourceModel(override val source: KSClassDeclaration) :
         val relevantStaticsFields = mutableListOf<SourceMemberField>()
         val relevantStaticsFunctions = mutableListOf<SourceMemberFunction>()
         parseStaticsFromStructure(source) { declaration ->
-            val accessor = declaration.getAnnotation(GenerateAccessor::class)?.let { SourceGenerateAccessor(it) }
-            val docSegment = declaration.getAnnotation(DocIdSegment::class)?.let { SourceDocIdSegment(it) }
+            val accessor =
+                declaration.getAnnotation(GenerateAccessor::class)?.let {
+                    SourceGenerateAccessor(it)
+                }
+            val docSegment =
+                declaration
+                    .getAnnotation(
+                        DocIdSegment::class,
+                    )?.let { SourceDocIdSegment(it) }
 
             if (accessor != null || docSegment != null) {
                 when (declaration) {
@@ -151,8 +208,8 @@ data class SourceModel(override val source: KSClassDeclaration) :
                                 declaration.simpleName.asString(),
                                 declaration.type.resolveTypeNameWithProcessingTypes(),
                                 docSegment,
-                                accessor
-                            )
+                                accessor,
+                            ),
                         )
                     }
                     is KSFunctionDeclaration -> {
@@ -166,13 +223,15 @@ data class SourceModel(override val source: KSClassDeclaration) :
                                 parameter.add(
                                     Parameter(
                                         it.name?.asString() ?: "",
-                                        typeName
-                                    )
+                                        typeName,
+                                    ),
                                 )
                             }
                         }
 
-                        val returnType = declaration.returnType?.resolveTypeNameWithProcessingTypes()
+                        val returnType =
+                            declaration.returnType
+                                ?.resolveTypeNameWithProcessingTypes()
                         if (returnType != null) {
                             relevantStaticsFunctions.add(
                                 SourceMemberFunction(
@@ -181,8 +240,8 @@ data class SourceModel(override val source: KSClassDeclaration) :
                                     parameters = parameter,
                                     generateAccessor = accessor,
                                     docIdSegment = docSegment,
-                                    returnTypeName = returnType
-                                )
+                                    returnTypeName = returnType,
+                                ),
                             )
                         }
                     }
@@ -196,7 +255,7 @@ data class SourceModel(override val source: KSClassDeclaration) :
     // KSP equivalent of the helper functions
     private fun parseStaticsFromStructure(
         cblEntityElement: KSClassDeclaration,
-        mapper: (KSDeclaration) -> Unit
+        mapper: (KSDeclaration) -> Unit,
     ) {
         for (childElement in cblEntityElement.declarations) {
             if (childElement is KSClassDeclaration && childElement.isCompanionObject) {
@@ -218,8 +277,12 @@ data class SourceModel(override val source: KSClassDeclaration) :
                 val name = enclosedElement.simpleName.asString()
                 val propertyName =
                     when {
-                        name.startsWith("set") -> name.replace("set", "").replaceFirstChar { it.lowercase() }
-                        name.startsWith("get") -> name.replace("get", "").replaceFirstChar { it.lowercase() }
+                        name.startsWith(
+                            "set",
+                        ) -> name.replace("set", "").replaceFirstChar { it.lowercase() }
+                        name.startsWith(
+                            "get",
+                        ) -> name.replace("get", "").replaceFirstChar { it.lowercase() }
                         else -> name
                     }
                 abstractSet.add(propertyName)

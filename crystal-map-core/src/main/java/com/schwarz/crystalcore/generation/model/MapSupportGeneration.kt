@@ -8,9 +8,12 @@ import com.squareup.kotlinpoet.KModifier
 object MapSupportGeneration {
     fun <T> toMap(holder: BaseEntityHolder<T>): FunSpec {
         val toMapBuilder =
-            FunSpec.builder("toMap").addModifiers(KModifier.OVERRIDE).returns(
-                TypeUtil.mutableMapStringAny()
-            ).addStatement("return toMap(this)")
+            FunSpec
+                .builder("toMap")
+                .addModifiers(KModifier.OVERRIDE)
+                .returns(
+                    TypeUtil.mutableMapStringAny(),
+                ).addStatement("return toMap(this)")
 
         return toMapBuilder.build()
     }

@@ -10,9 +10,14 @@ object ElementUtil {
             result.add(name.substring(0, name.indexOf("<")).trim { it <= ' ' })
 
             for (item in Arrays.asList(
-                *name.substring(name.indexOf("<") + 1, name.indexOf(">")).split(",".toRegex()).dropLastWhile {
-                    it.isEmpty()
-                }.toTypedArray()
+                *name
+                    .substring(
+                        name.indexOf("<") + 1,
+                        name.indexOf(">"),
+                    ).split(",".toRegex())
+                    .dropLastWhile {
+                        it.isEmpty()
+                    }.toTypedArray(),
             )) {
                 result.add(item.trim { it <= ' ' })
             }

@@ -8,7 +8,7 @@ val nonConvertibleClasses =
         Boolean::class,
         Number::class,
         Map::class,
-        Any::class
+        Any::class,
     )
 
 val nonConvertibleClassesTypeNames = nonConvertibleClasses.map { it.asTypeName() }

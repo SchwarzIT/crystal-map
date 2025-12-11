@@ -13,7 +13,7 @@ object EnsureTypesGeneration {
     fun <T> ensureTypes(
         holder: BaseEntityHolder<T>,
         useNullableMap: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FunSpec {
         val explicitType =
             if (useNullableMap) TypeUtil.hashMapStringAnyNullable() else TypeUtil.hashMapStringAny()
@@ -32,7 +32,7 @@ object EnsureTypesGeneration {
                         CrystalWrap::class,
                         RESULT_VAL_NAME,
                         field.constantName,
-                        typeConverterHolder.instanceClassTypeName
+                        typeConverterHolder.instanceClassTypeName,
                     )
                 } else {
                     ensureTypes.addStatement(
@@ -40,7 +40,7 @@ object EnsureTypesGeneration {
                         CrystalWrap::class,
                         RESULT_VAL_NAME,
                         field.constantName,
-                        typeConverterHolder.instanceClassTypeName
+                        typeConverterHolder.instanceClassTypeName,
                     )
                 }
             }

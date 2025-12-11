@@ -3,10 +3,10 @@ package com.schwarz.crystaldemo
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 
-open class UnitTestConnector() : PersistenceConfig.Connector {
+open class UnitTestConnector : PersistenceConfig.Connector {
     override fun deleteDocument(
         id: String,
-        dbName: String
+        dbName: String,
     ) {
         // Do Nothing
     }
@@ -14,37 +14,28 @@ open class UnitTestConnector() : PersistenceConfig.Connector {
     override fun getDocument(
         id: String,
         dbName: String,
-        onlyInclude: List<String>?
-    ): Map<String, Any>? {
-        return null
-    }
+        onlyInclude: List<String>?,
+    ): Map<String, Any>? = null
 
     override fun getDocuments(
         ids: List<String>,
         dbName: String,
-        onlyInclude: List<String>?
-    ): List<Map<String, Any>?> {
-        return emptyList()
-    }
+        onlyInclude: List<String>?,
+    ): List<Map<String, Any>?> = emptyList()
 
     override fun queryDoc(
         dbName: String,
         queryParams: Map<String, Any>,
         limit: Int?,
-        onlyInclude: List<String>?
-    ): List<Map<String, Any>> {
-        return emptyList()
-    }
+        onlyInclude: List<String>?,
+    ): List<Map<String, Any>> = emptyList()
 
     override fun upsertDocument(
         document: MutableMap<String, Any>,
         id: String?,
-        dbName: String
-    ): Map<String, Any> {
-        return document
-    }
+        dbName: String,
+    ): Map<String, Any> = document
 
-    override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
+    override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper): Unit =
         throw errorWrapper.exception
-    }
 }

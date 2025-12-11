@@ -6,7 +6,9 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogger<Element> {
+class Logger internal constructor(
+    processingEnv: ProcessingEnvironment,
+) : ILogger<Element> {
     private val messager: Messager
 
     private var hasErrors: Boolean = false
@@ -21,21 +23,21 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogge
 
     override fun info(
         msg: String,
-        e: Element?
+        e: Element?,
     ) {
         messager.printMessage(Diagnostic.Kind.NOTE, msg, e)
     }
 
     override fun warn(
         msg: String,
-        e: Element?
+        e: Element?,
     ) {
         messager.printMessage(Diagnostic.Kind.WARNING, msg, e)
     }
 
     override fun error(
         msg: String,
-        e: Element?
+        e: Element?,
     ) {
         hasErrors = true
         messager.printMessage(Diagnostic.Kind.ERROR, msg, e)
@@ -44,20 +46,18 @@ class Logger internal constructor(processingEnv: ProcessingEnvironment) : ILogge
     override fun abortWithError(
         msg: String,
         e: Element?,
-        ex: Throwable?
+        ex: Throwable?,
     ) {
         error(msg, e)
         throw RuntimeException(ex)
     }
 
-    override fun hasErrors(): Boolean {
-        return hasErrors
-    }
+    override fun hasErrors(): Boolean = hasErrors
 
     override fun abortWithError(
         msg: String?,
         elements: List<Element>,
-        ex: Throwable?
+        ex: Throwable?,
     ) {
         if (elements.isNotEmpty()) {
             for (causingElement in elements) {

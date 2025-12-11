@@ -5,8 +5,8 @@ apply plugin: 'kotlinx-serialization'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.13.2'
-    implementation "commons-codec:commons-codec:1.15"
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    implementation "commons-codec:commons-codec:1.20.0"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }

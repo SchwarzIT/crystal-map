@@ -18,9 +18,11 @@ class SerializableMapifyable<T : Serializable> : IMapifyable<T?> {
 
 private fun <T : Serializable> serializableToMapValue(obj: T?) =
     obj?.let {
-        ByteArrayOutputStream().apply {
-            ObjectOutputStream(this).writeObject(obj)
-        }.toByteArray()?.let { Base64().encodeAsString(it) }
+        ByteArrayOutputStream()
+            .apply {
+                ObjectOutputStream(this).writeObject(obj)
+            }.toByteArray()
+            ?.let { Base64().encodeAsString(it) }
     }
 
 private fun <T : Serializable> serializableFromMapValue(value: String): T? =

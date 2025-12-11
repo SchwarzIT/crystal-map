@@ -3,7 +3,6 @@ package schwarz.fwws.shared.model
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
-import java.util.*
 
 @MapWrapper
 @Fields(
@@ -11,7 +10,7 @@ import java.util.*
     Field(name = "type", type = String::class, defaultValue = GtinLink.TYPE, readonly = true),
     Field(name = "gtin_no", type = String::class),
     Field(name = "article_no", type = String::class),
-    Field(name = "main_gtin", type = Boolean::class)
+    Field(name = "main_gtin", type = Boolean::class),
 )
 open class GtinLink {
     companion object {
@@ -20,10 +19,8 @@ open class GtinLink {
 
         fun documentId(
             country: String,
-            gtin: String
-        ): String {
-            return "$PREFIX:$country:$gtin"
-        }
+            gtin: String,
+        ): String = "$PREFIX:$country:$gtin"
     }
 
 //    override fun documentId(): String {

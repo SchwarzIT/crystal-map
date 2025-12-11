@@ -25,38 +25,38 @@ import java.time.LocalDate
         type = String::class,
         defaultValue = "product",
         readonly = true,
-        comment = ["Document type"]
+        comment = ["Document type"],
     ),
     Field(
         name = "name",
         type = String::class,
         comment = ["contains the product name.", "and other infos"],
-        mandatory = true
+        mandatory = true,
     ),
     Field(
         name = "comments",
         type = UserComment::class,
         list = true,
-        comment = ["I'm also comfortable with pseudo %2D placeholders"]
+        comment = ["I'm also comfortable with pseudo %2D placeholders"],
     ),
     Field(
         name = "top_comment",
-        type = UserComment::class
+        type = UserComment::class,
     ),
     Field(name = "image", type = Blob::class),
     Field(name = "identifiers", type = String::class, list = true),
     Field(name = "category", type = ProductCategory::class),
     Field(name = "some_date", type = LocalDate::class),
     Field(name = "some_dates", type = LocalDate::class, list = true),
-    Field(name = "field_with_default", type = String::class, defaultValue = "foobar")
+    Field(name = "field_with_default", type = String::class, defaultValue = "foobar"),
 )
 @Queries(
     Query(fields = ["type"]),
-    Query(fields = ["type", "category"])
+    Query(fields = ["type", "category"]),
 )
 @Reduces(
     Reduce(namePrefix = "Light", include = ["name", "type", "category", "image", "top_comment"]),
-    Reduce(namePrefix = "Lighter", include = ["name"], includeQueries = false, includeDocId = false)
+    Reduce(namePrefix = "Lighter", include = ["name"], includeQueries = false, includeDocId = false),
 )
 @DocId("myProduct:%type%:%name%:%custom(name)%:%custom2(top_comment)%")
 open class Product {

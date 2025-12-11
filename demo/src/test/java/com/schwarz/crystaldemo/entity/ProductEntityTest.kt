@@ -4,14 +4,14 @@ import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.TypeConversionErrorWrapper
 import com.schwarz.crystaldemo.UnitTestConnector
 import com.schwarz.crystaldemo.entity.ProductCategory.AMAZING_PRODUCT
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.system.measureTimeMillis
 
@@ -30,10 +30,8 @@ object ProductEntityTestConnector : UnitTestConnector() {
         dbName: String,
         queryParams: Map<String, Any>,
         limit: Int?,
-        onlyInclude: List<String>?
-    ): List<Map<String, Any>> {
-        return listOf(queryParams)
-    }
+        onlyInclude: List<String>?,
+    ): List<Map<String, Any>> = listOf(queryParams)
 
     override fun invokeOnError(errorWrapper: TypeConversionErrorWrapper) {
         LastErrorWrapper.value = errorWrapper
@@ -42,15 +40,15 @@ object ProductEntityTestConnector : UnitTestConnector() {
 
 class ProductEntityTest {
     companion object {
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun beforeClass() {
+        fun beforeAll() {
             PersistenceConfig.configure(ProductEntityTestConnector)
         }
     }
 
-    @Before
-    fun before() {
+    @BeforeEach
+    fun beforeEach() {
         LastErrorWrapper.clear()
     }
 
@@ -68,7 +66,7 @@ class ProductEntityTest {
     fun `entity with an invalid type for fields without type conversions should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "name" to 1
+                "name" to 1,
             )
 
         val entity = ProductEntity.create(map)
@@ -81,7 +79,7 @@ class ProductEntityTest {
     fun `entity with an invalid type for list fields without type conversions should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "identifiers" to 1
+                "identifiers" to 1,
             )
 
         val entity = ProductEntity.create(map)
@@ -101,7 +99,7 @@ class ProductEntityTest {
     fun `entity with an invalid list type for list fields without type conversions should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "identifiers" to listOf(1)
+                "identifiers" to listOf(1),
             )
 
         val entity = ProductEntity.create(map)
@@ -122,7 +120,7 @@ class ProductEntityTest {
     fun `entity with an invalid type for fields that are subentities produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "top_comment" to 1
+                "top_comment" to 1,
             )
 
         val entity = ProductEntity.create(map)
@@ -143,7 +141,7 @@ class ProductEntityTest {
     fun `entity with an invalid list type for fields that are subentities returns emptyList`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "comments" to 1
+                "comments" to 1,
             )
 
         val entity = ProductEntity.create(map)
@@ -164,7 +162,7 @@ class ProductEntityTest {
     fun `entity with an invalid list type for fields that are subentities throws on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "comments" to listOf(1)
+                "comments" to listOf(1),
             )
 
         val entity = ProductEntity.create(map)
@@ -185,7 +183,7 @@ class ProductEntityTest {
     fun `entity with an invalid type for fields with type conversions should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_date" to true
+                "some_date" to true,
             )
 
         val entity = ProductEntity.create(map)
@@ -206,7 +204,7 @@ class ProductEntityTest {
     fun `entity with an invalid list type for fields with type conversions produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_dates" to listOf(true)
+                "some_dates" to listOf(true),
             )
 
         val entity = ProductEntity.create(map)
@@ -227,7 +225,7 @@ class ProductEntityTest {
     fun `entity with an invalid value for fields with type conversions should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_date" to "foobar"
+                "some_date" to "foobar",
             )
 
         val entity = ProductEntity.create(map)
@@ -248,7 +246,7 @@ class ProductEntityTest {
     fun `entity with a list of invalid values for fields with type conversions produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_dates" to listOf("foobar")
+                "some_dates" to listOf("foobar"),
             )
 
         val entity = ProductEntity.create(map)
@@ -269,7 +267,7 @@ class ProductEntityTest {
     fun `creating an entity with an invalid deserialized type should produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_date" to ErrorProducingObject
+                "some_date" to ErrorProducingObject,
             )
 
         val entity = ProductEntity.create(map)
@@ -290,7 +288,7 @@ class ProductEntityTest {
     fun `entity with a list of invalid deserialized types produce error on get`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_dates" to listOf(ErrorProducingObject)
+                "some_dates" to listOf(ErrorProducingObject),
             )
 
         val entity = ProductEntity.create(map)
@@ -311,7 +309,7 @@ class ProductEntityTest {
     fun `entity with an valid type for fields without type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "name" to "Fritz"
+                "name" to "Fritz",
             )
 
         val entity = ProductEntity.create(map)
@@ -324,7 +322,7 @@ class ProductEntityTest {
     fun `entity with an valid type for list fields without type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "identifiers" to listOf("1", "2")
+                "identifiers" to listOf("1", "2"),
             )
 
         val entity = ProductEntity.create(map)
@@ -338,7 +336,7 @@ class ProductEntityTest {
     fun `entity with an valid type for fields that are subentities should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "top_comment" to mapOf("comment" to "foobar")
+                "top_comment" to mapOf("comment" to "foobar"),
             )
 
         val entity = ProductEntity.create(map)
@@ -353,7 +351,7 @@ class ProductEntityTest {
     fun `entity with an valid list type for fields that are subentities returns`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "comments" to listOf(mapOf("comment" to "foobar"))
+                "comments" to listOf(mapOf("comment" to "foobar")),
             )
 
         val entity = ProductEntity.create(map)
@@ -368,7 +366,7 @@ class ProductEntityTest {
     fun `entity with an valid type for fields with type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_date" to "2023-01-01"
+                "some_date" to "2023-01-01",
             )
 
         val entity = ProductEntity.create(map)
@@ -383,7 +381,7 @@ class ProductEntityTest {
     fun `entity with an valid list type for fields with type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_dates" to listOf("2023-01-01")
+                "some_dates" to listOf("2023-01-01"),
             )
 
         val entity = ProductEntity.create(map)
@@ -398,7 +396,7 @@ class ProductEntityTest {
     fun `entity with an valid deserialized type for fields with type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_date" to LocalDate.of(2023, 1, 1)
+                "some_date" to LocalDate.of(2023, 1, 1),
             )
 
         val entity = ProductEntity.create(map)
@@ -413,7 +411,7 @@ class ProductEntityTest {
     fun `entity with an valid deserialized list type for fields with type conversions should return`() {
         val map: MutableMap<String, Any> =
             mutableMapOf(
-                "some_dates" to listOf(LocalDate.of(2023, 1, 1))
+                "some_dates" to listOf(LocalDate.of(2023, 1, 1)),
             )
 
         val entity = ProductEntity.create(map)
@@ -468,7 +466,11 @@ class ProductEntityTest {
 
     @Test
     fun `additional fields in the map should not impact the entity`() {
-        val map = mutableMapOf<String, Any>("type" to "barfoo", "this_field_is_not_in_the_schema" to "1234")
+        val map =
+            mutableMapOf<String, Any>(
+                "type" to "barfoo",
+                "this_field_is_not_in_the_schema" to "1234",
+            )
         val entity = ProductEntity.create(map)
 
         assertEquals(entity.type, "product")
@@ -484,7 +486,7 @@ class ProductEntityTest {
             List(1000) {
                 mutableMapOf<String, Any>(
                     "comments" to positions,
-                    "some_dates" to someDates
+                    "some_dates" to someDates,
                 )
             }
 
@@ -495,6 +497,9 @@ class ProductEntityTest {
                 entities.flatMap { it.someDates ?: emptyList() }
             }
 
-        assertTrue("Expecting time for creating and reading to be < 600ms but was $duration", duration < 600)
+        assertTrue(
+            duration < 600,
+            "Expecting time for creating and reading to be < 600ms but was $duration",
+        )
     }
 }

@@ -2,16 +2,16 @@ package com.schwarz.crystaldemo.entity
 
 import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystaldemo.UnitTestConnector
-import org.junit.Assert.assertEquals
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class ProductWrapperTest {
     companion object {
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun beforeClass() {
+        fun beforeAll() {
             PersistenceConfig.configure(UnitTestConnector())
         }
     }
@@ -19,7 +19,9 @@ class ProductWrapperTest {
     @Test
     fun `toMap should preserve field order`() {
         val product =
-            ProductWrapper.create().builder()
+            ProductWrapper
+                .create()
+                .builder()
                 .setName("name")
                 .setComments(emptyList())
                 .setIdentifiers(listOf("1", "2"))
@@ -32,25 +34,26 @@ class ProductWrapperTest {
                 ProductWrapper.FIELD_WITH_DEFAULT to "foobar",
                 ProductWrapper.NAME to "name",
                 ProductWrapper.COMMENTS to listOf<UserCommentWrapper>(),
-                ProductWrapper.IDENTIFIERS to listOf("1", "2")
+                ProductWrapper.IDENTIFIERS to listOf("1", "2"),
             ),
-            map
+            map,
         )
     }
 
     @Test
     fun `toMap - fromMap should work`() {
         val product =
-            ProductWrapper.create().builder()
+            ProductWrapper
+                .create()
+                .builder()
                 .setName("name")
                 .setComments(
                     listOf(
                         UserCommentWrapper.create().apply {
                             comment = "foobar"
-                        }
-                    )
-                )
-                .setCategory(ProductCategory.AMAZING_PRODUCT)
+                        },
+                    ),
+                ).setCategory(ProductCategory.AMAZING_PRODUCT)
                 .setIdentifiers(listOf("1", "2"))
                 .setSomeDate(LocalDate.now())
                 .exit()

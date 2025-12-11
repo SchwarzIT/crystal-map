@@ -2,11 +2,20 @@ package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.squareup.kotlinpoet.TypeName
-import j2html.TagCreator.*
+import j2html.TagCreator.b
+import j2html.TagCreator.rawHtml
+import j2html.TagCreator.table
+import j2html.TagCreator.td
+import j2html.TagCreator.text
+import j2html.TagCreator.th
+import j2html.TagCreator.tr
 import j2html.tags.DomContent
 import java.io.File
 
-class EntityRelationshipGenerator(path: String, fileName: String) {
+class EntityRelationshipGenerator(
+    path: String,
+    fileName: String,
+) {
     private val path = File(path)
     private val file = File(path, fileName)
 
@@ -31,19 +40,18 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
         file.writeText(documentBuilder.toString())
     }
 
-    private fun renderRelationshipDiamonds(): String {
-        return docuEntityEdges
+    private fun renderRelationshipDiamonds(): String =
+        docuEntityEdges
             .toSortedMap()
             .filter { it.value.isNotEmpty() }
             .map { "  ${it.key}_has  [label=\"has\"];\n" }
             .joinToString("")
-    }
 
-    private fun renderEntityNodes(): String {
-        return docuEntityNodes
+    private fun renderEntityNodes(): String =
+        docuEntityNodes
             .toSortedMap()
-            .map { renderEntityNode(it) }.joinToString("\n\n")
-    }
+            .map { renderEntityNode(it) }
+            .joinToString("\n\n")
 
     private fun renderEntityNode(node: Map.Entry<String, DomContent>): String {
         val nodeBuilder = StringBuilder()
@@ -68,28 +76,42 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
                 tr(
                     td(
                         *entityHolder.fields
-                            .map { text(it.value.dbField + " : " + extractClassName(it.value.fieldType)) }
-                            .zip(generateSequence { rawHtml("<br/>") }.asIterable())
+                            .map {
+                                text(
+                                    it.value.dbField + " : " + extractClassName(it.value.fieldType),
+                                )
+                            }.zip(generateSequence { rawHtml("<br/>") }.asIterable())
                             .flatMap { listOf(it.first, it.second) }
-                            .toTypedArray()
-                    )
-                )
-            ).attr("border", "0").attr("cellborder", "1").attr("cellspacing", "1").attr("cellpadding", "5")
+                            .toTypedArray(),
+                    ),
+                ),
+            ).attr(
+                "border",
+                "0",
+            ).attr("cellborder", "1")
+                .attr("cellspacing", "1")
+                .attr("cellpadding", "5")
 
         docuEntityEdges[entityHolder.sourceClazzSimpleName] =
             entityHolder.fields
                 .filter {
-                    !it.value.fieldType.toString().startsWith("java") &&
-                        !it.value.fieldType.toString().startsWith("kotlin") &&
-                        !it.value.fieldType.toString().startsWith("org.threeten")
-                }
-                .map { extractClassName(it.value.fieldType) }
+                    !it.value.fieldType
+                        .toString()
+                        .startsWith("java") &&
+                        !it.value.fieldType
+                            .toString()
+                            .startsWith("kotlin") &&
+                        !it.value.fieldType
+                            .toString()
+                            .startsWith("org.threeten")
+                }.map { extractClassName(it.value.fieldType) }
     }
 
-    fun extractClassName(fullClassName: TypeName): String = fullClassName.toString().split(".").last()
+    fun extractClassName(fullClassName: TypeName): String =
+        fullClassName.toString().split(".").last()
 
-    private fun renderRelationships(): String {
-        return docuEntityEdges
+    private fun renderRelationships(): String =
+        docuEntityEdges
             .toSortedMap()
             .filter { it.value.isNotEmpty() }
             .map { edge -> "${edge.key} -- ${edge.key}_has;\n" }
@@ -99,5 +121,4 @@ class EntityRelationshipGenerator(path: String, fileName: String) {
                 .map { edge -> edge.value.map { "${edge.key}_has -- $it;\n" } }
                 .flatten()
                 .joinToString("")
-    }
 }

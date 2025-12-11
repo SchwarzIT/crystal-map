@@ -6,14 +6,20 @@ import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
-import com.squareup.kotlinpoet.*
-import java.util.*
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.TypeSpec
+import java.util.Arrays
 
 class WrapperGeneration {
     fun <T> generateModel(
         holder: WrapperEntityHolder<T>,
         useSuspend: Boolean,
-        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
     ): FileSpec {
         val companionSpec = TypeSpec.companionObjectBuilder()
         companionSpec.superclass(TypeUtil.wrapperCompanion(holder.entityTypeName))
@@ -21,7 +27,8 @@ class WrapperGeneration {
         val builderBuilder = BuilderClassGeneration.generateBaseBuilder(holder)
 
         val typeBuilder =
-            TypeSpec.classBuilder(holder.entitySimpleName)
+            TypeSpec
+                .classBuilder(holder.entitySimpleName)
                 .addSuperinterface(TypeUtil.mapSupport())
                 .addModifiers(KModifier.PUBLIC)
                 .addSuperinterface(holder.interfaceTypeName)
@@ -30,27 +37,31 @@ class WrapperGeneration {
                     EnsureTypesGeneration.ensureTypes(
                         holder,
                         true,
-                        typeConvertersByConvertedClass
-                    )
-                )
-                .addFunction(
+                        typeConvertersByConvertedClass,
+                    ),
+                ).addFunction(
                     CblDefaultGeneration.addDefaults(
                         holder,
                         true,
-                        typeConvertersByConvertedClass
-                    )
-                )
-                .addFunction(CblConstantGeneration.addConstants(holder, true))
+                        typeConvertersByConvertedClass,
+                    ),
+                ).addFunction(CblConstantGeneration.addConstants(holder, true))
                 .addFunction(SetAllMethodGeneration().generate(holder, false))
                 .addFunction(MapSupportGeneration.toMap(holder))
                 .addFunction(ValidateMethodGeneration.generate(holder, false))
                 .addProperty(
-                    PropertySpec.builder(
-                        "mDoc",
-                        TypeUtil.mutableMapStringAnyNullable()
-                    ).addModifiers(KModifier.PRIVATE).mutable().initializer("%T()", TypeUtil.linkedHashMapStringAnyNullable()).build()
-                )
-                .addFunction(constructorMap())
+                    PropertySpec
+                        .builder(
+                            "mDoc",
+                            TypeUtil.mutableMapStringAnyNullable(),
+                        ).addModifiers(
+                            KModifier.PRIVATE,
+                        ).mutable()
+                        .initializer(
+                            "%T()",
+                            TypeUtil.linkedHashMapStringAnyNullable(),
+                        ).build(),
+                ).addFunction(constructorMap())
                 .addFunction(constructorDefault())
                 .superclass(holder.sourceElement.typeName)
                 .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
@@ -73,11 +84,24 @@ class WrapperGeneration {
         for (fieldHolder in holder.allFields) {
             companionSpec.addProperties(fieldHolder.createFieldConstant())
             typeBuilder.addProperty(
-                fieldHolder.property(null, holder.abstractParts, false, holder.deprecated, typeConvertersByConvertedClass)
+                fieldHolder.property(
+                    null,
+                    holder.abstractParts,
+                    false,
+                    holder.deprecated,
+                    typeConvertersByConvertedClass,
+                ),
             )
-            fieldHolder.builderSetter(null, holder.sourcePackage, holder.entitySimpleName, false, holder.deprecated)?.let {
-                builderBuilder.addFunction(it)
-            }
+            fieldHolder
+                .builderSetter(
+                    null,
+                    holder.sourcePackage,
+                    holder.entitySimpleName,
+                    false,
+                    holder.deprecated,
+                )?.let {
+                    builderBuilder.addFunction(it)
+                }
         }
 
         companionSpec.addFunctions(toMap(holder))
@@ -93,49 +117,90 @@ class WrapperGeneration {
 
     private fun <T> toMap(holder: BaseEntityHolder<T>): List<FunSpec> {
         val nullCheck =
-            CodeBlock.builder().beginControlFlow(
-                "if(obj == null)"
-            ).addStatement("return mutableMapOf()").endControlFlow().build()
+            CodeBlock
+                .builder()
+                .beginControlFlow(
+                    "if(obj == null)",
+                ).addStatement("return mutableMapOf()")
+                .endControlFlow()
+                .build()
 
         return Arrays.asList(
-            FunSpec.builder("toMap").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-                .addParameter("obj", holder.entityTypeName.copy(nullable = true)).returns(TypeUtil.mutableMapStringAny())
+            FunSpec
+                .builder("toMap")
+                .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
+                .addParameter(
+                    "obj",
+                    holder.entityTypeName.copy(nullable = true),
+                ).returns(TypeUtil.mutableMapStringAny())
                 .addAnnotation(JvmStatic::class)
-                .addCode(nullCheck).addStatement("var result = mutableMapOf<%T,%T>()", TypeUtil.string(), TypeUtil.any())
-                .beginControlFlow("obj.mDoc.forEach")
-                .beginControlFlow("if(it.value != null)").addStatement("result[it.key] = it.value!!").endControlFlow()
+                .addCode(
+                    nullCheck,
+                ).addStatement(
+                    "var result = mutableMapOf<%T,%T>()",
+                    TypeUtil.string(),
+                    TypeUtil.any(),
+                ).beginControlFlow("obj.mDoc.forEach")
+                .beginControlFlow(
+                    "if(it.value != null)",
+                ).addStatement("result[it.key] = it.value!!")
                 .endControlFlow()
-                .addStatement("return result").build()
+                .endControlFlow()
+                .addStatement("return result")
+                .build(),
         )
     }
 
-    private fun constructorMap(): FunSpec {
-        return FunSpec.constructorBuilder().addModifiers(
-            KModifier.PUBLIC
-        ).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addStatement("rebind(ensureTypes(doc))").build()
-    }
+    private fun constructorMap(): FunSpec =
+        FunSpec
+            .constructorBuilder()
+            .addModifiers(
+                KModifier.PUBLIC,
+            ).addParameter(
+                "doc",
+                TypeUtil.mutableMapStringAnyNullable(),
+            ).addStatement("rebind(ensureTypes(doc))")
+            .build()
 
     private fun constructorDefault(): FunSpec {
         // Add default constructor to allow property-based creators in Jackson
-        return FunSpec.constructorBuilder().addModifiers(KModifier.PUBLIC).callThisConstructor("mutableMapOf()").build()
+        return FunSpec
+            .constructorBuilder()
+            .addModifiers(
+                KModifier.PUBLIC,
+            ).callThisConstructor("mutableMapOf()")
+            .build()
     }
 
-    private fun <T> create(holder: WrapperEntityHolder<T>): List<FunSpec> {
-        return Arrays.asList(
-            FunSpec.builder(
-                "create"
-            ).addModifiers(
-                KModifier.PUBLIC,
-                KModifier.OVERRIDE
-            ).addParameter("doc", TypeUtil.mutableMapStringAnyNullable()).addAnnotation(JvmStatic::class).addStatement(
-                "return %N(doc)",
-                holder.entitySimpleName
-            ).returns(holder.entityTypeName).build(),
-            FunSpec.builder("create").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE).addAnnotation(JvmStatic::class).addStatement(
-                "return %N(%T())",
-                holder.entitySimpleName,
-                TypeUtil.hashMapStringAnyNullable()
-            ).returns(holder.entityTypeName).build()
+    private fun <T> create(holder: WrapperEntityHolder<T>): List<FunSpec> =
+        Arrays.asList(
+            FunSpec
+                .builder(
+                    "create",
+                ).addModifiers(
+                    KModifier.PUBLIC,
+                    KModifier.OVERRIDE,
+                ).addParameter(
+                    "doc",
+                    TypeUtil.mutableMapStringAnyNullable(),
+                ).addAnnotation(JvmStatic::class)
+                .addStatement(
+                    "return %N(doc)",
+                    holder.entitySimpleName,
+                ).returns(holder.entityTypeName)
+                .build(),
+            FunSpec
+                .builder(
+                    "create",
+                ).addModifiers(
+                    KModifier.PUBLIC,
+                    KModifier.OVERRIDE,
+                ).addAnnotation(JvmStatic::class)
+                .addStatement(
+                    "return %N(%T())",
+                    holder.entitySimpleName,
+                    TypeUtil.hashMapStringAnyNullable(),
+                ).returns(holder.entityTypeName)
+                .build(),
         )
-    }
 }

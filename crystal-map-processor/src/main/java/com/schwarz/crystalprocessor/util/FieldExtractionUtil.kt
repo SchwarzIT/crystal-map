@@ -19,8 +19,8 @@ object FieldExtractionUtil {
         }
     }
 
-    fun typeMirror(annotation: Deprecated): TypeMirror? {
-        return try {
+    fun typeMirror(annotation: Deprecated): TypeMirror? =
+        try {
             annotation.replacedBy
 
             if (annotation.replacedBy != null) {
@@ -31,16 +31,14 @@ object FieldExtractionUtil {
         } catch (mte: MirroredTypeException) {
             mte.typeMirror
         }
-    }
 
-    fun typeMirror(annotation: Mapifyable): TypeMirror? {
-        return try {
+    fun typeMirror(annotation: Mapifyable): TypeMirror? =
+        try {
             annotation.value
             throw Exception("Expected to get a MirroredTypeException")
         } catch (mte: MirroredTypeException) {
             mte.typeMirror
         }
-    }
 
     fun typeMirror(annotation: BasedOn): List<TypeMirror> {
         val result = mutableListOf<TypeMirror>()

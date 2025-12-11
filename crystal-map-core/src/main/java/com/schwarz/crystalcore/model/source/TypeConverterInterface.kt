@@ -6,5 +6,5 @@ import com.squareup.kotlinpoet.ClassName
 data class TypeConverterInterface(
     val domainClassTypeName: ClassName,
     val mapClassTypeName: ClassName,
-    val genericTypeNames: List<ClassNameDefinition>
+    val genericTypeNames: List<ClassNameDefinition>,
 )

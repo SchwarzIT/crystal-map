@@ -1,7 +1,12 @@
 package com.schwarz.crystalcore.meta
 
 import com.schwarz.crystalapi.deprecated.DeprecationType
-import com.schwarz.crystalapi.schema.*
+import com.schwarz.crystalapi.schema.DeprecatedFields
+import com.schwarz.crystalapi.schema.DeprecatedSchema
+import com.schwarz.crystalapi.schema.DocId
+import com.schwarz.crystalapi.schema.EntitySchema
+import com.schwarz.crystalapi.schema.Fields
+import com.schwarz.crystalapi.schema.Queries
 import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblBaseFieldHolder
@@ -9,7 +14,10 @@ import com.schwarz.crystalcore.model.query.CblQueryHolder
 import kotlinx.serialization.json.Json
 import java.io.File
 
-class SchemaGenerator(path: String, val fileName: String) {
+class SchemaGenerator(
+    path: String,
+    val fileName: String,
+) {
     private val path = File(path)
 
     private val jsonEntitySegments = mutableMapOf<String, EntitySchema>()
@@ -35,7 +43,7 @@ class SchemaGenerator(path: String, val fileName: String) {
                 basedOn = entityHolder.basedOn.map { it.sourceClazzSimpleName },
                 queries = entityHolder.queries.queriesToSchemaList(),
                 docId = entityHolder.docId?.let { DocId(it.pattern) },
-                deprecatedSchema = entityHolder.deprecated?.deprecatedToSchema()
+                deprecatedSchema = entityHolder.deprecated?.deprecatedToSchema(),
             )
         jsonEntitySegments[entityHolder.sourceClazzSimpleName] = entitySchema
     }
@@ -43,11 +51,13 @@ class SchemaGenerator(path: String, val fileName: String) {
     private fun DeprecatedModel.deprecatedToSchema(): DeprecatedSchema =
         DeprecatedSchema(
             replacedBy = this.replacedBy,
-            inUse = this.deprecationType == DeprecationType.FIELD_DEPRECATION || this.deprecationType == DeprecationType.ENTITY_DEPRECATION,
+            inUse =
+                this.deprecationType == DeprecationType.FIELD_DEPRECATION ||
+                    this.deprecationType == DeprecationType.ENTITY_DEPRECATION,
             deprecatedFields =
-            this.deprecatedFields.values.map {
-                DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse)
-            }
+                this.deprecatedFields.values.map {
+                    DeprecatedFields(field = it.field, replacedBy = it.replacedBy, inUse = it.inUse)
+                },
         )
 
     private fun List<CblBaseFieldHolder>.fieldsToSchemaList(): List<Fields> =
@@ -58,9 +68,12 @@ class SchemaGenerator(path: String, val fileName: String) {
                 isIterable = it.isIterable,
                 isConstant = it.isConstant,
                 defaultValue = it.defaultValue,
-                mandatory = (if (it.mandatory) true else null)
+                mandatory = (if (it.mandatory) true else null),
             )
         }
 
-    private fun List<CblQueryHolder>.queriesToSchemaList(): List<Queries> = map { Queries(it.fields.asList()) }
+    private fun List<CblQueryHolder>.queriesToSchemaList(): List<Queries> =
+        map {
+            Queries(it.fields.asList())
+        }
 }

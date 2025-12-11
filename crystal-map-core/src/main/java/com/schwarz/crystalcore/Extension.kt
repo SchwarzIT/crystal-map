@@ -11,12 +11,14 @@ import kotlin.reflect.jvm.internal.impl.name.FqNameUnsafe
 fun TypeName.javaToKotlinType(): TypeName =
     if (this is ParameterizedTypeName) {
         (rawType.javaToKotlinType() as ClassName).parameterizedBy(
-            *typeArguments.map { it.javaToKotlinType() }.toTypedArray()
+            *typeArguments.map { it.javaToKotlinType() }.toTypedArray(),
         )
     } else {
         val className =
             JavaToKotlinClassMap.INSTANCE
-                .mapJavaToKotlin(FqName(toString()))?.asSingleFqName()?.asString()
+                .mapJavaToKotlin(FqName(toString()))
+                ?.asSingleFqName()
+                ?.asString()
         if (className == null) {
             this
         } else {
@@ -27,12 +29,14 @@ fun TypeName.javaToKotlinType(): TypeName =
 fun TypeName.kotlinToJavaType(): TypeName =
     if (this is ParameterizedTypeName) {
         (rawType.kotlinToJavaType() as ClassName).parameterizedBy(
-            *typeArguments.map { it.kotlinToJavaType() }.toTypedArray()
+            *typeArguments.map { it.kotlinToJavaType() }.toTypedArray(),
         )
     } else {
         val className =
             JavaToKotlinClassMap.INSTANCE
-                .mapKotlinToJava(FqNameUnsafe(toString()))?.asSingleFqName()?.asString()
+                .mapKotlinToJava(FqNameUnsafe(toString()))
+                ?.asSingleFqName()
+                ?.asString()
         if (className == null) {
             this
         } else {

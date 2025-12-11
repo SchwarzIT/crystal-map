@@ -1,9 +1,8 @@
-package schwarz.fwws.shared.model
+package com.schwarz.crystaldemo.test
 
 import com.schwarz.crystalapi.Field
 import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
-import java.util.*
 
 @MapWrapper
 @Fields(
@@ -13,7 +12,7 @@ import java.util.*
     Field(name = "color", type = String::class),
     Field(name = "icon", type = String::class),
     Field(name = "item_type", type = String::class),
-    Field(name = "ordinal", type = Int::class)
+    Field(name = "ordinal", type = Int::class),
 )
 open class DWG {
     companion object {
@@ -22,10 +21,8 @@ open class DWG {
 
         fun documentId(
             country: String,
-            item_type: String
-        ): String {
-            return "$PREFIX:$country:$item_type"
-        }
+            item_type: String,
+        ): String = "$PREFIX:$country:$item_type"
     }
 
 //    override fun documentId(): String {

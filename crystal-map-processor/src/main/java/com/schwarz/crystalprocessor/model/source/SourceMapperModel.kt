@@ -12,8 +12,10 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 
-class SourceMapperModel(source: Element) :
-    IClassModel<Element> by SourceClassModel(source), ISourceMapperModel<Element> {
+class SourceMapperModel(
+    source: Element,
+) : IClassModel<Element> by SourceClassModel(source),
+    ISourceMapperModel<Element> {
     override val typeParams: List<String> =
         (source as Symbol.ClassSymbol).typeParameters.mapNotNull {
             ElementUtil.splitGenericIfNeeded(it.asType().toString())[0]
@@ -32,7 +34,8 @@ class SourceMapperModel(source: Element) :
 
             if (childElement.kind == ElementKind.FIELD) {
                 childElement.getAnnotation(Mapify::class.java)?.apply {
-                    fields[childElement.simpleName.toString()] = Field(SourceClassModel(childElement), SourceMapify(this))
+                    fields[childElement.simpleName.toString()] =
+                        Field(SourceClassModel(childElement), SourceMapify(this))
                 }
             }
 
@@ -40,19 +43,23 @@ class SourceMapperModel(source: Element) :
                 childElement.getAnnotation(Mapify::class.java)?.let { anno ->
                     childElement.simpleName.toString()?.let {
                         if (it.startsWith("set")) {
-                            getterSetters.getOrPut(it.substringAfter("set")) {
-                                GetterSetter()
-                            }.apply {
-                                setterElement = SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
-                                mapify = SourceMapify(anno)
-                            }
+                            getterSetters
+                                .getOrPut(it.substringAfter("set")) {
+                                    GetterSetter()
+                                }.apply {
+                                    setterElement =
+                                        SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
+                                    mapify = SourceMapify(anno)
+                                }
                         } else if (it.startsWith("get")) {
-                            getterSetters.getOrPut(it.substringAfter("get")) {
-                                GetterSetter()
-                            }.apply {
-                                getterElement = SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
-                                mapify = SourceMapify(anno)
-                            }
+                            getterSetters
+                                .getOrPut(it.substringAfter("get")) {
+                                    GetterSetter()
+                                }.apply {
+                                    getterElement =
+                                        SourceGetterSetterModel(childElement as Symbol.MethodSymbol)
+                                    mapify = SourceMapify(anno)
+                                }
                         }
                         null
                     }

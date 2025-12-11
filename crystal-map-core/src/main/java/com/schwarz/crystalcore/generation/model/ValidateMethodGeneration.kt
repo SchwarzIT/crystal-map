@@ -9,11 +9,14 @@ import com.squareup.kotlinpoet.KModifier
 object ValidateMethodGeneration {
     fun <T> generate(
         holder: BaseEntityHolder<T>,
-        useMDocChanges: Boolean
+        useMDocChanges: Boolean,
     ): FunSpec {
         val validateBuilder =
             FunSpec.builder("validate").addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
-        val mandatoryFields = holder.fields.values.filter { it.mandatory }.map { it.constantName }
+        val mandatoryFields =
+            holder.fields.values
+                .filter { it.mandatory }
+                .map { it.constantName }
 
         if (mandatoryFields.isNotEmpty()) {
             val statement =
@@ -25,7 +28,7 @@ object ValidateMethodGeneration {
 
             validateBuilder.addStatement(
                 statement,
-                *arguments.toTypedArray()
+                *arguments.toTypedArray(),
             )
         }
 

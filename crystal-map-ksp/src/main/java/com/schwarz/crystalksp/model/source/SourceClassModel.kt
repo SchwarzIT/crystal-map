@@ -16,7 +16,9 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.toClassName
 
-class SourceClassModel(override val source: KSDeclaration) : IClassModel<KSNode> {
+class SourceClassModel(
+    override val source: KSDeclaration,
+) : IClassModel<KSNode> {
     override val sourceClazzSimpleName: String = source.simpleName.getShortName()
     override val sourcePackage: String = source.packageName.asString()
 
@@ -31,11 +33,12 @@ class SourceClassModel(override val source: KSDeclaration) : IClassModel<KSNode>
                     source.type.resolveTypeNameWithProcessingTypes().javaToKotlinType()
                 }
             }
-            else -> throw IllegalArgumentException("Unsupported type ${source::class.java.simpleName}")
+            else -> throw IllegalArgumentException(
+                "Unsupported type ${source::class.java.simpleName}",
+            )
         }
     override val accessible: Boolean = source.modifiers.contains(Modifier.PUBLIC)
 
-    override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName {
-        return ProcessingContext.DeclaringName(source, 0, optinalIndexes)
-    }
+    override fun asDeclaringName(optinalIndexes: Array<Int>): ISourceDeclaringName =
+        ProcessingContext.DeclaringName(source, 0, optinalIndexes)
 }

@@ -17,7 +17,7 @@ interface Worker<T : WorkSet<E>, E> {
 
     fun doWork(
         workSet: T,
-        useSuspend: Boolean
+        useSuspend: Boolean,
     )
 
     fun invoke(useSuspend: Boolean): Boolean {

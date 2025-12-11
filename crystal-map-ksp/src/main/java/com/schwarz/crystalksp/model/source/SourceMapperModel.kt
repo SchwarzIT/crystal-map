@@ -10,12 +10,15 @@ import com.schwarz.crystalcore.model.source.ISourceMapperModel
 import com.schwarz.crystalksp.ProcessingContext
 import com.schwarz.crystalksp.util.getAnnotation
 
-class SourceMapperModel(source: KSClassDeclaration) :
-    IClassModel<KSNode> by SourceClassModel(source), ISourceMapperModel<KSNode> {
+class SourceMapperModel(
+    source: KSClassDeclaration,
+) : IClassModel<KSNode> by SourceClassModel(source),
+    ISourceMapperModel<KSNode> {
     override val typeParams: List<String> =
-        source.typeParameters.map {
-            it.name.getShortName()
-        }.toList()
+        source.typeParameters
+            .map {
+                it.name.getShortName()
+            }.toList()
 
     override val declaringName = ProcessingContext.DeclaringName(source)
     override val fields: HashMap<String, Field<KSNode>> = HashMap()
@@ -31,19 +34,21 @@ class SourceMapperModel(source: KSClassDeclaration) :
             function.getAnnotation(Mapify::class)?.let { anno ->
                 function.simpleName.toString()?.let {
                     if (it.startsWith("set")) {
-                        getterSetters.getOrPut(it.substringAfter("set")) {
-                            GetterSetter()
-                        }.apply {
-                            setterElement = SourceGetterSetterModel(function)
-                            mapify = SourceMapify(anno)
-                        }
+                        getterSetters
+                            .getOrPut(it.substringAfter("set")) {
+                                GetterSetter()
+                            }.apply {
+                                setterElement = SourceGetterSetterModel(function)
+                                mapify = SourceMapify(anno)
+                            }
                     } else if (it.startsWith("get")) {
-                        getterSetters.getOrPut(it.substringAfter("get")) {
-                            GetterSetter()
-                        }.apply {
-                            getterElement = SourceGetterSetterModel(function)
-                            mapify = SourceMapify(anno)
-                        }
+                        getterSetters
+                            .getOrPut(it.substringAfter("get")) {
+                                GetterSetter()
+                            }.apply {
+                                getterElement = SourceGetterSetterModel(function)
+                                mapify = SourceMapify(anno)
+                            }
                     }
                     null
                 }
@@ -52,7 +57,8 @@ class SourceMapperModel(source: KSClassDeclaration) :
 
         for (field in source.getAllProperties()) {
             field.getAnnotation(Mapify::class)?.apply {
-                fields[field.simpleName.asString()] = Field(SourceClassModel(field), SourceMapify(this))
+                fields[field.simpleName.asString()] =
+                    Field(SourceClassModel(field), SourceMapify(this))
             }
         }
     }

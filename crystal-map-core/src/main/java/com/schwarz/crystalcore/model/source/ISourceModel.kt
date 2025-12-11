@@ -35,7 +35,7 @@ interface ISourceModel<T> : IClassModel<T> {
 
     fun logError(
         logger: ILogger<T>,
-        message: String
+        message: String,
     )
 
     val isPrivateModifier: Boolean

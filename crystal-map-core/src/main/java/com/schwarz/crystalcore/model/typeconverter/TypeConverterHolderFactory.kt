@@ -19,11 +19,13 @@ object TypeConverterHolderFactory {
             ClassName(sourcePackageName, className + "Instance"),
             typeConverter.domainClassTypeName,
             typeConverter.mapClassTypeName,
-            typeConverter.genericTypeNames
+            typeConverter.genericTypeNames,
         )
     }
 
-    fun <T> importedTypeConverterHolders(source: ISourceModel<T>): List<ImportedTypeConverterHolder> {
+    fun <T> importedTypeConverterHolders(
+        source: ISourceModel<T>,
+    ): List<ImportedTypeConverterHolder> {
         val importables = source.typeConverterImporter?.typeConverterImportable
         return importables?.map { importedTypeConverterHolder(it) } ?: listOf()
     }
@@ -33,7 +35,7 @@ object TypeConverterHolderFactory {
             typeConverterImportable.typeConverterInstanceClassName.toClassName(),
             typeConverterImportable.domainClassName.toClassName(),
             typeConverterImportable.mapClassName.toClassName(),
-            typeConverterImportable.generics
+            typeConverterImportable.generics,
         )
 
     private fun ClassNameDefinition.toClassName() = ClassName(packageName, className)
@@ -57,7 +59,7 @@ object TypeConverterHolderFactory {
                     type.packageName,
                     type.simpleName,
                     generic.getGenericClassNames(),
-                    nullable = generic.type!!.isNullable
+                    nullable = generic.type!!.isNullable,
                 )
         }
 }

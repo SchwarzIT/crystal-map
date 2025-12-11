@@ -13,6 +13,6 @@ import com.schwarz.crystalapi.MapWrapper
     Field(name = "gtin_category", type = String::class),
     Field(name = "other_gtins", type = Gtin::class, list = true),
     Field(name = "promotions", type = Promotion::class, list = true),
-    Field(name = "empties", type = Empties::class, list = true)
+    Field(name = "empties", type = Empties::class, list = true),
 )
 open class Unit

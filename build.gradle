@@ -2,6 +2,11 @@
 
 buildscript {
     ext.kotlin_version = '2.1.21'
+    ext.kotlin_poet_version = '2.1.0'
+    ext.junit_version = '6.0.1'
+    ext.mockito_version = "5.21.0"
+    ext.kotlinx_coroutines_core_version = "1.10.2"
+    ext.commons_lang3_version = "3.20.0"
     ext.groupName = 'com.github.SchwarzIT'
     repositories {
         google()
@@ -14,7 +19,7 @@ buildscript {
         classpath("com.android.library:com.android.library.gradle.plugin:8.13.1")
         classpath("com.android.application:com.android.application.gradle.plugin:8.13.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:11.5.1"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:14.0.1"
         classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.1.21-2.0.2"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
@@ -35,12 +40,6 @@ subprojects {
         filter {
             exclude { it.file.path.contains("$buildDir/generated/") }
         }
-
-        disabledRules = [
-                "import-ordering",
-                "chain-wrapping",
-                "no-wildcard-imports"
-        ]
     }
 
 }

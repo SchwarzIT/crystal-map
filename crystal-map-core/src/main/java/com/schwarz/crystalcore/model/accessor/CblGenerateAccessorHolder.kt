@@ -10,7 +10,7 @@ import com.squareup.kotlinpoet.TypeName
 class CblGenerateAccessorHolder(
     private val sourceClassTypeName: TypeName,
     val memberFunction: SourceMemberFunction?,
-    val memberProperty: SourceMemberField?
+    val memberProperty: SourceMemberField?,
 ) {
     fun accessorFunSpec(): FunSpec? {
         if (memberFunction != null) {
@@ -28,7 +28,7 @@ class CblGenerateAccessorHolder(
             methodBuilder.addStatement(
                 "return %T.%N(${callParams.joinToString()})" + System.lineSeparator(),
                 sourceClassTypeName,
-                memberFunction.name
+                memberFunction.name,
             )
 
             // We only specify a return value if the function is non-suspending. If the function
@@ -47,10 +47,11 @@ class CblGenerateAccessorHolder(
 
     fun accessorPropertySpec(): PropertySpec? {
         if (memberProperty != null) {
-            return PropertySpec.builder(
-                memberProperty.name,
-                memberProperty.type
-            ).addAnnotation(JvmField::class)
+            return PropertySpec
+                .builder(
+                    memberProperty.name,
+                    memberProperty.type,
+                ).addAnnotation(JvmField::class)
                 .initializer("%T.%N", sourceClassTypeName, memberProperty.name)
                 .build()
         }

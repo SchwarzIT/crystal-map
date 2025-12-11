@@ -5,7 +5,7 @@ import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.deprecated.Deprecated
 import com.schwarz.crystalapi.deprecated.DeprecatedField
-import java.util.*
+import java.util.Date
 
 @MapWrapper
 @Fields(
@@ -16,7 +16,7 @@ import java.util.*
     Field(name = "start_date", type = Date::class),
     Field(name = "end_date", type = Date::class),
     Field(name = "sales_price", type = String::class),
-    Field(name = "currency_unit", type = String::class)
+    Field(name = "currency_unit", type = String::class),
 )
 @Deprecated(fields = [DeprecatedField("sales_price", inUse = false)])
 open class Price {
@@ -27,10 +27,8 @@ open class Price {
         fun documentId(
             storeId: String,
             articleNo: String,
-            uuid: String
-        ): String {
-            return "$PREFIX:$storeId:$articleNo:$uuid"
-        }
+            uuid: String,
+        ): String = "$PREFIX:$storeId:$articleNo:$uuid"
     }
 
 //    override fun documentId(): String {

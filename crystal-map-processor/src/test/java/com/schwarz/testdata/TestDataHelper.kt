@@ -7,7 +7,12 @@ object TestDataHelper {
 
     fun clazzAsJavaFileObjects(clazz: String): SourceFile {
         val className = "$clazz.kt"
-        val content = String(this::class.java.classLoader.getResourceAsStream(className)?.readAllBytes()!!)
+        val content =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream(className)
+                    ?.readAllBytes()!!,
+            )
         return SourceFile.kotlin(className, "$PACKAGE_DECLARE$content")
     }
 }
