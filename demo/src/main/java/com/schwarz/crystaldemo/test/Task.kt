@@ -6,7 +6,6 @@ import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.GenerateAccessor
 import com.schwarz.crystalapi.query.Queries
 import com.schwarz.crystalapi.query.Query
-import schwarz.fwws.shared.model.TaskEntity
 
 @Entity
 @Fields(
