@@ -3,14 +3,11 @@ package com.schwarz.crystalversioningplugin.task
 import com.schwarz.crystalapi.schema.EntitySchema
 import com.schwarz.crystalversioningplugin.SchemaValidationLoggerImpl
 import com.schwarz.crystalversioningplugin.VersioningPluginExtension
+import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import tools.jackson.core.type.TypeReference
-import tools.jackson.databind.json.JsonMapper
-import tools.jackson.module.kotlin.KotlinFeature
-import tools.jackson.module.kotlin.KotlinModule
 import java.io.File
 
 open class ValidationTask : DefaultTask() {
@@ -43,18 +40,7 @@ open class ValidationTask : DefaultTask() {
     }
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
-        val kotlinModule =
-            KotlinModule
-                .Builder()
-                .withReflectionCacheSize(512)
-                .configure(KotlinFeature.NullToEmptyCollection, false)
-                .configure(KotlinFeature.NullToEmptyMap, false)
-                .configure(KotlinFeature.NullIsSameAsDefault, false)
-                .configure(KotlinFeature.SingletonSupport, false)
-                .configure(KotlinFeature.StrictNullChecks, false)
-                .configure(KotlinFeature.StrictNullChecks, false)
-                .build()
-        val mapper = JsonMapper.builder().addModule(kotlinModule).build()
-        return mapper.readValue(file, object : TypeReference<List<EntitySchema>>() {})
+        return Json.decodeFromString<List<EntitySchema>>(file.readText())
+
     }
 }
