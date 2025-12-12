@@ -41,6 +41,5 @@ open class ValidationTask : DefaultTask() {
 
     private fun parseVersionSchema(file: File): List<EntitySchema> {
         return Json.decodeFromString<List<EntitySchema>>(file.readText())
-
     }
 }
