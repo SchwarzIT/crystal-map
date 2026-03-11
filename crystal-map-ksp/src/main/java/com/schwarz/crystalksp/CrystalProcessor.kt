@@ -54,7 +54,18 @@ class CrystalProcessor(
         val allTypeConverterExporterElements: HashSet<KSAnnotated> = hashSetOf(),
         val allTypeConverterImporterElements: HashSet<KSAnnotated> = hashSetOf(),
         val allMapperElements: HashSet<KSAnnotated> = hashSetOf(),
-    )
+    ) {
+        fun clear() {
+            allEntityElements.clear()
+            allWrapperElements.clear()
+            allSchemaClassElements.clear()
+            allBaseModelElements.clear()
+            allTypeConverterElements.clear()
+            allTypeConverterExporterElements.clear()
+            allTypeConverterImporterElements.clear()
+            allMapperElements.clear()
+        }
+    }
 
     private val cachedPreWorkset = CachedWorkSet()
 
@@ -156,6 +167,7 @@ class CrystalProcessor(
         }
         cache?.save()
         ProcessingContext.cleanup()
+        cachedPreWorkset.clear()
     }
 
     private fun unboxError(value: Any?): List<KSNode> =

@@ -1081,6 +1081,125 @@ class CrystalProcessorTest {
         )
     }
 
+    // ===== Golden-File Tests (MEM-03/04/05 safety net) =====
+
+    @Test
+    fun testEntityGeneratedOutputMatchesGoldenFile() {
+        val expectedEntity =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedEntityWithTypeConverterField.txt")
+                    .readAllBytes(),
+            ).lines().map { it.trim() }
+        val expectedInterface =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedIEntityWithTypeConverterField.txt")
+                    .readAllBytes(),
+            ).lines().map { it.trim() }
+
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}",
+            )
+        val entityWithTc = TestDataHelper.clazzAsJavaFileObjects("EntityWithTypeConverterField")
+
+        val compilation = compileKotlin(typeConverter, entityWithTc)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+
+        val actualEntity =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "EntityWithTypeConverterFieldEntity.kt" }
+                ?.readLines()
+                ?.map { it.trim() }
+        assertEquals(expectedEntity, actualEntity)
+
+        val actualInterface =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "IEntityWithTypeConverterField.kt" }
+                ?.readLines()
+                ?.map { it.trim() }
+        assertEquals(expectedInterface, actualInterface)
+    }
+
+    @Test
+    fun testWrapperGeneratedOutputMatchesGoldenFile() {
+        val expectedWrapper =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedTestWrapperWrapper.txt")
+                    .readAllBytes(),
+            ).lines().map { it.trim() }
+        val expectedInterface =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedITestWrapper.txt")
+                    .readAllBytes(),
+            ).lines().map { it.trim() }
+
+        val wrapper =
+            SourceFile.kotlin(
+                "TestWrapper.kt",
+                PACKAGE_HEADER +
+                    "import com.schwarz.crystalapi.MapWrapper\n" +
+                    "import com.schwarz.crystalapi.Field\n" +
+                    "import com.schwarz.crystalapi.Fields\n" +
+                    "@MapWrapper\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"name\", type = String::class),\n" +
+                    "Field(name = \"age\", type = Number::class)\n" +
+                    ")\n" +
+                    "open class TestWrapper",
+            )
+
+        val compilation = compileKotlin(wrapper)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+
+        val actualWrapper =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "TestWrapperWrapper.kt" }
+                ?.readLines()
+                ?.map { it.trim() }
+        assertEquals(expectedWrapper, actualWrapper)
+
+        val actualInterface =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "ITestWrapper.kt" }
+                ?.readLines()
+                ?.map { it.trim() }
+        assertEquals(expectedInterface, actualInterface)
+    }
+
+    @Test
+    fun testMapperGeneratedOutputMatchesGoldenFile() {
+        val expectedMapper =
+            String(
+                this::class.java.classLoader
+                    .getResourceAsStream("ExpectedSimpleMapperTestMapper.txt")
+                    .readAllBytes(),
+            ).lines().map { it.trim() }
+
+        val mapper = TestDataHelper.clazzAsJavaFileObjects("SimpleMapperTest")
+
+        val compilation = compileKotlin(mapper)
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+
+        val actualMapper =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "SimpleMapperTestMapper.kt" }
+                ?.readLines()
+                ?.map { it.trim() }
+        assertEquals(expectedMapper, actualMapper)
+    }
+
     @OptIn(ExperimentalCompilerApi::class)
     private fun compileKotlin(
         vararg sourceFiles: SourceFile,

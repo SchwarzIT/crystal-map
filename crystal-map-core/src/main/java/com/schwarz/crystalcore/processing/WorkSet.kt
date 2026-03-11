@@ -6,4 +6,6 @@ interface WorkSet<T> {
     fun preValidate(logger: ILogger<T>)
 
     fun loadModels(logger: ILogger<T>)
+
+    fun cleanup() {}
 }

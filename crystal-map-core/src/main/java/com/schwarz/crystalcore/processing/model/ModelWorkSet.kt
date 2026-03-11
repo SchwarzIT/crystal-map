@@ -17,14 +17,22 @@ import com.schwarz.crystalcore.validation.model.ModelValidation
 import com.schwarz.crystalcore.validation.model.PreModelValidation
 
 class ModelWorkSet<T>(
-    val allEntityElements: Set<ISourceModel<T>>,
-    val allWrapperElements: Set<ISourceModel<T>>,
-    val allSchemaClassElements: Set<ISourceModel<T>>,
-    val allBaseModelElements: Set<ISourceModel<T>>,
-    val allTypeConverterElements: Set<ISourceModel<T>>,
-    val allTypeConverterExporterElements: Set<ISourceModel<T>>,
-    val allTypeConverterImporterElements: Set<ISourceModel<T>>,
+    allEntityElements: Set<ISourceModel<T>>,
+    allWrapperElements: Set<ISourceModel<T>>,
+    allSchemaClassElements: Set<ISourceModel<T>>,
+    allBaseModelElements: Set<ISourceModel<T>>,
+    allTypeConverterElements: Set<ISourceModel<T>>,
+    allTypeConverterExporterElements: Set<ISourceModel<T>>,
+    allTypeConverterImporterElements: Set<ISourceModel<T>>,
 ) : WorkSet<T> {
+    private val allEntityElements = allEntityElements.toMutableSet()
+    private val allWrapperElements = allWrapperElements.toMutableSet()
+    private val allSchemaClassElements = allSchemaClassElements.toMutableSet()
+    private val allBaseModelElements = allBaseModelElements.toMutableSet()
+    private val allTypeConverterElements = allTypeConverterElements.toMutableSet()
+    private val allTypeConverterExporterElements = allTypeConverterExporterElements.toMutableSet()
+    private val allTypeConverterImporterElements = allTypeConverterImporterElements.toMutableSet()
+
     private val entityModels: MutableMap<String, EntityHolder<T>> = HashMap()
 
     private val wrapperModels: MutableMap<String, WrapperEntityHolder<T>> = HashMap()
@@ -175,6 +183,14 @@ class ModelWorkSet<T>(
             typeConverterModels.values.toList(),
             importedTypeConverterModels,
         ).postValidate()
+
+        allEntityElements.clear()
+        allWrapperElements.clear()
+        allSchemaClassElements.clear()
+        allBaseModelElements.clear()
+        allTypeConverterElements.clear()
+        allTypeConverterExporterElements.clear()
+        allTypeConverterImporterElements.clear()
     }
 
     val entities: List<EntityHolder<T>>
@@ -199,4 +215,15 @@ class ModelWorkSet<T>(
 
     val typeConverterExporters: List<TypeConverterExporterHolder<T>>
         get() = typeConverterExporterModels.values.toList()
+
+    override fun cleanup() {
+        entityModels.clear()
+        wrapperModels.clear()
+        schemaModels.clear()
+        wrapperBaseModels.clear()
+        schemaBaseModels.clear()
+        typeConverterModels.clear()
+        typeConverterExporterModels.clear()
+        importedTypeConverterModels.clear()
+    }
 }

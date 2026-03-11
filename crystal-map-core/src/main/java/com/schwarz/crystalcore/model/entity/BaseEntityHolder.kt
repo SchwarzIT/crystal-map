@@ -41,13 +41,9 @@ abstract class BaseEntityHolder<T>(
     val allOriginatingFiles: List<Any>
         get() = sourceElement.originatingFiles + basedOn.flatMap { it.allOriginatingFiles }
 
-    val allFields: List<CblBaseFieldHolder>
-        get() {
-            val allField = ArrayList<CblBaseFieldHolder>()
-            allField.addAll(fields.values)
-            allField.addAll(fieldConstants.values)
-            return allField
-        }
+    val allFields: List<CblBaseFieldHolder> by lazy {
+        fields.values + fieldConstants.values
+    }
 
     val entityTypeName: TypeName
         get() = ClassName(sourcePackage, entitySimpleName)
