@@ -25,22 +25,25 @@ import com.schwarz.crystalcore.processing.mapper.MapperWorkSet
 import com.schwarz.crystalcore.processing.mapper.MapperWorker
 import com.schwarz.crystalcore.processing.model.ModelWorkSet
 import com.schwarz.crystalcore.processing.model.ModelWorker
+import com.schwarz.crystalksp.generation.GenerationCache
 import com.schwarz.crystalksp.generation.KSPCodeGenerator
 import com.schwarz.crystalksp.model.source.SourceMapperModel
 import com.schwarz.crystalksp.model.source.SourceModel
 import com.schwarz.crystalksp.validation.mapper.PreMapperValidation
+import java.io.File
 import kotlin.metadata.ClassName
 
 class CrystalProcessor(
     codeGenerator: CodeGenerator,
     val logger: KSPLogger,
     val processingEnvironmentWrapper: ProcessingEnvironmentWrapper,
+    private val cache: GenerationCache? = null,
 ) : SymbolProcessor {
     private val mLogger = Logger(logger)
 
     private lateinit var workers: Set<Worker<*, KSNode>>
 
-    private val mCodeGenerator = KSPCodeGenerator(codeGenerator)
+    internal val mCodeGenerator = KSPCodeGenerator(codeGenerator, cache)
 
     data class CachedWorkSet(
         val allEntityElements: HashSet<KSAnnotated> = hashSetOf(),
@@ -151,6 +154,7 @@ class CrystalProcessor(
                 return
             }
         }
+        cache?.save()
         ProcessingContext.cleanup()
     }
 
@@ -209,12 +213,34 @@ class CrystalProcessor(
 }
 
 class CrystalProcessorProvider : SymbolProcessorProvider {
+    var lastCreatedProcessor: CrystalProcessor? = null
+        private set
+
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        environment.options
+        val options = environment.options
+        val useCache = options[CACHE_ENABLED_OPTION_NAME] != "false"
+        val cache = if (useCache) {
+            val cacheDir = options[CACHE_DIR_OPTION_NAME]
+            if (cacheDir != null) {
+                GenerationCache(File(cacheDir, CACHE_FILE_NAME))
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+
         return CrystalProcessor(
             environment.codeGenerator,
             environment.logger,
-            ProcessingEnvironmentWrapper(environment.options),
-        )
+            ProcessingEnvironmentWrapper(options),
+            cache,
+        ).also { lastCreatedProcessor = it }
+    }
+
+    companion object {
+        const val CACHE_DIR_OPTION_NAME = "crystal.cache.dir"
+        const val CACHE_ENABLED_OPTION_NAME = "crystal.incremental.cache"
+        const val CACHE_FILE_NAME = "crystal-map-cache.tsv"
     }
 }

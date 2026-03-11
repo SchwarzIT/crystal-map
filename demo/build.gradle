@@ -93,6 +93,7 @@ ksp {
     arg("crystal.entityframework.documentation.fileName", "demo.html")
     arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
     arg("crystal.entityframework.schema.fileName", "demo_schema.json")
+    arg("crystal.cache.dir", "${buildDir.absolutePath}/generated/ksp/crystal-cache")
 }
 
 dependencies {

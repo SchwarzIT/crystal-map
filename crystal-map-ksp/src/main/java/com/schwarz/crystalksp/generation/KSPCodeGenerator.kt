@@ -13,7 +13,16 @@ import java.io.IOException
 
 class KSPCodeGenerator(
     private val generator: CodeGenerator,
+    private val cache: GenerationCache? = null,
 ) : ICodeGenerator {
+    data class GenerationRecord(
+        val fileName: String,
+        val originatingFileNames: List<String>,
+        val aggregating: Boolean,
+    )
+
+    val generationRecords: MutableList<GenerationRecord> = mutableListOf()
+
     override fun generate(
         toGenerate: FileSpec,
         settings: ISettings,
@@ -38,14 +47,28 @@ class KSPCodeGenerator(
             Dependencies(aggregating)
         }
 
+        generationRecords.add(
+            GenerationRecord(
+                fileName = toGenerate.name,
+                originatingFileNames = ksFiles.map { it.fileName },
+                aggregating = aggregating,
+            ),
+        )
+
         val fileWithHeader = toGenerate.toBuilder().addFileComment(HEADER).build()
+        val content = fileWithHeader.toString()
+        if (cache != null &&
+            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, content)
+        ) {
+            return
+        }
         generator
             .createNewFile(
                 dependencies,
                 fileWithHeader.packageName,
                 fileWithHeader.name,
             ).writer()
-            .use { fileWithHeader.writeTo(it) }
+            .use { it.write(content) }
     }
 
     @Throws(IOException::class)
@@ -63,6 +86,7 @@ class KSPCodeGenerator(
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
         settings: ISettings,
         originatingFiles: List<Any>,
+        aggregating: Boolean,
     ) {
         ClassName(entityToGenerate.packageName, entityToGenerate.name).apply {
             ProcessingContext.createdQualifiedClassNames.add(this)
@@ -70,10 +94,18 @@ class KSPCodeGenerator(
 
         val ksFiles = originatingFiles.filterIsInstance<KSFile>()
         val dependencies = if (ksFiles.isNotEmpty()) {
-            Dependencies(true, *ksFiles.toTypedArray())
+            Dependencies(aggregating, *ksFiles.toTypedArray())
         } else {
-            Dependencies(true)
+            Dependencies(aggregating)
         }
+
+        generationRecords.add(
+            GenerationRecord(
+                fileName = entityToGenerate.name,
+                originatingFileNames = ksFiles.map { it.fileName },
+                aggregating = aggregating,
+            ),
+        )
 
         val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
 
@@ -93,6 +125,11 @@ class KSPCodeGenerator(
                 }
             }
 
+        if (cache != null &&
+            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, fixedFileString)
+        ) {
+            return
+        }
         generator
             .createNewFile(
                 dependencies,

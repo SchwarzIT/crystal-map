@@ -47,9 +47,15 @@ dependencies {
     implementation("com.squareup:kotlinpoet-ksp:$kotlin_poet_version")
     implementation("com.google.devtools.ksp:symbol-processing-api:2.3.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation project(path: ':crystal-map-api', configuration: 'default')
     //testImplementation 'com.github.tschuchortdev:kotlin-compile-testing-ksp:1.6.0'
     testImplementation("dev.zacsweers.kctfork:ksp:0.11.1")
     testImplementation(testFixtures(project(':crystal-map-test-fixtures')))
     implementation project(path: ':crystal-map-core', configuration: 'default')
+}
+
+test {
+    useJUnitPlatform()
 }

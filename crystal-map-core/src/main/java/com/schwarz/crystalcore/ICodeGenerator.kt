@@ -29,6 +29,7 @@ interface ICodeGenerator {
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
         settings: ISettings,
         originatingFiles: List<Any>,
+        aggregating: Boolean = true,
     ) {
         generateAndFixAccessors(entityToGenerate, generateAccessors, settings)
     }
