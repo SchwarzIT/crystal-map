@@ -20,6 +20,7 @@ object TypeConverterHolderFactory {
             typeConverter.domainClassTypeName,
             typeConverter.mapClassTypeName,
             typeConverter.genericTypeNames,
+            source.originatingFiles,
         )
     }
 

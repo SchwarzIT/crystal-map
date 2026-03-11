@@ -151,6 +151,7 @@ class CrystalProcessor(
                 return
             }
         }
+        ProcessingContext.cleanup()
     }
 
     private fun unboxError(value: Any?): List<KSNode> =

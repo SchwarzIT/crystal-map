@@ -61,6 +61,8 @@ class ModelWorker<T>(
             codeGenerator.generate(
                 TypeConverterObjectGeneration.generateTypeConverterObject(it),
                 settings,
+                it.originatingFiles,
+                aggregating = false,
             )
         }
 
@@ -71,6 +73,7 @@ class ModelWorker<T>(
                     workSet.typeConverters,
                 ),
                 settings,
+                it.originatingFiles,
             )
         }
 
@@ -125,7 +128,7 @@ class ModelWorker<T>(
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
             generate(model).apply {
-                codeGenerator.generate(this, settings)
+                codeGenerator.generate(this, settings, model.allOriginatingFiles)
             }
         }
     }
@@ -147,17 +150,20 @@ class ModelWorker<T>(
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
+            val origins = model.allOriginatingFiles + workSet.typeConverterOriginatingFiles
             generate(model).apply {
                 if (model.generateAccessors.isNotEmpty()) {
                     codeGenerator.generateAndFixAccessors(
                         this,
                         model.generateAccessors,
                         settings,
+                        origins,
                     )
                 } else {
                     codeGenerator.generate(
                         this,
                         settings,
+                        origins,
                     )
                 }
             }
@@ -182,6 +188,7 @@ class ModelWorker<T>(
                     typeConvertersByConvertedClass,
                 ),
                 settings,
+                holder.allOriginatingFiles,
             )
             generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }

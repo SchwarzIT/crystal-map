@@ -177,6 +177,11 @@ class ModelWorkSet<T>(
         ).postValidate()
     }
 
+    val typeConverterOriginatingFiles: List<Any> by lazy {
+        (allTypeConverterElements + allTypeConverterImporterElements)
+            .flatMap { it.originatingFiles }
+    }
+
     val entities: List<EntityHolder<T>>
         get() = entityModels.values.toList()
 

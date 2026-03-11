@@ -23,4 +23,5 @@ data class TypeConverterHolder(
     override val domainClassTypeName: ClassName,
     override val mapClassTypeName: ClassName,
     override val genericTypeNames: List<ClassNameDefinition>,
+    val originatingFiles: List<Any> = emptyList(),
 ) : TypeConverterHolderForEntityGeneration

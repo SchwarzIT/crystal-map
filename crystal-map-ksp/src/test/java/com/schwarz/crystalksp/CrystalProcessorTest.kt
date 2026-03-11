@@ -574,6 +574,142 @@ class CrystalProcessorTest {
         assertEquals(expected, actual)
     }
 
+    // ===== Phase 0: Cross-Entity Field References (0A) =====
+
+    @Test
+    fun testCrossEntityFieldReference() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("CrossRefWrapper"),
+                TestDataHelper.clazzAsJavaFileObjects("CrossRefEntity"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    // ===== Phase 0: @BasedOn Inheritance Chains (0B) =====
+
+    @Test
+    fun testBasedOnSingleLevel() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("BaseModelSingle"),
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithBasedOnSingle"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        // Verify generated entity contains fields from parent BaseModel
+        val generatedEntity =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "EntityWithBasedOnSingleEntity.kt" }
+        assertTrue(generatedEntity != null, "EntityWithBasedOnSingleEntity should be generated")
+        val content = generatedEntity!!.readText()
+        assertTrue(content.contains("base_field"), "Generated entity should contain base_field from parent")
+        assertTrue(content.contains("own_field"), "Generated entity should contain own_field")
+    }
+
+    @Test
+    fun testBasedOnMultiLevelChain() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("BaseModelSingle"),
+                TestDataHelper.clazzAsJavaFileObjects("BaseModelChained"),
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithChainedBasedOn"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        val generatedEntity =
+            compilation.sourcesGeneratedBySymbolProcessor
+                .find { it.name == "EntityWithChainedBasedOnEntity.kt" }
+        assertTrue(generatedEntity != null, "EntityWithChainedBasedOnEntity should be generated")
+        val content = generatedEntity!!.readText()
+        assertTrue(content.contains("base_field"), "Should contain base_field from grandparent")
+        assertTrue(content.contains("base_number"), "Should contain base_number from grandparent")
+        assertTrue(content.contains("chained_field"), "Should contain chained_field from parent")
+        assertTrue(content.contains("leaf_field"), "Should contain leaf_field from entity itself")
+    }
+
+    // ===== Phase 0: TypeConverter Validation (0C) =====
+
+    @Test
+    fun testEntityWithCustomTypeWithoutTypeConverter() {
+        val customType =
+            SourceFile.kotlin(
+                "CustomType.kt",
+                PACKAGE_HEADER +
+                    "class CustomType(val value: String)\n",
+            )
+        val entity =
+            SourceFile.kotlin(
+                "EntityWithCustomType.kt",
+                PACKAGE_HEADER +
+                    ENTITY_HEADER +
+                    "@Entity(database = \"test_db\")\n" +
+                    "@Fields(\n" +
+                    "Field(name = \"custom\", type = CustomType::class),\n" +
+                    "Field(name = \"type\", type = String::class, defaultValue = \"test\", readonly = true)\n" +
+                    ")\n" +
+                    "open class EntityWithCustomType\n",
+            )
+        val compilation = compileKotlin(customType, entity)
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, compilation.exitCode)
+        assertTrue(
+            compilation.messages.contains("TypeConverter"),
+            "Error should mention TypeConverter: ${compilation.messages}",
+        )
+    }
+
+    // ===== Phase 0: Deprecated Cross-Entity Validation (0D) =====
+
+    @Test
+    fun testDeprecatedEntityValid() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("DeprecatedEntityWithValidReplacedBy"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    // ===== Phase 6: Cross-Entity Accessor Type Resolution (6A/6B) =====
+
+    @Test
+    fun testCrossEntityAccessorReturnType() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithCrossAccessorA"),
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithCrossAccessorB"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    @Test
+    fun testCircularCrossEntityAccessors() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("CircularRefEntityA"),
+                TestDataHelper.clazzAsJavaFileObjects("CircularRefEntityB"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+    }
+
+    // ===== Phase 0: Multiple Entities with @Reduce (0E) =====
+
+    @Test
+    fun testMultipleReduces() {
+        val compilation =
+            compileKotlin(
+                TestDataHelper.clazzAsJavaFileObjects("EntityWithTwoReduces"),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+        val generatedFiles =
+            compilation.sourcesGeneratedBySymbolProcessor.map { it.name }
+        assertTrue(
+            generatedFiles.any { it.contains("Small") },
+            "Should generate Small reduced entity: $generatedFiles",
+        )
+        assertTrue(
+            generatedFiles.any { it.contains("Medium") },
+            "Should generate Medium reduced entity: $generatedFiles",
+        )
+    }
+
     @OptIn(ExperimentalCompilerApi::class)
     private fun compileKotlin(
         vararg sourceFiles: SourceFile,

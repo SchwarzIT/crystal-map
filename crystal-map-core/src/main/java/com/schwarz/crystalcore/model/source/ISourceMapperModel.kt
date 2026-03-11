@@ -11,4 +11,7 @@ interface ISourceMapperModel<T> : IClassModel<T> {
     val fields: Map<String, Field<T>>
 
     val getterSetters: Map<String, GetterSetter<T>>
+
+    val originatingFiles: List<Any>
+        get() = emptyList()
 }

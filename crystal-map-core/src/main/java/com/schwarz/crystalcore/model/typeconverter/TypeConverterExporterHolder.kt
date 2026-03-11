@@ -7,4 +7,5 @@ class TypeConverterExporterHolder<T>(
 ) {
     val name: String get() = sourceElement.sourceClazzSimpleName
     val sourcePackageName get() = sourceElement.sourcePackage
+    val originatingFiles: List<Any> get() = sourceElement.originatingFiles
 }

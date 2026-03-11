@@ -38,6 +38,9 @@ abstract class BaseEntityHolder<T>(
 
     var reducesModels: List<ReducedModelHolder<T>> = emptyList()
 
+    val allOriginatingFiles: List<Any>
+        get() = sourceElement.originatingFiles + basedOn.flatMap { it.allOriginatingFiles }
+
     val allFields: List<CblBaseFieldHolder>
         get() {
             val allField = ArrayList<CblBaseFieldHolder>()

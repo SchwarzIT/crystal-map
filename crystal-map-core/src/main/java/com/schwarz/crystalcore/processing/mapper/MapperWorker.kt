@@ -23,7 +23,7 @@ class MapperWorker<T>(
     ) {
         for (mapper in workSet.mappers) {
             mapperGeneration.generate(mapper).apply {
-                codeGenerator.generate(this, settings)
+                codeGenerator.generate(this, settings, mapper.sourceElement.originatingFiles, aggregating = false)
             }
         }
     }
