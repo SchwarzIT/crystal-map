@@ -38,6 +38,7 @@ class KSPCodeGenerator(
     ) {
         ClassName(toGenerate.packageName, toGenerate.name).apply {
             ProcessingContext.createdQualifiedClassNames.add(this)
+            ProcessingContext.createdQualifiedClassNamesByCanonical[this.canonicalName] = this
         }
 
         val ksFiles = originatingFiles.filterIsInstance<KSFile>()

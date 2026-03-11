@@ -50,9 +50,12 @@ object ProcessingContext {
 
     val createdQualifiedClassNames: MutableSet<ClassName> = ConcurrentHashMap.newKeySet()
 
+    val createdQualifiedClassNamesByCanonical: MutableMap<String, ClassName> = ConcurrentHashMap()
+
     fun cleanup() {
         processingTypes.clear()
         createdQualifiedClassNames.clear()
+        createdQualifiedClassNamesByCanonical.clear()
     }
 
     fun KSTypeReference.resolveTypeNameWithProcessingTypes(): TypeName = this.resolve().resolveTypeNameWithProcessingTypes()
@@ -229,9 +232,7 @@ object ProcessingContext {
         }
 
         override fun asTypeName(): TypeName? {
-            val className = createdQualifiedClassNames.firstOrNull {
-                it.canonicalName == realTypeName.toString()
-            }
+            val className = createdQualifiedClassNamesByCanonical[realTypeName.toString()]
             if (className != null) {
                 return className.copy(nullable = isNullable())
             }
@@ -289,7 +290,7 @@ object ProcessingContext {
         override fun isNullable(): Boolean = realTypeName.isNullable || nullableIndexes.contains(relevantIndex)
 
         override fun isProcessingType(): Boolean =
-            createdQualifiedClassNames.any { it.canonicalName == name } && (name.endsWith("Wrapper") || name.endsWith("Entity"))
+            createdQualifiedClassNamesByCanonical.containsKey(name) && (name.endsWith("Wrapper") || name.endsWith("Entity"))
 
         override fun isAssignable(clazz: KClass<*>): Boolean {
             val otherType = resolver.getClassDeclarationByName(clazz.qualifiedName!!)?.asStarProjectedType()
