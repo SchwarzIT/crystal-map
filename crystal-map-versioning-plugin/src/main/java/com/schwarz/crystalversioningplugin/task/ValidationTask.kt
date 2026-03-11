@@ -22,7 +22,9 @@ open class ValidationTask : DefaultTask() {
 
             val validator = it.newInstance()
             var result = true
-            for (versionFile in File(extension.versionedSchemaPath).listFiles()) {
+            val versionFiles = File(extension.versionedSchemaPath).listFiles()
+                ?: throw IllegalStateException("Versioned schema path does not exist: ${extension.versionedSchemaPath}")
+            for (versionFile in versionFiles) {
                 if (versionFile.extension == "json") {
                     val logger = SchemaValidationLoggerImpl()
                     validator.validate(currentVersionFile, parseVersionSchema(versionFile), logger)

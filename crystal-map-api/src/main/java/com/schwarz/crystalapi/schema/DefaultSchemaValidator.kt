@@ -69,7 +69,7 @@ open class DefaultSchemaValidator : SchemaValidator {
         if (released.deprecatedSchema == null || released.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")
         } else {
-            logger.error(released, "allowed model deletion")
+            logger.info(released, "allowed model deletion")
         }
     }
 }
