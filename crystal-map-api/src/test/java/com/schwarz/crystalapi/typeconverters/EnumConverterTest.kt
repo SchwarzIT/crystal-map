@@ -30,7 +30,7 @@ class EnumConverterTest {
                 },
             )
 
-        val expectedMessage = "For input string"
+        val expectedMessage = "No enum constant"
         val actualMessage = exception.message
         assertTrue(actualMessage?.contains(expectedMessage) == true)
     }
