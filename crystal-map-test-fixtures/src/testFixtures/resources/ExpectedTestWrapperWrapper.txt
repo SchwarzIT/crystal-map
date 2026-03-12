@@ -44,18 +44,11 @@ public class TestWrapperWrapper : TestWrapper, MapSupport, ITestWrapper, Mandato
   public constructor() : this(mutableMapOf())
 
   public fun ensureTypes(doc: Map<String, Any?>): Map<String, Any?> {
-    val result = HashMap<String, Any?>()
-    result.putAll(doc)
+    val result = HashMap<String, Any?>(doc)
     return result
   }
 
   private fun addDefaults(map: MutableMap<String, Any?>) {
-    val result = mutableMapOf<String, Any?>()
-    result.forEach {
-      if(it.value != null) {
-        map[it.key] = it.value!!
-      }
-    }
   }
 
   private fun addConstants(map: MutableMap<String, Any?>) {
@@ -75,9 +68,7 @@ public class TestWrapperWrapper : TestWrapper, MapSupport, ITestWrapper, Mandato
   public fun rebind(doc: Map<String, Any?>) {
     mDoc = LinkedHashMap<String, Any?>()
     addDefaults(mDoc)
-    if(doc != null) {
-      mDoc.putAll(doc)
-    }
+    mDoc.putAll(doc)
     addConstants(mDoc)
   }
 

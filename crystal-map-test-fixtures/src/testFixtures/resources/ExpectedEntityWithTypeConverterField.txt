@@ -53,23 +53,16 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
   }
 
   public fun ensureTypes(doc: Map<String, Any>): Map<String, Any> {
-    val result = HashMap<String, Any>()
-    result.putAll(doc)
+    val result = HashMap<String, Any>(doc)
     CrystalWrap.ensureType(result, CREATED_AT, DateTypeConverterInstance)
     return result
   }
 
   private fun addDefaults(map: MutableMap<String, Any>) {
-    val result = mutableMapOf<String, Any?>()
-    result.forEach {
-      if(it.value != null) {
-        map[it.key] = it.value!!
-      }
-    }
   }
 
   private fun addConstants(map: MutableMap<String, Any>) {
-    map.put(TYPE, DOC_TYPE)
+    map[TYPE] = DOC_TYPE
   }
 
   public override fun validate() {
@@ -88,14 +81,12 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
     if(doc != null) {
       temp.putAll(doc)
     }
-    if(mDocChanges != null) {
-      mDocChanges.forEach {
-        if(it.value == null) {
-          temp.remove(it.key)
-        }
-        else {
-          temp[it.key] = it.value!!
-        }
+    mDocChanges.forEach {
+      if(it.value == null) {
+        temp.remove(it.key)
+      }
+      else {
+        temp[it.key] = it.value!!
       }
     }
     return temp
@@ -106,9 +97,7 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
   public fun rebind(doc: Map<String, Any>) {
     mDoc = HashMap<String, Any>()
     addDefaults(mDoc)
-    if(doc != null) {
-      mDoc.putAll(doc)
-    }
+    mDoc.putAll(doc)
     addConstants(mDoc)
     mDocChanges = HashMap<String, Any?>()
   }

@@ -1,7 +1,6 @@
 package com.schwarz.crystalcore.generation.model
 
 import com.schwarz.crystalcore.util.TypeUtil
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 
 class RebindMethodGeneration {
@@ -26,14 +25,8 @@ class RebindMethodGeneration {
                 .addParameter("doc", type)
                 .addStatement("mDoc = %T()", explicitType)
                 .addCode(CblDefaultGeneration.addAddCall("mDoc"))
-                .addCode(
-                    CodeBlock
-                        .builder()
-                        .beginControlFlow("if(doc != null)")
-                        .addStatement("mDoc.putAll(doc)")
-                        .endControlFlow()
-                        .build(),
-                ).addCode(CblConstantGeneration.addAddCall("mDoc"))
+                .addStatement("mDoc.putAll(doc)")
+                .addCode(CblConstantGeneration.addAddCall("mDoc"))
 
         if (clearMDocChanges) {
             rebind.addStatement("mDocChanges = %T()", TypeUtil.hashMapStringAnyNullable())

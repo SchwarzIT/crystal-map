@@ -30,32 +30,36 @@ object CblDefaultGeneration {
         val builder =
             FunSpec.builder("addDefaults").addModifiers(KModifier.PRIVATE).addParameter("map", type)
 
-        builder.addStatement("val result = mutableMapOf<String, Any?>()")
+        val hasDefaults = holder.fields.values.any { it.isDefault }
 
-        for (fieldHolder in holder.fields.values) {
-            if (fieldHolder.isDefault) {
-                fieldHolder.crystalWrapSetStatement(
-                    builder,
-                    "result",
-                    typeConvertersByConvertedClass,
-                    fieldHolder.ensureTypeEscape(
-                        fieldHolder.defaultValue,
-                    ),
-                )
+        if (hasDefaults) {
+            builder.addStatement("val result = mutableMapOf<String, Any?>()")
+
+            for (fieldHolder in holder.fields.values) {
+                if (fieldHolder.isDefault) {
+                    fieldHolder.crystalWrapSetStatement(
+                        builder,
+                        "result",
+                        typeConvertersByConvertedClass,
+                        fieldHolder.ensureTypeEscape(
+                            fieldHolder.defaultValue,
+                        ),
+                    )
+                }
             }
-        }
 
-        builder.addCode(
-            CodeBlock
-                .builder()
-                .beginControlFlow("result.forEach")
-                .beginControlFlow(
-                    "if(it.value != null)",
-                ).addStatement("map[it.key] = it.value!!")
-                .endControlFlow()
-                .endControlFlow()
-                .build(),
-        )
+            builder.addCode(
+                CodeBlock
+                    .builder()
+                    .beginControlFlow("result.forEach")
+                    .beginControlFlow(
+                        "if(it.value != null)",
+                    ).addStatement("map[it.key] = it.value!!")
+                    .endControlFlow()
+                    .endControlFlow()
+                    .build(),
+            )
+        }
         return builder.build()
     }
 

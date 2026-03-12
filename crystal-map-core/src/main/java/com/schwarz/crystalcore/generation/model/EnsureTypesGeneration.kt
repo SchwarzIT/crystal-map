@@ -19,8 +19,7 @@ object EnsureTypesGeneration {
             if (useNullableMap) TypeUtil.hashMapStringAnyNullable() else TypeUtil.hashMapStringAny()
         val type = if (useNullableMap) TypeUtil.mapStringAnyNullable() else TypeUtil.mapStringAny()
         val ensureTypes = FunSpec.builder("ensureTypes").addParameter("doc", type).returns(type)
-        ensureTypes.addStatement("val %N = %T()", RESULT_VAL_NAME, explicitType)
-        ensureTypes.addStatement("%N.putAll(doc)", RESULT_VAL_NAME)
+        ensureTypes.addStatement("val %N = %T(doc)", RESULT_VAL_NAME, explicitType)
 
         for (field in holder.fields.values) {
             if (!field.isNonConvertibleClass && !field.isTypeOfSubEntity) {

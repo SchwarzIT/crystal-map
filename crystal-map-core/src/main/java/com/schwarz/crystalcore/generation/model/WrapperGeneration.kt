@@ -13,7 +13,6 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
-import java.util.Arrays
 
 class WrapperGeneration {
     fun <T> generateModel(
@@ -125,7 +124,7 @@ class WrapperGeneration {
                 .endControlFlow()
                 .build()
 
-        return Arrays.asList(
+        return listOf(
             FunSpec
                 .builder("toMap")
                 .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
@@ -173,7 +172,7 @@ class WrapperGeneration {
     }
 
     private fun <T> create(holder: WrapperEntityHolder<T>): List<FunSpec> =
-        Arrays.asList(
+        listOf(
             FunSpec
                 .builder(
                     "create",
