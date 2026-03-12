@@ -29,6 +29,7 @@ class SchemaGenerator(
         path.mkdirs()
 
         File(path, fileName).writeText(Json.encodeToString(jsonEntitySegments.values.toList()))
+        jsonEntitySegments.clear()
     }
 
     fun <T> addEntity(entityHolder: BaseEntityHolder<T>) {

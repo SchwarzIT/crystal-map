@@ -6,6 +6,8 @@ apply plugin: 'kotlinx-serialization'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation "commons-codec:commons-codec:1.20.0"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -17,6 +19,10 @@ targetCompatibility = JavaVersion.VERSION_17
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+test {
+    useJUnitPlatform()
 }
 
 publishing {

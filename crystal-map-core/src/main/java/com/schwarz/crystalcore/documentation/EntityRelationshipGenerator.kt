@@ -38,6 +38,8 @@ class EntityRelationshipGenerator(
         documentBuilder.append("}\n")
 
         file.writeText(documentBuilder.toString())
+        docuEntityNodes.clear()
+        docuEntityEdges.clear()
     }
 
     private fun renderRelationshipDiamonds(): String =
