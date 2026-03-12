@@ -33,6 +33,9 @@ class CblFieldHolder(
     val isTypeOfSubEntity: Boolean
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
+    val isCacheable: Boolean
+        get() = !(isNonConvertibleClass && !isIterable)
+
     override val fieldType: TypeName = field.parseMetaType(isIterable, subEntitySimpleName)
 
     init {
@@ -93,17 +96,33 @@ class CblFieldHolder(
 
         deprecated?.addDeprecated(dbField, propertyBuilder)
 
-        crystalWrapGetStatement(
-            getter,
-            if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()",
-            typeConvertersByConvertedClass,
-        )
+        val mDocPhrase = if (useMDocChanges) "mDocChanges, mDoc" else "mDoc, mutableMapOf()"
+        val cachedFieldName = "_cached_${accessorSuffix()}"
+        val cacheGenFieldName = "_cacheGen_${accessorSuffix()}"
+
+        if (isCacheable) {
+            getter.beginControlFlow("if ($cacheGenFieldName != _cacheGen)")
+            crystalWrapGetStatement(getter, mDocPhrase, typeConvertersByConvertedClass, cachedFieldName)
+            getter.addStatement("$cacheGenFieldName = _cacheGen")
+            getter.endControlFlow()
+            if (mandatory) {
+                getter.addStatement("return $cachedFieldName!!")
+            } else {
+                getter.addStatement("return $cachedFieldName")
+            }
+        } else {
+            crystalWrapGetStatement(getter, mDocPhrase, typeConvertersByConvertedClass)
+        }
+
         crystalWrapSetStatement(
             setter,
             if (useMDocChanges) "mDocChanges" else "mDoc",
             typeConvertersByConvertedClass,
             "value",
         )
+        if (isCacheable) {
+            setter.addStatement("_cacheGen++")
+        }
 
         if (comment.isNotEmpty()) {
             propertyBuilder.addKdoc(KDocGeneration.generate(comment))
@@ -116,12 +135,15 @@ class CblFieldHolder(
         getter: FunSpec.Builder,
         mDocPhrase: String,
         typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
+        assignTo: String? = null,
     ) {
+        val prefix = if (assignTo != null) "$assignTo = " else "return "
+        val forceCast = assignTo == null && mandatory
         if (isNonConvertibleClass) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N)".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.getList<%T>($mDocPhrase, %N)".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     fieldType,
@@ -129,8 +151,8 @@ class CblFieldHolder(
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N)".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.get<%T>($mDocPhrase, %N)".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     fieldType,
@@ -140,8 +162,8 @@ class CblFieldHolder(
         } else if (isTypeOfSubEntity) {
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.getList<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
@@ -150,8 +172,8 @@ class CblFieldHolder(
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.get<%T>($mDocPhrase, %N, {%T.fromMap(it)})".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     subEntityTypeName,
@@ -164,8 +186,8 @@ class CblFieldHolder(
                 typeConvertersByConvertedClass.get(fieldType)!!
             if (isIterable) {
                 getter.addStatement(
-                    "return %T.getList($mDocPhrase, %N, %T)".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.getList($mDocPhrase, %N, %T)".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     constantName,
@@ -173,8 +195,8 @@ class CblFieldHolder(
                 )
             } else {
                 getter.addStatement(
-                    "return %T.get($mDocPhrase, %N, %T)".forceCastIfMandatory(
-                        mandatory,
+                    "$prefix%T.get($mDocPhrase, %N, %T)".forceCastIfMandatory(
+                        forceCast,
                     ),
                     CrystalWrap::class,
                     constantName,
@@ -284,6 +306,23 @@ class CblFieldHolder(
         }
 
         return builder.build()
+    }
+
+    fun cacheProperties(): List<PropertySpec> {
+        if (!isCacheable) return emptyList()
+        var cacheType = field.parseMetaType(isIterable, subEntitySimpleName).copy(nullable = true)
+        return listOf(
+            PropertySpec
+                .builder("_cached_${accessorSuffix()}", cacheType, KModifier.PRIVATE)
+                .mutable()
+                .initializer("null")
+                .build(),
+            PropertySpec
+                .builder("_cacheGen_${accessorSuffix()}", Long::class, KModifier.PRIVATE)
+                .mutable()
+                .initializer("-1L")
+                .build(),
+        )
     }
 
     override fun createFieldConstant(): List<PropertySpec> {

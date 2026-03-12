@@ -4,7 +4,7 @@ import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.FunSpec
 
 class RebindMethodGeneration {
-    fun generate(clearMDocChanges: Boolean): FunSpec {
+    fun generate(clearMDocChanges: Boolean, hasCacheableFields: Boolean = false): FunSpec {
         val explicitType =
             if (clearMDocChanges) {
                 TypeUtil.hashMapStringAny()
@@ -30,6 +30,10 @@ class RebindMethodGeneration {
 
         if (clearMDocChanges) {
             rebind.addStatement("mDocChanges = %T()", TypeUtil.hashMapStringAnyNullable())
+        }
+
+        if (hasCacheableFields) {
+            rebind.addStatement("_cacheGen++")
         }
 
         return rebind.build()
