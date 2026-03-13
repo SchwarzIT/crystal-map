@@ -25,6 +25,9 @@ class GenerationCache(
     }
 
     fun save() {
+        if (currentHashes.isEmpty()) {
+            return
+        }
         cacheFile.parentFile?.mkdirs()
         cacheFile.bufferedWriter().use { writer ->
             currentHashes.entries.sortedBy { it.key }.forEach { (key, hash) ->

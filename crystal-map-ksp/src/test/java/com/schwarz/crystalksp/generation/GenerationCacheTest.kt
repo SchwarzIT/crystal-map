@@ -73,6 +73,32 @@ class GenerationCacheTest {
     }
 
     @Test
+    fun testSaveWithEmptyCurrentHashesPreservesExistingCache() {
+        val cacheFile = File(tempDir, "cache.tsv")
+
+        // First run: generate and save
+        val cache1 = GenerationCache(cacheFile)
+        cache1.shouldGenerate("com.example", "Foo", "content")
+        cache1.save()
+        assertTrue(cacheFile.exists())
+        val savedContent = cacheFile.readText()
+        assertTrue(savedContent.isNotEmpty())
+
+        // Second run: no shouldGenerate calls (simulates incremental run with no annotated changes)
+        val cache2 = GenerationCache(cacheFile)
+        cache2.save()
+
+        // Cache file should still contain the original data
+        val preservedContent = cacheFile.readText()
+        assertTrue(preservedContent.isNotEmpty())
+        assertTrue(preservedContent == savedContent)
+
+        // Third run: previous hashes still work
+        val cache3 = GenerationCache(cacheFile)
+        assertFalse(cache3.shouldGenerate("com.example", "Foo", "content"))
+    }
+
+    @Test
     fun testSaveCreatesParentDirectories() {
         val cacheFile = File(tempDir, "sub/dir/cache.tsv")
 
