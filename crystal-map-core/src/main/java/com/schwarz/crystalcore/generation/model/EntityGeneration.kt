@@ -6,6 +6,7 @@ import com.schwarz.crystalapi.PersistenceConfig
 import com.schwarz.crystalapi.PersistenceException
 import com.schwarz.crystalcore.generation.MapifyableImplGeneration
 import com.schwarz.crystalcore.model.entity.EntityHolder
+import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.id.DocIdHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
@@ -102,12 +103,31 @@ class EntityGeneration {
                         ).mutable()
                         .initializer("%T()", TypeUtil.hashMapStringAnyNullable())
                         .build(),
-                ).addFunction(constructor(holder))
-                .addFunction(SetAllMethodGeneration().generate(holder, true))
-                .addFunction(id)
-                .superclass(holder.sourceElement.typeName)
-                .addFunction(toMap(holder, useSuspend))
-                .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
+                )
+
+        val hasCacheableFields = holder.allFields.any { (it as? CblFieldHolder)?.isCacheable == true }
+        if (hasCacheableFields) {
+            typeBuilder.addProperty(
+                PropertySpec
+                    .builder("_cacheGen", Long::class, KModifier.PRIVATE)
+                    .mutable()
+                    .initializer("0L")
+                    .build(),
+            )
+        }
+        for (fieldHolder in holder.allFields) {
+            (fieldHolder as? CblFieldHolder)?.cacheProperties()?.forEach {
+                typeBuilder.addProperty(it)
+            }
+        }
+
+        typeBuilder
+            .addFunction(constructor(holder))
+            .addFunction(SetAllMethodGeneration().generate(holder, true, hasCacheableFields))
+            .addFunction(id)
+            .superclass(holder.sourceElement.typeName)
+            .addFunction(toMap(holder, useSuspend))
+            .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
@@ -150,7 +170,7 @@ class EntityGeneration {
         }
 
         typeBuilder.addType(companionSpec.build())
-        typeBuilder.addFunction(RebindMethodGeneration().generate(true))
+        typeBuilder.addFunction(RebindMethodGeneration().generate(true, hasCacheableFields))
 
         if (holder.entityType != Entity.Type.READONLY) {
             typeBuilder.addFunction(delete(holder, useSuspend))
@@ -265,14 +285,12 @@ class EntityGeneration {
                 .beginControlFlow("if(doc != null)")
                 .addStatement("temp.putAll(doc)")
                 .endControlFlow()
-                .beginControlFlow("if(mDocChanges != null)")
                 .beginControlFlow("mDocChanges.forEach")
                 .beginControlFlow("if(it.value == null)")
                 .addStatement("temp.remove(it.key)")
                 .endControlFlow()
                 .beginControlFlow("else")
                 .addStatement("temp[it.key] = it.value!!")
-                .endControlFlow()
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("return temp")

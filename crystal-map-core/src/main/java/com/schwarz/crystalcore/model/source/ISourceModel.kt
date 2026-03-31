@@ -33,6 +33,14 @@ interface ISourceModel<T> : IClassModel<T> {
 
     val typeConverterInterface: TypeConverterInterface?
 
+    /**
+     * Source files that this model originates from.
+     * KSP: List<KSFile>, KAPT: emptyList().
+     * Uses List<Any> to keep crystal-map-core free from KSP dependencies.
+     */
+    val originatingFiles: List<Any>
+        get() = emptyList()
+
     fun logError(
         logger: ILogger<T>,
         message: String,

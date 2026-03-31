@@ -17,12 +17,6 @@ class DeprecatedModel(
 
     val replacedBy: String = sourceDeprecated.replacedBy
 
-    init {
-        deprecatedFields.forEach {
-            print("field ${it.key}, value ${it.value.inUse}")
-        }
-    }
-
     fun addDeprecated(
         field: String,
         spec: PropertySpec.Builder,
@@ -32,7 +26,6 @@ class DeprecatedModel(
             spec.addAnnotation(buildDeprecatedAnnotation(inUse, ""))
         } else {
             deprecatedFields[field]?.let {
-                print("field ${it.field} inUse ${it.inUse}")
                 spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
             }
         }
@@ -89,7 +82,6 @@ class DeprecatedModel(
             inUse.not()
         } else {
             deprecatedFields[field]?.let {
-                print("field ${it.field} inUse ${it.inUse}")
                 spec.addAnnotation(buildDeprecatedAnnotation(it.inUse, it.replacedBy))
                 it.inUse.not()
             } ?: false

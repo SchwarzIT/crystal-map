@@ -60,7 +60,7 @@ abstract class CblBaseFieldHolder(
 
     fun accessorSuffix(): String =
         WordUtils.uncapitalize(
-            WordUtils.capitalize(dbField.replace("_".toRegex(), " ")).replace(" ".toRegex(), ""),
+            WordUtils.capitalize(dbField.replace('_', ' ')).replace(" ", ""),
         )
 
     abstract fun interfaceProperty(

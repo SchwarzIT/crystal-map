@@ -33,6 +33,7 @@ interface Worker<T : WorkSet<E>, E> {
             return false
         }
         doWork(workSet, useSuspend)
+        workSet.cleanup()
         return true
     }
 }

@@ -45,7 +45,8 @@ class VersioningPlugin : Plugin<Project> {
             val version: String =
                 when {
                     project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
-                    else -> System.console().readLine("insert version of release")
+                    else -> System.console()?.readLine("insert version of release")
+                        ?: throw IllegalStateException("No console available to read version. Pass -Pentity-version=<version> instead.")
                 }
 
             val currentVersionFile = File(extension.currentSchema)
@@ -72,7 +73,8 @@ class VersioningPlugin : Plugin<Project> {
             val version: String =
                 when {
                     project.hasProperty(PARAM_VERSION) -> project.property(PARAM_VERSION) as String
-                    else -> System.console().readLine("insert version to remove")
+                    else -> System.console()?.readLine("insert version to remove")
+                        ?: throw IllegalStateException("No console available to read version. Pass -Pentity-version=<version> instead.")
                 }
 
             val target = File(extension.versionedSchemaPath, "$version.json")

@@ -2,6 +2,7 @@ package com.schwarz.crystalcore.generation.model
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.BaseModelHolder
+import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
@@ -70,22 +71,46 @@ class CommonInterfaceGeneration {
                         typeConvertersByConvertedClass,
                     ),
                 ).addFunction(CblConstantGeneration.addConstants(holder, true))
-                .addFunction(SetAllMethodGeneration().generate(holder, false))
-                .addFunction(MapSupportGeneration.toMap(holder))
-                .addProperty(
-                    PropertySpec
-                        .builder(
-                            "mDoc",
-                            TypeUtil.mutableMapStringAnyNullable(),
-                        ).addModifiers(
-                            KModifier.PRIVATE,
-                        ).mutable()
-                        .initializer(
-                            "%T()",
-                            TypeUtil.linkedHashMapStringAnyNullable(),
-                        ).build(),
-                ).addFunction(constructorMap())
-                .superclass(holder.sourceElement.typeName)
+
+        val hasCacheableFields =
+            holder.allFields.any { (it as? CblFieldHolder)?.isCacheable == true }
+
+        typeBuilder
+            .addFunction(
+                SetAllMethodGeneration().generate(holder, false, hasCacheableFields),
+            ).addFunction(MapSupportGeneration.toMap(holder))
+            .addProperty(
+                PropertySpec
+                    .builder(
+                        "mDoc",
+                        TypeUtil.mutableMapStringAnyNullable(),
+                    ).addModifiers(
+                        KModifier.PRIVATE,
+                    ).mutable()
+                    .initializer(
+                        "%T()",
+                        TypeUtil.linkedHashMapStringAnyNullable(),
+                    ).build(),
+            )
+
+        if (hasCacheableFields) {
+            typeBuilder.addProperty(
+                PropertySpec
+                    .builder("_cacheGen", Long::class, KModifier.PRIVATE)
+                    .mutable()
+                    .initializer("0L")
+                    .build(),
+            )
+        }
+        for (fieldHolder in holder.allFields) {
+            (fieldHolder as? CblFieldHolder)?.cacheProperties()?.forEach {
+                typeBuilder.addProperty(it)
+            }
+        }
+
+        typeBuilder
+            .addFunction(constructorMap())
+            .superclass(holder.sourceElement.typeName)
 
         holder.deprecated?.addDeprecated(typeBuilder)
 

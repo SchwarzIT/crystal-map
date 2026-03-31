@@ -14,6 +14,8 @@ class SourceMapperModel(
     source: KSClassDeclaration,
 ) : IClassModel<KSNode> by SourceClassModel(source),
     ISourceMapperModel<KSNode> {
+    override val originatingFiles: List<Any> = listOfNotNull(source.containingFile)
+
     override val typeParams: List<String> =
         source.typeParameters
             .map {

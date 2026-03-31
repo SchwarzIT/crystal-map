@@ -57,6 +57,8 @@ data class SourceModel(
     override val fullQualifiedName: String
         get() = source.qualifiedName?.asString() ?: ""
 
+    override val originatingFiles: List<Any> = listOfNotNull(source.containingFile)
+
     override val entityAnnotation: ISourceEntity? =
         source.getAnnotation(Entity::class)?.let {
             SourceEntity(it)

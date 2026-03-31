@@ -84,6 +84,7 @@ class DocumentationGenerator(
 
         path.mkdirs()
         file.writeText(document)
+        docuEntitySegments.clear()
     }
 
     fun <T> addEntitySegments(entityHolder: BaseEntityHolder<T>) {

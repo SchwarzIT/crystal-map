@@ -4,6 +4,7 @@ import com.schwarz.crystalapi.MandatoryCheck
 import com.schwarz.crystalcore.generation.MapifyableImplGeneration
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.WrapperEntityHolder
+import com.schwarz.crystalcore.model.field.CblFieldHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.util.TypeUtil
 import com.squareup.kotlinpoet.CodeBlock
@@ -13,7 +14,6 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
-import java.util.Arrays
 
 class WrapperGeneration {
     fun <T> generateModel(
@@ -46,25 +46,43 @@ class WrapperGeneration {
                         typeConvertersByConvertedClass,
                     ),
                 ).addFunction(CblConstantGeneration.addConstants(holder, true))
-                .addFunction(SetAllMethodGeneration().generate(holder, false))
-                .addFunction(MapSupportGeneration.toMap(holder))
-                .addFunction(ValidateMethodGeneration.generate(holder, false))
-                .addProperty(
-                    PropertySpec
-                        .builder(
-                            "mDoc",
-                            TypeUtil.mutableMapStringAnyNullable(),
-                        ).addModifiers(
-                            KModifier.PRIVATE,
-                        ).mutable()
-                        .initializer(
-                            "%T()",
-                            TypeUtil.linkedHashMapStringAnyNullable(),
-                        ).build(),
-                ).addFunction(constructorMap())
-                .addFunction(constructorDefault())
-                .superclass(holder.sourceElement.typeName)
-                .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
+
+        val hasCacheableFields = holder.allFields.any { (it as? CblFieldHolder)?.isCacheable == true }
+        if (hasCacheableFields) {
+            typeBuilder.addProperty(
+                PropertySpec
+                    .builder("_cacheGen", Long::class, KModifier.PRIVATE)
+                    .mutable()
+                    .initializer("0L")
+                    .build(),
+            )
+        }
+        for (fieldHolder in holder.allFields) {
+            (fieldHolder as? CblFieldHolder)?.cacheProperties()?.forEach {
+                typeBuilder.addProperty(it)
+            }
+        }
+
+        typeBuilder
+            .addFunction(SetAllMethodGeneration().generate(holder, false, hasCacheableFields))
+            .addFunction(MapSupportGeneration.toMap(holder))
+            .addFunction(ValidateMethodGeneration.generate(holder, false))
+            .addProperty(
+                PropertySpec
+                    .builder(
+                        "mDoc",
+                        TypeUtil.mutableMapStringAnyNullable(),
+                    ).addModifiers(
+                        KModifier.PRIVATE,
+                    ).mutable()
+                    .initializer(
+                        "%T()",
+                        TypeUtil.linkedHashMapStringAnyNullable(),
+                    ).build(),
+            ).addFunction(constructorMap())
+            .addFunction(constructorDefault())
+            .superclass(holder.sourceElement.typeName)
+            .addFunction(BuilderClassGeneration.generateBuilderFun(holder))
 
         holder.deprecated?.addDeprecated(typeBuilder)
 
@@ -107,7 +125,7 @@ class WrapperGeneration {
         companionSpec.addFunctions(toMap(holder))
         companionSpec.addFunctions(create(holder))
         typeBuilder.addType(companionSpec.build())
-        typeBuilder.addFunction(RebindMethodGeneration().generate(false))
+        typeBuilder.addFunction(RebindMethodGeneration().generate(false, hasCacheableFields))
         typeBuilder.addType(builderBuilder.build())
         typeBuilder.addType(MapifyableImplGeneration.typeSpec(holder))
         typeBuilder.addAnnotation(MapifyableImplGeneration.impl(holder))
@@ -125,7 +143,7 @@ class WrapperGeneration {
                 .endControlFlow()
                 .build()
 
-        return Arrays.asList(
+        return listOf(
             FunSpec
                 .builder("toMap")
                 .addModifiers(KModifier.PUBLIC, KModifier.OVERRIDE)
@@ -173,7 +191,7 @@ class WrapperGeneration {
     }
 
     private fun <T> create(holder: WrapperEntityHolder<T>): List<FunSpec> =
-        Arrays.asList(
+        listOf(
             FunSpec
                 .builder(
                     "create",

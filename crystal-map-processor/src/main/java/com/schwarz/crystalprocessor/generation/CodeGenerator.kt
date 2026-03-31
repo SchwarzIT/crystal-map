@@ -57,9 +57,10 @@ class CodeGenerator(
                 if (generateAccessor.memberFunction != null &&
                     generateAccessor.memberFunction?.isSuspend == true
                 ) {
+                    val escapedName = Regex.escape(generateAccessor.memberFunction?.name ?: "")
                     acc.replace(
                         Regex(
-                            "(${generateAccessor.memberFunction?.name}\\([^)]*\\)):\\s*Unit(\\s*=)",
+                            "($escapedName\\([^)]*\\)):\\s*Unit(\\s*=)",
                         ),
                         "$1$2",
                     )

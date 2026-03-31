@@ -9,6 +9,7 @@ class SetAllMethodGeneration {
     fun <T> generate(
         holder: BaseEntityHolder<T>,
         useMDocChanges: Boolean,
+        hasCacheableFields: Boolean = false,
     ): FunSpec {
         val attributeName = if (useMDocChanges) "mDocChanges" else "mDoc"
         val setAllBuilder =
@@ -19,6 +20,10 @@ class SetAllMethodGeneration {
                 .addStatement(
                     "$attributeName.putAll(map)",
                 )
+
+        if (hasCacheableFields) {
+            setAllBuilder.addStatement("_cacheGen++")
+        }
 
         return setAllBuilder.build()
     }

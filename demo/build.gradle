@@ -19,7 +19,6 @@ buildscript {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 apply plugin: "com.google.devtools.ksp"
 
 //TODO enable to localy test plugin
@@ -62,29 +61,6 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-    sourceSets {
-        debug {
-            java {
-                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/debug"
-            }
-        }
-        release {
-            java {
-                srcDir "${buildDir.absolutePath}/generated/source/kaptKotlin/release"
-            }
-        }
-    }
-}
-
-kapt {
-    correctErrorTypes = true
-    arguments {
-        arg("crystal.entityframework.useSuspend", "false")
-        arg("crystal.entityframework.documentation.generated", "${buildDir.absolutePath}/entity")
-        arg("crystal.entityframework.documentation.fileName", "demo.html")
-        arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
-        arg("crystal.entityframework.schema.fileName", "demo_schema.json")
-    }
 }
 
 ksp {
@@ -93,6 +69,7 @@ ksp {
     arg("crystal.entityframework.documentation.fileName", "demo.html")
     arg("crystal.entityframework.schema.generated", "${buildDir.absolutePath}/entity_schema")
     arg("crystal.entityframework.schema.fileName", "demo_schema.json")
+    arg("crystal.cache.dir", "${buildDir.absolutePath}/generated/ksp/crystal-cache")
 }
 
 dependencies {
@@ -102,9 +79,7 @@ dependencies {
     implementation project(path: ':crystal-map-api')
     implementation project(path: ':crystal-map-couchbase-connector')
     implementation project(path: ':dummy')
-    //kapt project(path: ':crystal-map-processor')
     ksp ksp(project(':crystal-map-ksp',))
-    compileOnly project(path: ':crystal-map-processor')
     implementation 'com.couchbase.lite:couchbase-lite-android:2.1.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
@@ -114,5 +89,4 @@ dependencies {
     implementation 'ch.qos.logback:logback-core:1.5.21'
     implementation 'org.slf4j:slf4j-api:2.0.17'
     testImplementation 'ch.qos.logback:logback-classic:1.5.21'
-    kapt 'org.apache.logging.log4j:log4j-api:2.25.2'
 }

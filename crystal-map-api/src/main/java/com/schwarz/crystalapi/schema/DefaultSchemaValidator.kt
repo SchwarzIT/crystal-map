@@ -48,17 +48,14 @@ open class DefaultSchemaValidator : SchemaValidator {
         key: String,
         logger: SchemaValidationLogger,
     ) {
-        if (released.deprecatedSchema
-                ?.deprecatedFields
-                ?.find { it.field == key }
-                ?.inUse != false
-        ) {
-            logger.error(released, "forbidden change on existing field [$key]")
-        } else {
+        val deprecatedField = released.deprecatedSchema?.deprecatedFields?.find { it.field == key }
+        if (deprecatedField != null && !deprecatedField.inUse) {
             logger.info(
                 released,
                 "allowed change on existing field [$key] since it's deprecated and no longer in use",
             )
+        } else {
+            logger.error(released, "forbidden change on existing field [$key]")
         }
     }
 
@@ -69,7 +66,7 @@ open class DefaultSchemaValidator : SchemaValidator {
         if (released.deprecatedSchema == null || released.deprecatedSchema.inUse) {
             logger.error(released, "forbidden model deletion")
         } else {
-            logger.error(released, "allowed model deletion")
+            logger.info(released, "allowed model deletion")
         }
     }
 }

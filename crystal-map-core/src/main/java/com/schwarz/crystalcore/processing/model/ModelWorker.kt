@@ -14,6 +14,8 @@ import com.schwarz.crystalcore.generation.model.WrapperGeneration
 import com.schwarz.crystalcore.meta.SchemaGenerator
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.entity.SchemaClassHolder
+import com.schwarz.crystalcore.model.field.CblFieldHolder
+import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolder
 import com.schwarz.crystalcore.model.typeconverter.TypeConverterHolderForEntityGeneration
 import com.schwarz.crystalcore.processing.Worker
 import com.squareup.kotlinpoet.FileSpec
@@ -61,16 +63,22 @@ class ModelWorker<T>(
             codeGenerator.generate(
                 TypeConverterObjectGeneration.generateTypeConverterObject(it),
                 settings,
+                it.originatingFiles,
+                aggregating = false,
             )
         }
 
         workSet.typeConverterExporters.forEach {
+            val exporterOrigins = it.originatingFiles +
+                workSet.typeConverters.flatMap { tc -> tc.originatingFiles }
             codeGenerator.generate(
                 TypeConverterExporterObjectGeneration.generateTypeConverterExporterObject(
                     it,
                     workSet.typeConverters,
                 ),
                 settings,
+                exporterOrigins,
+                aggregating = false,
             )
         }
 
@@ -125,7 +133,7 @@ class ModelWorker<T>(
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
             generate(model).apply {
-                codeGenerator.generate(this, settings)
+                codeGenerator.generate(this, settings, model.allOriginatingFiles, aggregating = false)
             }
         }
     }
@@ -147,17 +155,23 @@ class ModelWorker<T>(
             documentationGenerator?.addEntitySegments(model)
             schemaGenerator?.addEntity(model)
             entityRelationshipGenerator?.addEntityNodes(model)
+            val tcOrigins = usedTypeConverterOrigins(model, typeConvertersByConvertedClass)
+            val origins = model.allOriginatingFiles + tcOrigins
             generate(model).apply {
                 if (model.generateAccessors.isNotEmpty()) {
                     codeGenerator.generateAndFixAccessors(
                         this,
                         model.generateAccessors,
                         settings,
+                        origins,
+                        aggregating = false,
                     )
                 } else {
                     codeGenerator.generate(
                         this,
                         settings,
+                        origins,
+                        aggregating = false,
                     )
                 }
             }
@@ -182,8 +196,22 @@ class ModelWorker<T>(
                     typeConvertersByConvertedClass,
                 ),
                 settings,
+                holder.allOriginatingFiles,
+                aggregating = false,
             )
             generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }
     }
+
+    private fun usedTypeConverterOrigins(
+        holder: BaseEntityHolder<T>,
+        typeConvertersByConvertedClass: Map<TypeName, TypeConverterHolderForEntityGeneration>,
+    ): List<Any> =
+        holder.allFields
+            .filterIsInstance<CblFieldHolder>()
+            .filter { !it.isNonConvertibleClass && !it.isTypeOfSubEntity }
+            .mapNotNull { typeConvertersByConvertedClass[it.fieldType] }
+            .filterIsInstance<TypeConverterHolder>()
+            .flatMap { it.originatingFiles }
+            .distinct()
 }

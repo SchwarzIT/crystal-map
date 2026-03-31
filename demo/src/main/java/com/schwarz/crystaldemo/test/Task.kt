@@ -22,7 +22,7 @@ import com.schwarz.crystalapi.query.Query
 )
 open class Task {
     companion object {
-        const val TYPE: String = "Task"
+        const val TYPE: String = "Task" // incremental test v3
 
         @GenerateAccessor
         const val PREFIX: String = "task"

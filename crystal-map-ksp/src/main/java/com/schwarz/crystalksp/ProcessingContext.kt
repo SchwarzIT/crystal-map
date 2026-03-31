@@ -18,7 +18,6 @@ import com.google.devtools.ksp.symbol.Modifier
 import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalcore.ILogger
 import com.schwarz.crystalcore.model.source.ISourceDeclaringName
-import com.schwarz.crystalcore.util.TypeUtil
 import com.schwarz.crystalksp.model.source.SourceMapifyable
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -28,6 +27,7 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.toTypeVariableName
 import java.math.BigDecimal
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 private val plainTypeNames = setOf(
@@ -46,22 +46,29 @@ object ProcessingContext {
     lateinit var resolver: Resolver
     lateinit var logger: ILogger<KSNode>
 
-    val processingTypes: HashMap<String, TypeName> = hashMapOf()
+    val processingTypes: MutableMap<String, TypeName> = ConcurrentHashMap()
 
-    val createdQualifiedClassNames: MutableSet<ClassName> = hashSetOf()
+    val createdQualifiedClassNames: MutableSet<ClassName> = ConcurrentHashMap.newKeySet()
+
+    val createdQualifiedClassNamesByCanonical: MutableMap<String, ClassName> = ConcurrentHashMap()
+
+    fun cleanup() {
+        processingTypes.clear()
+        createdQualifiedClassNames.clear()
+        createdQualifiedClassNamesByCanonical.clear()
+    }
 
     fun KSTypeReference.resolveTypeNameWithProcessingTypes(): TypeName = this.resolve().resolveTypeNameWithProcessingTypes()
 
     fun KSType.resolveTypeNameWithProcessingTypes(): TypeName = try {
         this.toTypeName()
     } catch (e: IllegalArgumentException) {
-        hackyResolving(this.toString())
+        resolveFromProcessingTypes(this)
     } catch (e: NoSuchElementException) {
         if (this.declaration is KSTypeParameter) {
-            // Its a TypeParam
             (this.declaration as KSTypeParameter).toNullableSafeTypeVariableName()
         } else {
-            hackyResolving(this.toString())
+            resolveFromProcessingTypes(this)
         }
     }
 
@@ -74,36 +81,61 @@ object ProcessingContext {
         }
     }
 
-    private fun hackyResolving(stringValue: String): TypeName {
-        // error types looks like this List<INVARIANT TaskEntity>
-        val splitted = stringValue
-            .replace(
-                "Unresolved type for ",
-                "",
-            ).replace("[", "")
-            .replace("]", "")
-            .replace('<', ' ')
-            .replace('>', ' ')
-            .split(" ")
-        var isList = false
-        for (item in splitted) {
-            if (item == "INVARIANT" || item == "Error" || item == "type:" || item == "ERROR" || item == "TYPE:" || item.trim().isEmpty()) {
-                continue
+    /**
+     * Resolves a KSType that failed normal resolution by looking up the type name
+     * in the processingTypes registry. This handles references to generated types
+     * (e.g., EntityBEntity, SomeWrapper) that don't exist as source files.
+     *
+     * For parameterized types (e.g., List<EntityBEntity>), the outer type is resolved
+     * normally and the type arguments are resolved recursively.
+     */
+    private val errorTypePattern = Regex("""<ERROR TYPE:\s*(\w+)>""")
+
+    /**
+     * Extracts the actual type name from a KSType declaration, handling KSP error type formats.
+     * Error types may have simpleName like "<ERROR TYPE: TaskEntity>" or just "TaskEntity".
+     */
+    private fun extractTypeName(declaration: KSDeclaration): String {
+        val raw = declaration.simpleName.asString()
+        return errorTypePattern.find(raw)?.groupValues?.get(1) ?: raw
+    }
+
+    private fun resolveFromProcessingTypes(type: KSType): TypeName {
+        val declaration = type.declaration
+        val typeName = extractTypeName(declaration)
+
+        // Direct lookup: the type itself is a processing type (e.g., EntityBEntity)
+        processingTypes[typeName]?.let { resolved ->
+            return if (type.arguments.isNotEmpty() && resolved is ClassName) {
+                resolved.parameterizedBy(
+                    type.arguments.map { arg ->
+                        arg.type?.resolve()?.resolveTypeNameWithProcessingTypes()
+                            ?: TypeVariableName("*")
+                    },
+                )
+            } else {
+                resolved
             }
-            if (item == "List") {
-                isList = true
-                continue
+        }
+
+        // The outer type resolves but has error type arguments (e.g., List<EntityBEntity>)
+        if (type.arguments.isNotEmpty()) {
+            val outerType = try {
+                (declaration as? KSClassDeclaration)?.toClassName()
+            } catch (_: Exception) {
+                null
             }
 
-            return processingTypes[item]?.let {
-                if (isList) {
-                    TypeUtil.list(it)
-                } else {
-                    it
+            if (outerType != null) {
+                val resolvedArgs = type.arguments.map { arg ->
+                    arg.type?.resolve()?.resolveTypeNameWithProcessingTypes()
+                        ?: TypeVariableName("*")
                 }
-            } ?: throw IllegalArgumentException("unknown type for $stringValue [$item]")
+                return outerType.parameterizedBy(resolvedArgs)
+            }
         }
-        throw IllegalArgumentException("unknown type $stringValue")
+
+        throw IllegalArgumentException("Cannot resolve type: $type (typeName=$typeName)")
     }
 
 //    private fun KSClassDeclaration.toKSTypeRecursive() : KSType{
@@ -200,9 +232,7 @@ object ProcessingContext {
         }
 
         override fun asTypeName(): TypeName? {
-            val className = createdQualifiedClassNames.firstOrNull {
-                it.canonicalName == realTypeName.toString()
-            }
+            val className = createdQualifiedClassNamesByCanonical[realTypeName.toString()]
             if (className != null) {
                 return className.copy(nullable = isNullable())
             }
@@ -260,7 +290,7 @@ object ProcessingContext {
         override fun isNullable(): Boolean = realTypeName.isNullable || nullableIndexes.contains(relevantIndex)
 
         override fun isProcessingType(): Boolean =
-            createdQualifiedClassNames.any { it.canonicalName == name } && (name.endsWith("Wrapper") || name.endsWith("Entity"))
+            createdQualifiedClassNamesByCanonical.containsKey(name) && (name.endsWith("Wrapper") || name.endsWith("Entity"))
 
         override fun isAssignable(clazz: KClass<*>): Boolean {
             val otherType = resolver.getClassDeclarationByName(clazz.qualifiedName!!)?.asStarProjectedType()

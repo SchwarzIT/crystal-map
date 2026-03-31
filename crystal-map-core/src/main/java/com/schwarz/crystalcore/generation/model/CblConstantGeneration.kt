@@ -28,7 +28,7 @@ object CblConstantGeneration {
         for (fieldHolder in holder.fieldConstants.values) {
             if (fieldHolder.isConstant) {
                 builder.addStatement(
-                    "map.put(%N, DOC_%N)",
+                    "map[%N] = DOC_%N",
                     fieldHolder.constantName,
                     fieldHolder.constantName,
                 )

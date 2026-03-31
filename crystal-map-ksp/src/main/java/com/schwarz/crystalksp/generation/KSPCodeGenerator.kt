@@ -13,43 +13,63 @@ import java.io.IOException
 
 class KSPCodeGenerator(
     private val generator: CodeGenerator,
+    private val cache: GenerationCache? = null,
 ) : ICodeGenerator {
-    @Throws(IOException::class)
-    fun generate(
-        toGenerate: FileSpec,
-        containingFile: List<KSFile>,
-        aggregating: Boolean = false,
-    ) {
-        ClassName(toGenerate.packageName, toGenerate.name).apply {
-            ProcessingContext.createdQualifiedClassNames.add(this)
-        }
+    data class GenerationRecord(
+        val fileName: String,
+        val originatingFileNames: List<String>,
+        val aggregating: Boolean,
+    )
 
-        val fileWithHeader = toGenerate.toBuilder().addFileComment(HEADER).build()
-        generator
-            .createNewFile(
-                Dependencies(aggregating, *containingFile.toTypedArray()),
-                fileWithHeader.packageName,
-                fileWithHeader.name,
-            ).writer()
-            .use { fileWithHeader.writeTo(it) }
-    }
+    val generationRecords: MutableList<GenerationRecord> = mutableListOf()
 
     override fun generate(
         toGenerate: FileSpec,
         settings: ISettings,
     ) {
+        generate(toGenerate, settings, emptyList())
+    }
+
+    override fun generate(
+        toGenerate: FileSpec,
+        settings: ISettings,
+        originatingFiles: List<Any>,
+        aggregating: Boolean,
+    ) {
         ClassName(toGenerate.packageName, toGenerate.name).apply {
             ProcessingContext.createdQualifiedClassNames.add(this)
+            ProcessingContext.createdQualifiedClassNamesByCanonical[this.canonicalName] = this
         }
 
+        val ksFiles = originatingFiles.filterIsInstance<KSFile>()
+        val dependencies = if (ksFiles.isNotEmpty()) {
+            Dependencies(aggregating, *ksFiles.toTypedArray())
+        } else {
+            Dependencies(aggregating)
+        }
+
+        generationRecords.add(
+            GenerationRecord(
+                fileName = toGenerate.name,
+                originatingFileNames = ksFiles.map { it.fileName },
+                aggregating = aggregating,
+            ),
+        )
+
         val fileWithHeader = toGenerate.toBuilder().addFileComment(HEADER).build()
+        val content = fileWithHeader.toString()
+        if (cache != null &&
+            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, content)
+        ) {
+            return
+        }
         generator
             .createNewFile(
-                Dependencies(true),
+                dependencies,
                 fileWithHeader.packageName,
                 fileWithHeader.name,
             ).writer()
-            .use { fileWithHeader.writeTo(it) }
+            .use { it.write(content) }
     }
 
     @Throws(IOException::class)
@@ -58,9 +78,35 @@ class KSPCodeGenerator(
         generateAccessors: MutableList<CblGenerateAccessorHolder>,
         settings: ISettings,
     ) {
+        generateAndFixAccessors(entityToGenerate, generateAccessors, settings, emptyList())
+    }
+
+    @Throws(IOException::class)
+    override fun generateAndFixAccessors(
+        entityToGenerate: FileSpec,
+        generateAccessors: MutableList<CblGenerateAccessorHolder>,
+        settings: ISettings,
+        originatingFiles: List<Any>,
+        aggregating: Boolean,
+    ) {
         ClassName(entityToGenerate.packageName, entityToGenerate.name).apply {
             ProcessingContext.createdQualifiedClassNames.add(this)
         }
+
+        val ksFiles = originatingFiles.filterIsInstance<KSFile>()
+        val dependencies = if (ksFiles.isNotEmpty()) {
+            Dependencies(aggregating, *ksFiles.toTypedArray())
+        } else {
+            Dependencies(aggregating)
+        }
+
+        generationRecords.add(
+            GenerationRecord(
+                fileName = entityToGenerate.name,
+                originatingFileNames = ksFiles.map { it.fileName },
+                aggregating = aggregating,
+            ),
+        )
 
         val fileWithHeader = entityToGenerate.toBuilder().addFileComment(HEADER).build()
 
@@ -69,9 +115,10 @@ class KSPCodeGenerator(
                 if (generateAccessor.memberFunction != null &&
                     generateAccessor.memberFunction?.isSuspend == true
                 ) {
+                    val escapedName = Regex.escape(generateAccessor.memberFunction?.name ?: "")
                     acc.replace(
                         Regex(
-                            "(${generateAccessor.memberFunction?.name}\\([^)]*\\)):\\s*Unit(\\s*=)",
+                            "($escapedName\\([^)]*\\)):\\s*Unit(\\s*=)",
                         ),
                         "$1$2",
                     )
@@ -80,44 +127,18 @@ class KSPCodeGenerator(
                 }
             }
 
+        if (cache != null &&
+            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, fixedFileString)
+        ) {
+            return
+        }
         generator
             .createNewFile(
-                Dependencies(true),
+                dependencies,
                 fileWithHeader.packageName,
                 fileWithHeader.name,
             ).writer()
             .use { it.write(fixedFileString) }
-
-        // used for kapt returns null for legacy annotationprocessor declarations
-//        if (codePath != null) {
-//            val directory = File(codePath).toPath()
-//            require(directory.notExists() || directory.isDirectory()) {
-//                "path $directory exists but is not a directory."
-//            }
-//            val outputPath = directory.resolve(fileWithHeader.relativePath)
-//            outputPath.parent.createDirectories()
-//            outputPath.outputStream().bufferedWriter().use { it.write(fixedFileString) }
-//        } else {
-//            val originatingElements = fileWithHeader.members.asSequence()
-//                .filterIsInstance<OriginatingElementsHolder>()
-//                .flatMap { it.originatingElements.asSequence() }
-//                .toSet()
-//            val filerSourceFile = filer.createResource(
-//                StandardLocation.SOURCE_OUTPUT,
-//                fileWithHeader.packageName,
-//                "${fileWithHeader.name}.kt",
-//                *originatingElements.toTypedArray()
-//            )
-//            try {
-//                filerSourceFile.openWriter().use { it.write(fixedFileString) }
-//            } catch (e: Exception) {
-//                try {
-//                    filerSourceFile.delete()
-//                } catch (ignored: Exception) {
-//                }
-//                throw e
-//            }
-//        }
     }
 
     companion object {
