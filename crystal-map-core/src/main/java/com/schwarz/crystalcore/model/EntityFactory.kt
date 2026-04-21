@@ -23,6 +23,7 @@ object EntityFactory {
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
+        getterCache: Boolean = false,
     ): EntityHolder<T> {
         val annotation = sourceModel.entityAnnotation!!
         return create(
@@ -36,12 +37,14 @@ object EntityFactory {
             allWrapperPaths,
             allBaseModels,
             WRAPPER_SUB_ENTITY_SUFFIX,
+            getterCache,
         ) as EntityHolder
     }
 
     fun <T> createWrapperBaseModelHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
+        getterCache: Boolean = false,
     ): BaseModelHolder<T> =
         create(
             sourceModel,
@@ -49,11 +52,13 @@ object EntityFactory {
             allWrapperPaths,
             emptyMap(),
             WRAPPER_SUB_ENTITY_SUFFIX,
+            getterCache,
         ) as BaseModelHolder
 
     fun <T> createSchemaBaseModelHolder(
         sourceModel: ISourceModel<T>,
         allSchemaClassPaths: List<String>,
+        getterCache: Boolean = false,
     ): BaseModelHolder<T> =
         create(
             sourceModel,
@@ -61,12 +66,14 @@ object EntityFactory {
             allSchemaClassPaths,
             emptyMap(),
             SCHEMA_SUB_ENTITY_SUFFIX,
+            getterCache,
         ) as BaseModelHolder
 
     fun <T> createChildEntityHolder(
         sourceModel: ISourceModel<T>,
         allWrapperPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
+        getterCache: Boolean = false,
     ): WrapperEntityHolder<T> {
         val annotation = sourceModel.mapWrapperAnnotation!!
         return create(
@@ -75,6 +82,7 @@ object EntityFactory {
             allWrapperPaths,
             allBaseModels,
             WRAPPER_SUB_ENTITY_SUFFIX,
+            getterCache,
         ) as WrapperEntityHolder
     }
 
@@ -82,6 +90,7 @@ object EntityFactory {
         sourceModel: ISourceModel<T>,
         allSchemaClassPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
+        getterCache: Boolean = false,
     ): SchemaClassHolder<T> =
         create(
             sourceModel,
@@ -89,6 +98,7 @@ object EntityFactory {
             allSchemaClassPaths,
             allBaseModels,
             SCHEMA_SUB_ENTITY_SUFFIX,
+            getterCache,
         ) as SchemaClassHolder
 
     private fun <T> create(
@@ -97,6 +107,7 @@ object EntityFactory {
         classPaths: List<String>,
         allBaseModels: Map<String, BaseModelHolder<T>>,
         subEntityNameSuffix: String,
+        getterCache: Boolean = false,
     ): BaseEntityHolder<T> {
         content.reducesModels = createReduceModels(sourceModel, content)
         content.abstractParts = sourceModel.abstractParts
@@ -106,7 +117,7 @@ object EntityFactory {
         addBasedOn(sourceModel, allBaseModels, content)
 
         parseQueries(sourceModel, content)
-        parseFields(sourceModel, content, classPaths, subEntityNameSuffix)
+        parseFields(sourceModel, content, classPaths, subEntityNameSuffix, getterCache)
 
         val docId = sourceModel.docIdAnnotation
         val docIdSegments: MutableList<DocIdSegmentHolder> = mutableListOf()
@@ -197,12 +208,13 @@ object EntityFactory {
         content: BaseEntityHolder<T>,
         classPaths: List<String>,
         subEntityNameSuffix: String,
+        getterCache: Boolean = false,
     ) {
         for (cblField in sourceModel.fieldAnnotations) {
             if (cblField.readonly) {
                 content.fieldConstants[cblField.name] = CblConstantHolder(cblField)
             } else {
-                val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNameSuffix)
+                val cblFieldHolder = CblFieldHolder(cblField, classPaths, subEntityNameSuffix, getterCache)
                 content.fields[cblField.name] = cblFieldHolder
             }
         }
