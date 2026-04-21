@@ -14,6 +14,7 @@ import com.schwarz.crystalapi.mapify.Mapifyable
 import com.schwarz.crystalapi.util.CrystalWrap
 import java.time.OffsetDateTime
 import kotlin.Any
+import kotlin.Long
 import kotlin.String
 import kotlin.collections.HashMap
 import kotlin.collections.List
@@ -33,6 +34,12 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
 
   private var mDocChanges: MutableMap<String, Any?> = HashMap<String, Any?>()
 
+  private var _cacheGen: Long = 0L
+
+  private var _cached_createdAt: OffsetDateTime? = null
+
+  private var _cacheGen_createdAt: Long = -1L
+
   public override var name: String?
     get() = CrystalWrap.get<String>(mDocChanges, mDoc, NAME)
     set(`value`) {
@@ -40,9 +47,16 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
     }
 
   public override var createdAt: OffsetDateTime?
-    get() = CrystalWrap.get(mDocChanges, mDoc, CREATED_AT, DateTypeConverterInstance)
+    get() {
+      if (_cacheGen_createdAt != _cacheGen) {
+        _cached_createdAt = CrystalWrap.get(mDocChanges, mDoc, CREATED_AT, DateTypeConverterInstance)
+        _cacheGen_createdAt = _cacheGen
+      }
+      return _cached_createdAt
+    }
     set(`value`) {
       CrystalWrap.set(mDocChanges, CREATED_AT, value, DateTypeConverterInstance)
+      _cacheGen++
     }
 
   public override val type: String
@@ -70,6 +84,7 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
 
   public override fun setAll(map: Map<String, Any?>) {
     mDocChanges.putAll(map)
+    _cacheGen++
   }
 
   public override fun getId(): String? = mDoc.get(_ID) as String?
@@ -100,6 +115,7 @@ public class EntityWithTypeConverterFieldEntity : EntityWithTypeConverterField, 
     mDoc.putAll(doc)
     addConstants(mDoc)
     mDocChanges = HashMap<String, Any?>()
+    _cacheGen++
   }
 
   @Throws(PersistenceException::class)
