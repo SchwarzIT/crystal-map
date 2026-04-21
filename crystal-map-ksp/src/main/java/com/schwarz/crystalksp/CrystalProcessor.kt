@@ -139,6 +139,7 @@ class CrystalProcessor(
                         allTypeConverterImporterElements =
                             cachedPreWorkset.allTypeConverterImporterElements
                                 .toSourceModel(),
+                        getterCache = processingEnvironmentWrapper.getterCache,
                     ),
                 ),
                 MapperWorker(
