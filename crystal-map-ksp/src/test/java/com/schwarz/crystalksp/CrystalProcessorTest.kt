@@ -1311,7 +1311,7 @@ class CrystalProcessorTest {
                 sources = sourceFiles.toMutableList()
                 jvmTarget = "17"
                 kspProcessorOptions["useSuspend"] = useSuspend.toString()
-                kspProcessorOptions["crystal.entityframework.getterCache"] = getterCache.toString()
+                kspProcessorOptions[CrystalProcessor.FRAMEWORK_GETTER_CACHE_OPTION_NAME] = getterCache.toString()
                 inheritClassPath = true
                 // messageOutputStream = System.out // see diagnostics in real time
             }.compile()
