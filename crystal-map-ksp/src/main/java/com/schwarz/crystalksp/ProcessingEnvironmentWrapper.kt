@@ -16,4 +16,8 @@ class ProcessingEnvironmentWrapper(
     val useSuspend: Boolean? =
         options[CrystalProcessor.FRAMEWORK_USE_SUSPEND_OPTION_NAME]
             ?.toBoolean()
+
+    val getterCache: Boolean =
+        options[CrystalProcessor.FRAMEWORK_GETTER_CACHE_OPTION_NAME]
+            ?.toBoolean() ?: false
 }

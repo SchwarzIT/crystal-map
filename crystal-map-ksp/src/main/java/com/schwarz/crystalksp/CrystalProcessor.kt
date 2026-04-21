@@ -211,6 +211,7 @@ class CrystalProcessor(
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         const val FRAMEWORK_USE_SUSPEND_OPTION_NAME = "crystal.entityframework.useSuspend"
+        const val FRAMEWORK_GETTER_CACHE_OPTION_NAME = "crystal.entityframework.getterCache"
         const val FRAMEWORK_DOCUMENTATION_PATH_OPTION_NAME =
             "crystal.entityframework.documentation.generated"
         const val FRAMEWORK_DOCUMENTATION_FILENAME_OPTION_NAME =
