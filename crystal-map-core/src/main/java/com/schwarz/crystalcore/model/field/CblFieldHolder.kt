@@ -16,6 +16,7 @@ class CblFieldHolder(
     private val field: ISourceField,
     classPaths: List<String>,
     subEntityNameSuffix: String,
+    private val getterCache: Boolean = false,
 ) : CblBaseFieldHolder(field.name, field) {
     private var subEntityPackage: String? = null
 
@@ -34,7 +35,7 @@ class CblFieldHolder(
         get() = !StringUtils.isBlank(subEntitySimpleName)
 
     val isCacheable: Boolean
-        get() = !(isNonConvertibleClass && !isIterable)
+        get() = getterCache && !(isNonConvertibleClass && !isIterable)
 
     override val fieldType: TypeName = field.parseMetaType(isIterable, subEntitySimpleName)
 

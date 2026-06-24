@@ -24,6 +24,7 @@ class ModelWorkSet<T>(
     allTypeConverterElements: Set<ISourceModel<T>>,
     allTypeConverterExporterElements: Set<ISourceModel<T>>,
     allTypeConverterImporterElements: Set<ISourceModel<T>>,
+    val getterCache: Boolean = false,
 ) : WorkSet<T> {
     private val allEntityElements = allEntityElements.toMutableSet()
     private val allWrapperElements = allWrapperElements.toMutableSet()
@@ -82,6 +83,7 @@ class ModelWorkSet<T>(
                 EntityFactory.createWrapperBaseModelHolder(
                     element,
                     allWrapperPaths,
+                    getterCache = getterCache,
                 )
             wrapperBaseModels[element.fullQualifiedName] = wrapperBaseModel
 
@@ -89,6 +91,7 @@ class ModelWorkSet<T>(
                 EntityFactory.createSchemaBaseModelHolder(
                     element,
                     allSchemaClassPaths,
+                    getterCache = getterCache,
                 )
             schemaBaseModels[element.fullQualifiedName] = schemaBaseModel
         }
@@ -108,6 +111,7 @@ class ModelWorkSet<T>(
                     element,
                     allWrapperPaths,
                     wrapperBaseModels,
+                    getterCache = getterCache,
                 )
             entityModels[element.fullQualifiedName] = entityModel
 
@@ -120,6 +124,7 @@ class ModelWorkSet<T>(
                         ),
                         allWrapperPaths,
                         wrapperBaseModels,
+                        getterCache = getterCache,
                     )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
@@ -132,6 +137,7 @@ class ModelWorkSet<T>(
                     element,
                     allWrapperPaths,
                     wrapperBaseModels,
+                    getterCache = getterCache,
                 )
             wrapperModels[element.fullQualifiedName] = wrapperModel
 
@@ -144,6 +150,7 @@ class ModelWorkSet<T>(
                         ),
                         allWrapperPaths,
                         wrapperBaseModels,
+                        getterCache = getterCache,
                     )
                 reduced.isReduced = true
                 entityModels[reduced.entitySimpleName] = reduced
@@ -156,6 +163,7 @@ class ModelWorkSet<T>(
                     element,
                     allSchemaClassPaths,
                     schemaBaseModels,
+                    getterCache = getterCache,
                 )
             schemaModels[element.fullQualifiedName] = schemaModel
         }
