@@ -3,10 +3,9 @@ apply plugin: 'maven-publish'
 apply plugin: 'java'
 apply plugin: 'kotlinx-serialization'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
 }
