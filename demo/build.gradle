@@ -6,8 +6,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:9.0.0")
-        classpath("com.android.application:com.android.application.gradle.plugin:9.0.0")
+        classpath("com.android.library:com.android.library.gradle.plugin:9.2.1")
+        classpath("com.android.application:com.android.application.gradle.plugin:9.2.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         //TODO enable to locally test plugin
@@ -76,7 +76,10 @@ ksp {
     arg("crystal.entityframework.documentation.fileName", "demo.html")
     arg("crystal.entityframework.schema.generated", "${buildDirPath}/entity_schema")
     arg("crystal.entityframework.schema.fileName", "demo_schema.json")
-    arg("crystal.cache.dir", "${buildDirPath}/generated/ksp/crystal-cache")
+    // crystal.cache.dir disabled: the persistent generation cache makes the processor
+    // skip createNewFile on full KSP reprocessing runs, so KSP deletes the generated
+    // sources and compilation fails (cache outlives the KSP task outputs).
+    // arg("crystal.cache.dir", "${buildDirPath}/generated/ksp/crystal-cache")
 }
 
 dependencies {
