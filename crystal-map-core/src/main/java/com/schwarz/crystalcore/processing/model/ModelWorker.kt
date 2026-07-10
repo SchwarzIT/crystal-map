@@ -26,6 +26,17 @@ class ModelWorker<T>(
     override val codeGenerator: ICodeGenerator,
     override val settings: ISettings,
     override val workSet: ModelWorkSet<T>,
+    // True when the work set may only cover a subset of the entities
+    // (incremental KSP processing): the doc/schema side outputs then merge with
+    // the previous run instead of being rebuilt from the partial model.
+    private val mergeSideOutputs: Boolean = false,
+    // Source files that were (re)processed in this run; previously generated
+    // side-output entries originating from them are purged when the run no
+    // longer produces them.
+    private val reprocessedFilePaths: Set<String> = emptySet(),
+    // Extracts a stable file path from a platform originating-file object
+    // (KSFile for KSP); null when the platform cannot provide one (kapt).
+    private val originFilePath: (Any) -> String? = { null },
 ) : Worker<ModelWorkSet<T>, T> {
     private var documentationGenerator: DocumentationGenerator? = null
     private var entityRelationshipGenerator: EntityRelationshipGenerator? = null
@@ -119,9 +130,9 @@ class ModelWorker<T>(
             )
         }
 
-        documentationGenerator?.generate()
-        entityRelationshipGenerator?.generate()
-        schemaGenerator?.generate()
+        documentationGenerator?.generate(mergeSideOutputs, reprocessedFilePaths)
+        entityRelationshipGenerator?.generate(mergeSideOutputs, reprocessedFilePaths)
+        schemaGenerator?.generate(mergeSideOutputs, reprocessedFilePaths)
     }
 
     private fun process(
@@ -129,9 +140,10 @@ class ModelWorker<T>(
         generate: (SchemaClassHolder<T>) -> FileSpec,
     ) {
         for (model in schemaModels) {
-            documentationGenerator?.addEntitySegments(model)
-            schemaGenerator?.addEntity(model)
-            entityRelationshipGenerator?.addEntityNodes(model)
+            val sourcePaths = sourcePathsOf(model)
+            documentationGenerator?.addEntitySegments(model, sourcePaths)
+            schemaGenerator?.addEntity(model, sourcePaths)
+            entityRelationshipGenerator?.addEntityNodes(model, sourcePaths)
             generate(model).apply {
                 codeGenerator.generate(this, settings, model.allOriginatingFiles, aggregating = false)
             }
@@ -152,9 +164,10 @@ class ModelWorker<T>(
                 useSuspend,
                 typeConvertersByConvertedClass,
             )
-            documentationGenerator?.addEntitySegments(model)
-            schemaGenerator?.addEntity(model)
-            entityRelationshipGenerator?.addEntityNodes(model)
+            val sourcePaths = sourcePathsOf(model)
+            documentationGenerator?.addEntitySegments(model, sourcePaths)
+            schemaGenerator?.addEntity(model, sourcePaths)
+            entityRelationshipGenerator?.addEntityNodes(model, sourcePaths)
             val tcOrigins = usedTypeConverterOrigins(model, typeConvertersByConvertedClass)
             val origins = model.allOriginatingFiles + tcOrigins
             generate(model).apply {
@@ -202,6 +215,8 @@ class ModelWorker<T>(
             generatedInterfaces.add("${holder.sourcePackage}.${holder.sourceClazzSimpleName}")
         }
     }
+
+    private fun sourcePathsOf(holder: BaseEntityHolder<T>): List<String> = holder.allOriginatingFiles.mapNotNull(originFilePath)
 
     private fun usedTypeConverterOrigins(
         holder: BaseEntityHolder<T>,

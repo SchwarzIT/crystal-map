@@ -11,6 +11,9 @@ import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblBaseFieldHolder
 import com.schwarz.crystalcore.model.query.CblQueryHolder
+import com.schwarz.crystalcore.util.decodeJsonOrNull
+import com.schwarz.crystalcore.util.mergeSideOutputEntries
+import com.schwarz.crystalcore.util.readTextOrNull
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -21,31 +24,79 @@ class SchemaGenerator(
 ) {
     private val path = File(path)
 
-    private val jsonEntitySegments = mutableMapOf<String, EntitySchema>()
+    // The schema file itself stays a plain List<EntitySchema> (its published
+    // format); the per-entity source files needed for merging live in a sidecar.
+    // Deliberately not named *.json: the versioning plugin parses every *.json
+    // file in its schema directories.
+    private val modelFile = File(path, "$fileName.model")
 
-    fun generate() {
-        if (jsonEntitySegments.isEmpty()) {
+    private val jsonEntitySegments = mutableMapOf<String, EntitySchema>()
+    private val entitySources = mutableMapOf<String, List<String>>()
+
+    /**
+     * Writes the schema JSON. With [mergeWithPrevious] the current run may only
+     * have seen a subset of the entities (incremental KSP processing), so they
+     * are merged over the previously written file; entries whose source files
+     * disappeared or were reprocessed without producing the entity again
+     * ([reprocessedFilePaths]) are purged. Without the flag the schema is
+     * rebuilt from this run's model alone.
+     */
+    fun generate(
+        mergeWithPrevious: Boolean = false,
+        reprocessedFilePaths: Set<String> = emptySet(),
+    ) {
+        if (jsonEntitySegments.isEmpty() && !mergeWithPrevious) {
             return
         }
         path.mkdirs()
 
         val file = File(path, fileName)
-        val merged = merge(loadPreviousSchemas(file), jsonEntitySegments)
-        file.writeTextIfChanged(Json.encodeToString(merged))
-        jsonEntitySegments.clear()
+        val previousText = file.readTextOrNull()
+        val previous =
+            if (mergeWithPrevious) {
+                decodeJsonOrNull<List<EntitySchema>>(previousText) ?: emptyList()
+            } else {
+                emptyList()
+            }
+        val previousSourcesText = if (mergeWithPrevious) modelFile.readTextOrNull() else null
+        val previousSources = decodeJsonOrNull<Map<String, List<String>>>(previousSourcesText) ?: emptyMap()
+
+        val merged =
+            mergeSideOutputEntries(
+                previousEntries = previous.associateBy { it.name },
+                previousSources = previousSources,
+                currentEntries = jsonEntitySegments,
+                reprocessedFilePaths = reprocessedFilePaths,
+            )
+        if (merged.isEmpty() && !file.exists()) {
+            clearCollectedEntities()
+            return
+        }
+        val mergedSources =
+            (previousSources.filterKeys { merged.containsKey(it) } + entitySources).toSortedMap()
+
+        file.writeTextIfChanged(Json.encodeToString(merged.values.toList()), previousText)
+        modelFile.writeTextIfChanged(
+            Json.encodeToString(mergedSources.toMap()),
+            previousSourcesText ?: modelFile.readTextOrNull(),
+        )
+        clearCollectedEntities()
     }
 
-    private fun loadPreviousSchemas(file: File): List<EntitySchema> =
-        if (file.exists()) {
-            runCatching { Json.decodeFromString<List<EntitySchema>>(file.readText()) }.getOrDefault(emptyList())
-        } else {
-            emptyList()
-        }
+    private fun clearCollectedEntities() {
+        jsonEntitySegments.clear()
+        entitySources.clear()
+    }
 
-    fun <T> addEntity(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntity(
+        entityHolder: BaseEntityHolder<T>,
+        sourcePaths: List<String> = emptyList(),
+    ) {
         if (jsonEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
             return
         }
+
+        entitySources[entityHolder.sourceClazzSimpleName] = sourcePaths
 
         val entitySchema =
             EntitySchema(
@@ -87,16 +138,4 @@ class SchemaGenerator(
         map {
             Queries(it.fields.asList())
         }
-
-    companion object {
-        /**
-         * Merges the schemas of the current processing run over the previously
-         * written ones. Incremental runs only see the changed entities, so the
-         * entities that were not reprocessed are kept from the existing file.
-         */
-        internal fun merge(
-            previous: List<EntitySchema>,
-            current: Map<String, EntitySchema>,
-        ): List<EntitySchema> = (previous.associateBy { it.name } + current).toSortedMap().values.toList()
-    }
 }

@@ -22,10 +22,13 @@ import j2html.TagCreator.th
 import j2html.TagCreator.thead
 import j2html.TagCreator.title
 import j2html.TagCreator.tr
-import com.schwarz.crystalcore.util.EmbeddedModel
+import com.schwarz.crystalcore.util.decodeJsonOrNull
+import com.schwarz.crystalcore.util.mergeSideOutputEntries
+import com.schwarz.crystalcore.util.readTextOrNull
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -37,11 +40,57 @@ class DocumentationGenerator(
 
     private val file = File(path, fileName)
 
-    private val docuEntitySegments = mutableMapOf<String, DomContent>()
+    // Persisted model of the last run (segments plus their source files), so
+    // partial (incremental) runs can merge and purge instead of shrinking the
+    // document to the reprocessed subset of entities. Deliberately not named
+    // *.json: the versioning plugin parses every *.json file in its schema
+    // directories.
+    private val modelFile = File(path, "$fileName.model")
 
-    fun generate() {
+    @Serializable
+    internal data class DocumentationSegment(
+        val html: String,
+        val sources: List<String> = emptyList(),
+    )
+
+    private val docuEntitySegments = mutableMapOf<String, DocumentationSegment>()
+
+    /**
+     * Renders the documentation. With [mergeWithPrevious] the current run may
+     * only have seen a subset of the entities (incremental KSP processing), so
+     * the segments are merged over the persisted model of the last run; entries
+     * whose source files disappeared or were reprocessed without producing the
+     * entity again ([reprocessedFilePaths]) are purged. Without the flag the
+     * document is rebuilt from this run's model alone.
+     */
+    fun generate(
+        mergeWithPrevious: Boolean = false,
+        reprocessedFilePaths: Set<String> = emptySet(),
+    ) {
+        val previousModelText = if (mergeWithPrevious) modelFile.readTextOrNull() else null
+        val previousSegments = decodeJsonOrNull<Map<String, DocumentationSegment>>(previousModelText)
+        if (mergeWithPrevious && previousSegments == null && !currentRunCoversExistingFile()) {
+            // The existing document predates the persisted model (or the model is
+            // corrupt), and this run saw fewer entities than the document lists,
+            // so it cannot rebuild the full document. Keep the complete-but-stale
+            // file; the next run that covers all entities rebuilds it and
+            // restores the model.
+            docuEntitySegments.clear()
+            return
+        }
+
         val mergedSegments =
-            (loadPreviousSegments() + docuEntitySegments.mapValues { it.value.render() }).toSortedMap()
+            mergeSideOutputEntries(
+                previousEntries = previousSegments ?: emptyMap(),
+                previousSources = previousSegments.orEmpty().mapValues { it.value.sources },
+                currentEntries = docuEntitySegments,
+                reprocessedFilePaths = reprocessedFilePaths,
+            )
+        if (mergeWithPrevious && file.exists() && mergedSegments == previousSegments) {
+            // Nothing changed: skip rendering and writing entirely.
+            docuEntitySegments.clear()
+            return
+        }
 
         val document =
             html(
@@ -83,37 +132,31 @@ class DocumentationGenerator(
                 body(
                     main(
                         attrs("#main.content"),
-                        div(*mergedSegments.values.map { rawHtml(it) }.toTypedArray()),
+                        div(*mergedSegments.values.map { rawHtml(it.html) }.toTypedArray()),
                     ),
                 ),
-            ).renderFormatted() +
-                "\n" +
-                EmbeddedModel.embed(MODEL_PREFIX, MODEL_SUFFIX, Json.encodeToString(mergedSegments.toMap())) +
-                "\n"
+            ).renderFormatted()
 
         path.mkdirs()
         file.writeTextIfChanged(document)
+        modelFile.writeTextIfChanged(
+            Json.encodeToString(mergedSegments.toMap()),
+            previousModelText ?: modelFile.readTextOrNull(),
+        )
         docuEntitySegments.clear()
     }
 
-    private fun loadPreviousSegments(): Map<String, String> =
-        if (file.exists()) {
-            EmbeddedModel
-                .extract(file.readText(), MODEL_PREFIX, MODEL_SUFFIX)
-                ?.let { runCatching { Json.decodeFromString<Map<String, String>>(it) }.getOrNull() }
-                ?: emptyMap()
-        } else {
-            emptyMap()
-        }
-
-    fun <T> addEntitySegments(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntitySegments(
+        entityHolder: BaseEntityHolder<T>,
+        sourcePaths: List<String> = emptyList(),
+    ) {
         if (docuEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
             return
         }
 
         val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host " +
             "+ window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
-        docuEntitySegments[entityHolder.sourceClazzSimpleName] =
+        val segment =
             div().withId(entityHolder.sourceClazzSimpleName).with(
                 h1(entityHolder.sourceClazzSimpleName),
                 rawHtml(btnWithSectionLink),
@@ -136,6 +179,16 @@ class DocumentationGenerator(
                     ),
                 ),
             )
+        docuEntitySegments[entityHolder.sourceClazzSimpleName] =
+            DocumentationSegment(html = segment.render(), sources = sourcePaths)
+    }
+
+    // Every entity segment contains exactly one showLink button, so counting it
+    // approximates how many entities the existing document describes.
+    private fun currentRunCoversExistingFile(): Boolean {
+        val existing = file.readTextOrNull() ?: return true
+        val documentedEntities = SHOW_LINK_MARKER.toRegex(RegexOption.LITERAL).findAll(existing).count()
+        return docuEntitySegments.size >= documentedEntities
     }
 
     private fun <T> evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
@@ -181,7 +234,6 @@ class DocumentationGenerator(
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"
         private const val CROSSMARK_EMOJI = "&#10062;"
-        private const val MODEL_PREFIX = "<!--crystal-map-model:"
-        private const val MODEL_SUFFIX = "-->"
+        private const val SHOW_LINK_MARKER = ">showLink</button>"
     }
 }

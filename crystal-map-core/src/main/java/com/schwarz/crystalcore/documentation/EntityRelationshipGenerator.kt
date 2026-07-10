@@ -1,7 +1,9 @@
 package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
-import com.schwarz.crystalcore.util.EmbeddedModel
+import com.schwarz.crystalcore.util.decodeJsonOrNull
+import com.schwarz.crystalcore.util.mergeSideOutputEntries
+import com.schwarz.crystalcore.util.readTextOrNull
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import com.squareup.kotlinpoet.TypeName
 import j2html.TagCreator.b
@@ -23,24 +25,74 @@ class EntityRelationshipGenerator(
     private val path = File(path)
     private val file = File(path, fileName)
 
+    // Persisted model of the last run (nodes, edges and their source files), so
+    // partial (incremental) runs can merge and purge instead of shrinking the
+    // graph to the reprocessed subset of entities. Deliberately not named
+    // *.json: the versioning plugin parses every *.json file in its schema
+    // directories.
+    private val modelFile = File(path, "$fileName.model")
+
     private val docuEntityNodes = mutableMapOf<String, DomContent>()
     private val docuEntityEdges = mutableMapOf<String, List<String>>()
+    private val docuEntitySources = mutableMapOf<String, List<String>>()
 
     @Serializable
     internal data class RelationshipModel(
         val nodes: Map<String, String>,
         val edges: Map<String, List<String>>,
+        val sources: Map<String, List<String>> = emptyMap(),
     )
 
-    fun generate() {
-        path.mkdirs()
+    /**
+     * Renders the relationship graph. With [mergeWithPrevious] the current run
+     * may only have seen a subset of the entities (incremental KSP processing),
+     * so nodes and edges are merged over the persisted model of the last run;
+     * entries whose source files disappeared or were reprocessed without
+     * producing the entity again ([reprocessedFilePaths]) are purged. Without
+     * the flag the graph is rebuilt from this run's model alone.
+     */
+    fun generate(
+        mergeWithPrevious: Boolean = false,
+        reprocessedFilePaths: Set<String> = emptySet(),
+    ) {
+        val previousModelText = if (mergeWithPrevious) modelFile.readTextOrNull() else null
+        val previous = decodeJsonOrNull<RelationshipModel>(previousModelText)
+        if (mergeWithPrevious && previous == null && !currentRunCoversExistingFile()) {
+            // The existing graph predates the persisted model (or the model is
+            // corrupt), and this run saw fewer entities than the graph lists, so
+            // it cannot rebuild the full graph. Keep the complete-but-stale file;
+            // the next run that covers all entities rebuilds it and restores the
+            // model.
+            clearCollectedEntities()
+            return
+        }
 
-        val previous = loadPreviousModel()
+        val mergedNodes =
+            mergeSideOutputEntries(
+                previousEntries = previous?.nodes ?: emptyMap(),
+                previousSources = previous?.sources ?: emptyMap(),
+                currentEntries = docuEntityNodes.mapValues { it.value.render() },
+                reprocessedFilePaths = reprocessedFilePaths,
+            )
         val merged =
             RelationshipModel(
-                nodes = (previous.nodes + docuEntityNodes.mapValues { it.value.render() }).toSortedMap(),
-                edges = (previous.edges + docuEntityEdges).toSortedMap(),
+                nodes = mergedNodes,
+                edges =
+                    (
+                        (previous?.edges ?: emptyMap()).filterKeys { mergedNodes.containsKey(it) } + docuEntityEdges
+                    ).toSortedMap(),
+                sources =
+                    (
+                        (previous?.sources ?: emptyMap()).filterKeys { mergedNodes.containsKey(it) } + docuEntitySources
+                    ).toSortedMap(),
             )
+        if (mergeWithPrevious && file.exists() && merged == previous) {
+            // Nothing changed: skip rendering and writing entirely.
+            clearCollectedEntities()
+            return
+        }
+
+        path.mkdirs()
 
         val documentBuilder = StringBuilder()
         documentBuilder.append("graph ER {\n")
@@ -53,23 +105,32 @@ class EntityRelationshipGenerator(
         documentBuilder.append("\n")
         documentBuilder.append("fontsize=12;\n")
         documentBuilder.append("}\n")
-        documentBuilder.append(EmbeddedModel.embed(MODEL_PREFIX, "", Json.encodeToString(merged)))
-        documentBuilder.append("\n")
 
         file.writeTextIfChanged(documentBuilder.toString())
-        docuEntityNodes.clear()
-        docuEntityEdges.clear()
+        modelFile.writeTextIfChanged(
+            Json.encodeToString(merged),
+            previousModelText ?: modelFile.readTextOrNull(),
+        )
+        clearCollectedEntities()
     }
 
-    private fun loadPreviousModel(): RelationshipModel =
-        if (file.exists()) {
-            EmbeddedModel
-                .extract(file.readText(), MODEL_PREFIX, "")
-                ?.let { runCatching { Json.decodeFromString<RelationshipModel>(it) }.getOrNull() }
-                ?: EMPTY_MODEL
-        } else {
-            EMPTY_MODEL
-        }
+    private fun clearCollectedEntities() {
+        docuEntityNodes.clear()
+        docuEntityEdges.clear()
+        docuEntitySources.clear()
+    }
+
+    // Every entity node block contains exactly one "[label=<" marker, so
+    // counting it approximates how many entities the existing graph describes.
+    private fun currentRunCoversExistingFile(): Boolean {
+        val existing = file.readTextOrNull() ?: return true
+        val documentedEntities = NODE_LABEL_MARKER.toRegex(RegexOption.LITERAL).findAll(existing).count()
+        return docuEntityNodes.size >= documentedEntities
+    }
+
+    private companion object {
+        private const val NODE_LABEL_MARKER = "[label=<"
+    }
 
     private fun renderRelationshipDiamonds(edges: Map<String, List<String>>): String =
         edges
@@ -92,12 +153,17 @@ class EntityRelationshipGenerator(
         return nodeBuilder.toString()
     }
 
-    fun <T> addEntityNodes(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntityNodes(
+        entityHolder: BaseEntityHolder<T>,
+        sourcePaths: List<String> = emptyList(),
+    ) {
         if (docuEntityNodes.containsKey(entityHolder.sourceClazzSimpleName) ||
             docuEntityEdges.containsKey(entityHolder.sourceClazzSimpleName)
         ) {
             return
         }
+
+        docuEntitySources[entityHolder.sourceClazzSimpleName] = sourcePaths
 
         docuEntityNodes[entityHolder.sourceClazzSimpleName] =
             table(
@@ -138,11 +204,6 @@ class EntityRelationshipGenerator(
 
     fun extractClassName(fullClassName: TypeName): String =
         fullClassName.toString().split(".").last()
-
-    companion object {
-        private const val MODEL_PREFIX = "// crystal-map-model:"
-        private val EMPTY_MODEL = RelationshipModel(emptyMap(), emptyMap())
-    }
 
     private fun renderRelationships(edges: Map<String, List<String>>): String =
         edges

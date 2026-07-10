@@ -8,6 +8,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSNode
 import com.schwarz.crystalapi.BaseModel
 import com.schwarz.crystalapi.Entity
@@ -66,9 +67,17 @@ class CrystalProcessor(
 
     private val cachedPreWorkset = CachedWorkSet()
 
+    // Source files KSP handed to this compilation. On incremental runs this is
+    // only the dirty subset, so the doc/schema side outputs merge with their
+    // previous state and use this set to purge entries whose sources were
+    // reprocessed without producing them again.
+    private val reprocessedFilePaths = mutableSetOf<String>()
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         ProcessingContext.resolver = resolver
         ProcessingContext.logger = mLogger
+
+        resolver.getNewFiles().mapTo(reprocessedFilePaths) { it.filePath }
 
         resolver
             .getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
@@ -118,9 +127,20 @@ class CrystalProcessor(
         try {
             runWorkers()
         } finally {
-            ProcessingContext.cleanup()
-            cachedPreWorkset.clear()
+            clearProcessingState()
         }
+    }
+
+    // KSP calls onError() INSTEAD of finish() when errors were reported during
+    // processing, so the state must be cleared here as well.
+    override fun onError() {
+        clearProcessingState()
+    }
+
+    private fun clearProcessingState() {
+        ProcessingContext.cleanup()
+        cachedPreWorkset.clear()
+        reprocessedFilePaths.clear()
     }
 
     private fun runWorkers() {
@@ -150,6 +170,9 @@ class CrystalProcessor(
                                 .toSourceModel(),
                         getterCache = processingEnvironmentWrapper.getterCache,
                     ),
+                    mergeSideOutputs = true,
+                    reprocessedFilePaths = reprocessedFilePaths.toSet(),
+                    originFilePath = { (it as? KSFile)?.filePath },
                 ),
                 MapperWorker(
                     mLogger,
@@ -236,10 +259,32 @@ class CrystalProcessorProvider : SymbolProcessorProvider {
     var lastCreatedProcessor: CrystalProcessor? = null
         private set
 
-    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
-        CrystalProcessor(
+    @Suppress("DEPRECATION")
+    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        val options = environment.options
+        if (options.containsKey(CACHE_DIR_OPTION_NAME) || options.containsKey(CACHE_ENABLED_OPTION_NAME)) {
+            environment.logger.warn(
+                "The KSP options '$CACHE_DIR_OPTION_NAME' and '$CACHE_ENABLED_OPTION_NAME' are no longer " +
+                    "supported and are ignored: the generation cache was removed because it broke " +
+                    "incremental builds (see docs/generation-cache-fix.md). Remove the arguments from " +
+                    "your ksp { } block.",
+            )
+        }
+        return CrystalProcessor(
             environment.codeGenerator,
             environment.logger,
-            ProcessingEnvironmentWrapper(environment.options),
+            ProcessingEnvironmentWrapper(options),
         ).also { lastCreatedProcessor = it }
+    }
+
+    companion object {
+        @Deprecated("The generation cache was removed; this option is ignored (see docs/generation-cache-fix.md).")
+        const val CACHE_DIR_OPTION_NAME = "crystal.cache.dir"
+
+        @Deprecated("The generation cache was removed; this option is ignored (see docs/generation-cache-fix.md).")
+        const val CACHE_ENABLED_OPTION_NAME = "crystal.incremental.cache"
+
+        @Deprecated("The generation cache was removed; no cache file is written anymore.")
+        const val CACHE_FILE_NAME = "crystal-map-cache.tsv"
+    }
 }

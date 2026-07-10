@@ -48,4 +48,51 @@ class FileUtilTest {
         assertEquals("new content", file.readText())
         assertNotEquals(oldTimestamp, Files.getLastModifiedTime(file.toPath()))
     }
+
+    @Test
+    fun `overload with cached previous content skips write without re-reading`() {
+        val file = File(tempDir, "output.txt")
+        file.writeText("content")
+        val oldTimestamp = FileTime.fromMillis(1_000_000L)
+        Files.setLastModifiedTime(file.toPath(), oldTimestamp)
+
+        file.writeTextIfChanged("content", "content")
+
+        assertEquals(oldTimestamp, Files.getLastModifiedTime(file.toPath()))
+    }
+
+    @Test
+    fun `overload with null previous content writes`() {
+        val file = File(tempDir, "output.txt")
+
+        file.writeTextIfChanged("content", null)
+
+        assertEquals("content", file.readText())
+    }
+
+    @Test
+    fun `atomic write leaves no temp files behind`() {
+        val file = File(tempDir, "output.txt")
+        file.writeText("old")
+
+        file.writeTextIfChanged("new")
+
+        assertEquals(listOf("output.txt"), tempDir.list()!!.toList())
+    }
+
+    @Test
+    fun `readTextOrNull returns content or null`() {
+        val file = File(tempDir, "output.txt")
+        assertEquals(null, file.readTextOrNull())
+
+        file.writeText("content")
+        assertEquals("content", file.readTextOrNull())
+    }
+
+    @Test
+    fun `decodeJsonOrNull decodes valid json and swallows garbage`() {
+        assertEquals(mapOf("a" to "b"), decodeJsonOrNull<Map<String, String>>("""{"a":"b"}"""))
+        assertEquals(null, decodeJsonOrNull<Map<String, String>>("not json"))
+        assertEquals(null, decodeJsonOrNull<Map<String, String>>(null))
+    }
 }
