@@ -10,6 +10,8 @@ Related commits:
 |---|---|
 | `1d83668` | Remove `GenerationCache` from KSP-managed outputs, add content-based skip for doc/schema side outputs |
 | `441d4dd` | Merge doc/schema outputs across incremental processing runs |
+| `5e2cf96` | Clear `ProcessingContext` state on every `finish()` exit path |
+| `20fa546` | Code-review fixes: source-file-based purge, `onError()` cleanup, `.model` sidecars, deprecated cache options, atomic writes |
 
 ## Background
 
@@ -74,46 +76,82 @@ outputs that KSP does *not* manage and therefore never deletes: documentation
 HTML, entity-relationship graph and schema JSON. These are written via
 `File.writeTextIfChanged(...)` (`crystal-map-core`,
 `com.schwarz.crystalcore.util.FileUtil`), which skips the write when the file
-already contains exactly the new content. This keeps timestamps stable for
-consumers watching those files.
+already contains exactly the new content. Writes go through a temp file plus
+atomic rename, so concurrent readers never observe a torn write. This keeps
+timestamps stable for consumers watching those files.
 
-### 3. Side outputs: merge across incremental runs (`441d4dd`)
+### 3. Side outputs: merge and purge across incremental runs
 
 Incremental KSP runs only hand the processor the changed symbols. The aggregate
 side outputs used to be overwritten with just that subset — a schema of 21
 entities shrank to 1 after touching a single source file. The generators now
-merge with the previously written file (current run wins per entity) and render
-deterministically sorted by entity name:
+persist a model of their last run and merge:
 
-- **`SchemaGenerator`** — the JSON file is its own model: parse, merge by
-  `EntitySchema.name`, write.
+- **`SchemaGenerator`** — the schema JSON keeps its published format
+  (`List<EntitySchema>`) and is its own model; the per-entity source file paths
+  live in a sidecar (`<fileName>.model`, JSON content). The sidecar deliberately
+  does not use a `.json` extension because the versioning plugin parses every
+  `*.json` file in its schema directories.
 - **`DocumentationGenerator` / `EntityRelationshipGenerator`** — HTML and DOT
-  cannot be parsed back losslessly, so both embed their segment model as a
-  Base64-encoded JSON comment in the generated file and load it back on the
-  next run:
+  cannot be parsed back losslessly, so each persists its segment model
+  (rendered segment plus source file paths) in the same kind of `.model`
+  sidecar next to the output file.
 
-  ```
-  <!--crystal-map-model:eyJQcm9kdWN0IjoiPGRpdiBpZD0i…-->   (HTML)
-  // crystal-map-model:eyJub2RlcyI6eyJQcm9kdWN0Ijo…        (DOT)
-  ```
+Merging is source-file based (`com.schwarz.crystalcore.util.SideOutputMerge`)
+and needs no full-vs-incremental detection (KSP2's `Resolver.getAllFiles()` is
+scoped to the dirty files of the round, so run types cannot be told apart). A
+previously generated entry survives a run unless there is positive evidence
+that it is gone:
 
-  Encoding/decoding lives in `com.schwarz.crystalcore.util.EmbeddedModel`.
-  A missing or corrupt model comment falls back to the previous behavior
-  (file is rebuilt from the current run only).
+1. the current run produced the entry again — current wins,
+2. all of its recorded source files were deleted — purged,
+3. one of its source files was reprocessed in this run without producing the
+   entry again (annotation removed, entity renamed) — purged.
 
-## Known limitation
+This purges deleted and renamed entities on *incremental* builds, not just on
+full rebuilds. Entries without recorded sources (kapt, pre-existing files) are
+kept conservatively.
 
-Entities deleted from source stick around in documentation and schema until the
-next clean/full generation — a removal cannot be detected from a partial model.
-If exact outputs are required (e.g. for schema versioning releases), generate
-them from a clean build.
+**Migration**: an output file written by an older version has no `.model`
+sidecar. A partial run cannot rebuild the full document, so the generators keep
+the complete-but-stale file frozen until a run covers at least as many entities
+as the document lists (a full rebuild) — that run rebuilds the file and
+restores the sidecar. The schema JSON is not affected (it is its own model).
+
+### 4. Daemon-safe processor state
+
+`CrystalProcessor` clears its static `ProcessingContext` state on every exit
+path: `finish()` uses try/finally, and `onError()` — which KSP calls *instead
+of* `finish()` when errors were reported — is overridden to clean up as well.
+Without this, stale registries survive in the Gradle daemon and cause spurious
+"Duplicate Entity class found" errors after a failed build.
+
+### 5. Deprecated options instead of silent removal
+
+`CrystalProcessorProvider` retains the `CACHE_DIR_OPTION_NAME`,
+`CACHE_ENABLED_OPTION_NAME` and `CACHE_FILE_NAME` constants as `@Deprecated`
+for compatibility, and passing `crystal.cache.dir` or
+`crystal.incremental.cache` produces a KSP warning explaining that the cache
+was removed.
+
+## Known limitations
+
+- Entries recorded without source paths (written by kapt or by a pre-sidecar
+  version) cannot be purged automatically until they are reprocessed once;
+  a clean build always produces exact outputs.
+- All build variants of a module write the side outputs to the same configured
+  path (single `ksp {}` block). Entities that exist only in one variant's
+  source set therefore accumulate in the shared file; per-variant output paths
+  would require variant-specific KSP arguments.
 
 ## Verification
 
-- Unit tests: `FileUtilTest`, `EmbeddedModelTest`, `SchemaGeneratorTest`
-  (`crystal-map-core`).
+- Unit tests: `FileUtilTest`, `SideOutputMergeTest` (`crystal-map-core`).
 - End-to-end on the demo module: full build produces 21 entities in
   `demo_schema.json`; an incremental build after touching one source file keeps
   all 21 (previously 1); a repeated no-op run leaves file timestamps untouched;
-  adding an entity yields 22 while preserving the rest; same behavior for the
-  documentation HTML.
+  adding an entity yields 22 while preserving the rest; deleting that entity
+  purges it again on the following *incremental* build (21 — previously it
+  lingered until a clean build); documentation HTML behaves identically. With
+  the sidecar removed, an incremental run keeps the document frozen and a
+  covering rebuild restores it.
