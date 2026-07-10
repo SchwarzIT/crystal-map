@@ -11,6 +11,7 @@ import com.schwarz.crystalcore.model.deprecated.DeprecatedModel
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
 import com.schwarz.crystalcore.model.field.CblBaseFieldHolder
 import com.schwarz.crystalcore.model.query.CblQueryHolder
+import com.schwarz.crystalcore.util.writeTextIfChanged
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -28,7 +29,7 @@ class SchemaGenerator(
         }
         path.mkdirs()
 
-        File(path, fileName).writeText(Json.encodeToString(jsonEntitySegments.values.toList()))
+        File(path, fileName).writeTextIfChanged(Json.encodeToString(jsonEntitySegments.values.toList()))
         jsonEntitySegments.clear()
     }
 

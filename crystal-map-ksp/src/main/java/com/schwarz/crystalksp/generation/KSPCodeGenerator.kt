@@ -13,7 +13,6 @@ import java.io.IOException
 
 class KSPCodeGenerator(
     private val generator: CodeGenerator,
-    private val cache: GenerationCache? = null,
 ) : ICodeGenerator {
     data class GenerationRecord(
         val fileName: String,
@@ -58,11 +57,6 @@ class KSPCodeGenerator(
 
         val fileWithHeader = toGenerate.toBuilder().addFileComment(HEADER).build()
         val content = fileWithHeader.toString()
-        if (cache != null &&
-            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, content)
-        ) {
-            return
-        }
         generator
             .createNewFile(
                 dependencies,
@@ -127,11 +121,6 @@ class KSPCodeGenerator(
                 }
             }
 
-        if (cache != null &&
-            !cache.shouldGenerate(fileWithHeader.packageName, fileWithHeader.name, fixedFileString)
-        ) {
-            return
-        }
         generator
             .createNewFile(
                 dependencies,

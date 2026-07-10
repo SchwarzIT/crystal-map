@@ -76,10 +76,6 @@ ksp {
     arg("crystal.entityframework.documentation.fileName", "demo.html")
     arg("crystal.entityframework.schema.generated", "${buildDirPath}/entity_schema")
     arg("crystal.entityframework.schema.fileName", "demo_schema.json")
-    // crystal.cache.dir disabled: the persistent generation cache makes the processor
-    // skip createNewFile on full KSP reprocessing runs, so KSP deletes the generated
-    // sources and compilation fails (cache outlives the KSP task outputs).
-    // arg("crystal.cache.dir", "${buildDirPath}/generated/ksp/crystal-cache")
 }
 
 dependencies {

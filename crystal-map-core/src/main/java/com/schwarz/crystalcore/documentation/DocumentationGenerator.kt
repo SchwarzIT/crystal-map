@@ -22,6 +22,7 @@ import j2html.TagCreator.th
 import j2html.TagCreator.thead
 import j2html.TagCreator.title
 import j2html.TagCreator.tr
+import com.schwarz.crystalcore.util.writeTextIfChanged
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
 import java.io.File
@@ -83,7 +84,7 @@ class DocumentationGenerator(
             ).renderFormatted()
 
         path.mkdirs()
-        file.writeText(document)
+        file.writeTextIfChanged(document)
         docuEntitySegments.clear()
     }
 

@@ -1,6 +1,7 @@
 package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
+import com.schwarz.crystalcore.util.writeTextIfChanged
 import com.squareup.kotlinpoet.TypeName
 import j2html.TagCreator.b
 import j2html.TagCreator.rawHtml
@@ -37,7 +38,7 @@ class EntityRelationshipGenerator(
         documentBuilder.append("fontsize=12;\n")
         documentBuilder.append("}\n")
 
-        file.writeText(documentBuilder.toString())
+        file.writeTextIfChanged(documentBuilder.toString())
         docuEntityNodes.clear()
         docuEntityEdges.clear()
     }
