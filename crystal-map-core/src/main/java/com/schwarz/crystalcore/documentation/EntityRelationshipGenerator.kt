@@ -1,6 +1,7 @@
 package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
+import com.schwarz.crystalcore.util.EmbeddedModel
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import com.squareup.kotlinpoet.TypeName
 import j2html.TagCreator.b
@@ -11,6 +12,8 @@ import j2html.TagCreator.text
 import j2html.TagCreator.th
 import j2html.TagCreator.tr
 import j2html.tags.DomContent
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class EntityRelationshipGenerator(
@@ -23,45 +26,68 @@ class EntityRelationshipGenerator(
     private val docuEntityNodes = mutableMapOf<String, DomContent>()
     private val docuEntityEdges = mutableMapOf<String, List<String>>()
 
+    @Serializable
+    internal data class RelationshipModel(
+        val nodes: Map<String, String>,
+        val edges: Map<String, List<String>>,
+    )
+
     fun generate() {
         path.mkdirs()
+
+        val previous = loadPreviousModel()
+        val merged =
+            RelationshipModel(
+                nodes = (previous.nodes + docuEntityNodes.mapValues { it.value.render() }).toSortedMap(),
+                edges = (previous.edges + docuEntityEdges).toSortedMap(),
+            )
 
         val documentBuilder = StringBuilder()
         documentBuilder.append("graph ER {\n")
         documentBuilder.append("node [shape=diamond];\n")
-        documentBuilder.append(renderRelationshipDiamonds())
+        documentBuilder.append(renderRelationshipDiamonds(merged.edges))
         documentBuilder.append("\n")
-        documentBuilder.append(renderEntityNodes())
+        documentBuilder.append(renderEntityNodes(merged.nodes))
         documentBuilder.append("\n")
-        documentBuilder.append(renderRelationships())
+        documentBuilder.append(renderRelationships(merged.edges))
         documentBuilder.append("\n")
         documentBuilder.append("fontsize=12;\n")
         documentBuilder.append("}\n")
+        documentBuilder.append(EmbeddedModel.embed(MODEL_PREFIX, "", Json.encodeToString(merged)))
+        documentBuilder.append("\n")
 
         file.writeTextIfChanged(documentBuilder.toString())
         docuEntityNodes.clear()
         docuEntityEdges.clear()
     }
 
-    private fun renderRelationshipDiamonds(): String =
-        docuEntityEdges
-            .toSortedMap()
+    private fun loadPreviousModel(): RelationshipModel =
+        if (file.exists()) {
+            EmbeddedModel
+                .extract(file.readText(), MODEL_PREFIX, "")
+                ?.let { runCatching { Json.decodeFromString<RelationshipModel>(it) }.getOrNull() }
+                ?: EMPTY_MODEL
+        } else {
+            EMPTY_MODEL
+        }
+
+    private fun renderRelationshipDiamonds(edges: Map<String, List<String>>): String =
+        edges
             .filter { it.value.isNotEmpty() }
             .map { "  ${it.key}_has  [label=\"has\"];\n" }
             .joinToString("")
 
-    private fun renderEntityNodes(): String =
-        docuEntityNodes
-            .toSortedMap()
+    private fun renderEntityNodes(nodes: Map<String, String>): String =
+        nodes
             .map { renderEntityNode(it) }
             .joinToString("\n\n")
 
-    private fun renderEntityNode(node: Map.Entry<String, DomContent>): String {
+    private fun renderEntityNode(node: Map.Entry<String, String>): String {
         val nodeBuilder = StringBuilder()
         nodeBuilder.append("node [shape=plain]\n")
         nodeBuilder.append("  rankdir=LR;\n")
         nodeBuilder.append("  ${node.key} [label=<\n")
-        nodeBuilder.append("  ${node.value.render()}\n")
+        nodeBuilder.append("  ${node.value}\n")
         nodeBuilder.append("  >];\n")
         return nodeBuilder.toString()
     }
@@ -113,13 +139,17 @@ class EntityRelationshipGenerator(
     fun extractClassName(fullClassName: TypeName): String =
         fullClassName.toString().split(".").last()
 
-    private fun renderRelationships(): String =
-        docuEntityEdges
-            .toSortedMap()
+    companion object {
+        private const val MODEL_PREFIX = "// crystal-map-model:"
+        private val EMPTY_MODEL = RelationshipModel(emptyMap(), emptyMap())
+    }
+
+    private fun renderRelationships(edges: Map<String, List<String>>): String =
+        edges
             .filter { it.value.isNotEmpty() }
             .map { edge -> "${edge.key} -- ${edge.key}_has;\n" }
             .joinToString("") +
-            docuEntityEdges
+            edges
                 .filter { it.value.isNotEmpty() }
                 .map { edge -> edge.value.map { "${edge.key}_has -- $it;\n" } }
                 .flatten()

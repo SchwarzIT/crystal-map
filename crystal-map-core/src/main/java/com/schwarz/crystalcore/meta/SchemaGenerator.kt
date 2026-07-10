@@ -29,9 +29,18 @@ class SchemaGenerator(
         }
         path.mkdirs()
 
-        File(path, fileName).writeTextIfChanged(Json.encodeToString(jsonEntitySegments.values.toList()))
+        val file = File(path, fileName)
+        val merged = merge(loadPreviousSchemas(file), jsonEntitySegments)
+        file.writeTextIfChanged(Json.encodeToString(merged))
         jsonEntitySegments.clear()
     }
+
+    private fun loadPreviousSchemas(file: File): List<EntitySchema> =
+        if (file.exists()) {
+            runCatching { Json.decodeFromString<List<EntitySchema>>(file.readText()) }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
 
     fun <T> addEntity(entityHolder: BaseEntityHolder<T>) {
         if (jsonEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
@@ -78,4 +87,16 @@ class SchemaGenerator(
         map {
             Queries(it.fields.asList())
         }
+
+    companion object {
+        /**
+         * Merges the schemas of the current processing run over the previously
+         * written ones. Incremental runs only see the changed entities, so the
+         * entities that were not reprocessed are kept from the existing file.
+         */
+        internal fun merge(
+            previous: List<EntitySchema>,
+            current: Map<String, EntitySchema>,
+        ): List<EntitySchema> = (previous.associateBy { it.name } + current).toSortedMap().values.toList()
+    }
 }

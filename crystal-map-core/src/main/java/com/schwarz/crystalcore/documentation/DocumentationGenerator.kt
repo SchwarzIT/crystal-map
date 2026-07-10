@@ -22,9 +22,11 @@ import j2html.TagCreator.th
 import j2html.TagCreator.thead
 import j2html.TagCreator.title
 import j2html.TagCreator.tr
+import com.schwarz.crystalcore.util.EmbeddedModel
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class DocumentationGenerator(
@@ -38,6 +40,9 @@ class DocumentationGenerator(
     private val docuEntitySegments = mutableMapOf<String, DomContent>()
 
     fun generate() {
+        val mergedSegments =
+            (loadPreviousSegments() + docuEntitySegments.mapValues { it.value.render() }).toSortedMap()
+
         val document =
             html(
                 head(
@@ -78,15 +83,28 @@ class DocumentationGenerator(
                 body(
                     main(
                         attrs("#main.content"),
-                        div(*docuEntitySegments.values.toTypedArray()),
+                        div(*mergedSegments.values.map { rawHtml(it) }.toTypedArray()),
                     ),
                 ),
-            ).renderFormatted()
+            ).renderFormatted() +
+                "\n" +
+                EmbeddedModel.embed(MODEL_PREFIX, MODEL_SUFFIX, Json.encodeToString(mergedSegments.toMap())) +
+                "\n"
 
         path.mkdirs()
         file.writeTextIfChanged(document)
         docuEntitySegments.clear()
     }
+
+    private fun loadPreviousSegments(): Map<String, String> =
+        if (file.exists()) {
+            EmbeddedModel
+                .extract(file.readText(), MODEL_PREFIX, MODEL_SUFFIX)
+                ?.let { runCatching { Json.decodeFromString<Map<String, String>>(it) }.getOrNull() }
+                ?: emptyMap()
+        } else {
+            emptyMap()
+        }
 
     fun <T> addEntitySegments(entityHolder: BaseEntityHolder<T>) {
         if (docuEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
@@ -163,5 +181,7 @@ class DocumentationGenerator(
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"
         private const val CROSSMARK_EMOJI = "&#10062;"
+        private const val MODEL_PREFIX = "<!--crystal-map-model:"
+        private const val MODEL_SUFFIX = "-->"
     }
 }
