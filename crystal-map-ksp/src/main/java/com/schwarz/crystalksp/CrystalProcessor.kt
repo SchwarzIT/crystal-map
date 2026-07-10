@@ -112,6 +112,18 @@ class CrystalProcessor(
     }
 
     override fun finish() {
+        // KSP2 runs processors inside the Gradle daemon, so the static state in
+        // ProcessingContext survives into the next compilation unless it is
+        // cleared on every exit path, including worker errors.
+        try {
+            runWorkers()
+        } finally {
+            ProcessingContext.cleanup()
+            cachedPreWorkset.clear()
+        }
+    }
+
+    private fun runWorkers() {
         workers =
             setOf(
                 ModelWorker<KSNode>(
@@ -163,8 +175,6 @@ class CrystalProcessor(
                 return
             }
         }
-        ProcessingContext.cleanup()
-        cachedPreWorkset.clear()
     }
 
     private fun unboxError(value: Any?): List<KSNode> =
