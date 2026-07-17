@@ -15,30 +15,40 @@ import com.schwarz.crystalcore.util.SideOutputModelFile
 import com.schwarz.crystalcore.util.decodeJsonOrNull
 import com.schwarz.crystalcore.util.mergeSideOutputEntries
 import com.schwarz.crystalcore.util.readTextOrNull
+import com.schwarz.crystalcore.util.unpurgeableEntriesWarning
 import com.schwarz.crystalcore.util.writeTextIfChanged
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 
 class SchemaGenerator(
     path: String,
     val fileName: String,
+    private val warn: (String) -> Unit = {},
 ) {
     private val path = File(path)
 
     // The schema file itself stays a plain List<EntitySchema> (its published
-    // format); the per-entity source files needed for merging live in the sidecar.
+    // format); the sidecar carries the full previous-run model so the schema
+    // survives deletion or corruption of the published file.
     private val modelFile = SideOutputModelFile(this.path, fileName)
+
+    @Serializable
+    internal data class SchemaModel(
+        val entities: List<EntitySchema> = emptyList(),
+        val sources: Map<String, List<String>> = emptyMap(),
+    )
 
     private val jsonEntitySegments = mutableMapOf<String, EntitySchema>()
     private val entitySources = mutableMapOf<String, List<String>>()
 
     /**
-     * Writes the schema JSON. With [mergeWithPrevious] the current run may only
-     * have seen a subset of the entities (incremental KSP processing), so they
-     * are merged over the previously written file; entries whose source files
-     * disappeared or were reprocessed without producing the entity again
-     * ([reprocessedFilePaths]) are purged. Without the flag the schema is
-     * rebuilt from this run's model alone.
+     * With [mergeWithPrevious] the current run may only have seen a subset of
+     * the entities (incremental KSP processing), so they are merged over the
+     * previous run's model; entries whose source files disappeared or were
+     * reprocessed without producing the entity again ([reprocessedFilePaths])
+     * are purged. Without the flag the schema is rebuilt from this run's model
+     * alone.
      */
     fun generate(
         mergeWithPrevious: Boolean = false,
@@ -50,36 +60,63 @@ class SchemaGenerator(
         path.mkdirs()
 
         val file = File(path, fileName)
-        val previousText = file.readTextOrNull()
-        val previous = if (mergeWithPrevious) decodeJsonOrNull<List<EntitySchema>>(previousText) else null
-        if (mergeWithPrevious && previousText != null && previous == null) {
-            // An existing schema that no longer decodes cannot be merged, and
-            // rebuilding would degrade it to the reprocessed subset of entities.
-            // Keep the complete-but-stale file until it is fixed or deleted.
+        val previousFileText = file.readTextOrNull()
+        val previous =
+            modelFile.loadPrevious(
+                mergeWithPrevious,
+                decode = { decodeJsonOrNull<SchemaModel>(it) },
+                reconstruct = { legacyPreviousModel(it, previousFileText) },
+            )
+        val previousModel = previous.model
+        if (mergeWithPrevious && previousModel == null && previousFileText != null) {
+            // Neither the sidecar nor the schema file itself is decodable, and
+            // rebuilding would degrade the schema to the reprocessed subset of
+            // entities. Keep the complete-but-stale file until it is fixed or
+            // deleted.
+            warn(
+                "Schema file $fileName is not decodable and no usable sidecar model exists; " +
+                    "keeping the stale file. Delete it to regenerate from scratch.",
+            )
             clearCollectedEntities()
             return
         }
-        val previousSourcesText = if (mergeWithPrevious) modelFile.readText() else null
-        val previousSources = decodeJsonOrNull<Map<String, List<String>>>(previousSourcesText) ?: emptyMap()
 
         val merged =
             mergeSideOutputEntries(
-                previousEntries = previous.orEmpty().associateBy { it.name },
-                previousSources = previousSources,
+                previousEntries = previousModel?.entities.orEmpty().associateBy { it.name },
+                previousSources = previousModel?.sources.orEmpty(),
                 currentEntries = jsonEntitySegments,
                 reprocessedFilePaths = reprocessedFilePaths,
+                onUnpurgeableEntries = { warn(unpurgeableEntriesWarning(fileName, it)) },
             )
         if (merged.isEmpty() && !file.exists()) {
             clearCollectedEntities()
             return
         }
         val mergedSources =
-            (previousSources.filterKeys { merged.containsKey(it) } + entitySources).toSortedMap()
+            (previousModel?.sources.orEmpty().filterKeys { merged.containsKey(it) } + entitySources).toSortedMap()
 
-        file.writeTextIfChanged(Json.encodeToString(merged.values.toList()), previousText)
-        modelFile.persist(Json.encodeToString(mergedSources.toMap()), previousSourcesText)
+        file.writeTextIfChanged(Json.encodeToString(merged.values.toList()), previousFileText)
+        modelFile.persist(
+            Json.encodeToString(SchemaModel(entities = merged.values.toList(), sources = mergedSources)),
+            previous.text,
+        )
         clearCollectedEntities()
     }
+
+    // Sidecars written before the entities moved into the model held only the
+    // source map; the entities of such runs are recovered from the schema file,
+    // which is its own published model.
+    private fun legacyPreviousModel(
+        previousModelText: String?,
+        previousFileText: String?,
+    ): SchemaModel? =
+        decodeJsonOrNull<List<EntitySchema>>(previousFileText)?.let {
+            SchemaModel(
+                entities = it,
+                sources = decodeJsonOrNull<Map<String, List<String>>>(previousModelText).orEmpty(),
+            )
+        }
 
     private fun clearCollectedEntities() {
         jsonEntitySegments.clear()

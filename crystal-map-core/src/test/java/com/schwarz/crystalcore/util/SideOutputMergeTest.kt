@@ -100,4 +100,19 @@ class SideOutputMergeTest {
 
         assertEquals(listOf("Alpha", "Mid", "Zebra"), merged.keys.toList())
     }
+
+    @Test
+    fun `reports kept entries without recorded sources as unpurgeable`() {
+        var reported: Set<String>? = null
+
+        mergeSideOutputEntries(
+            previousEntries = mapOf("Ghost" to "old", "Live" to "old"),
+            previousSources = mapOf("Live" to listOf(source("Live.kt"))),
+            currentEntries = emptyMap(),
+            reprocessedFilePaths = emptySet(),
+            onUnpurgeableEntries = { reported = it },
+        )
+
+        assertEquals(setOf("Ghost"), reported)
+    }
 }

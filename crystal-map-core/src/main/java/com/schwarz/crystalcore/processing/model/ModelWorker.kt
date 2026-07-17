@@ -30,9 +30,8 @@ class ModelWorker<T>(
     // (incremental KSP processing): the doc/schema side outputs then merge with
     // the previous run instead of being rebuilt from the partial model.
     private val mergeSideOutputs: Boolean = false,
-    // Source files that were (re)processed in this run; previously generated
-    // side-output entries originating from them are purged when the run no
-    // longer produces them.
+    // Previously generated side-output entries whose origin is in this set are
+    // purged when the run no longer produces them.
     private val reprocessedFilePaths: Set<String> = emptySet(),
     // Extracts a stable file path from a platform originating-file object
     // (KSFile for KSP); null when the platform cannot provide one (kapt).
@@ -43,21 +42,23 @@ class ModelWorker<T>(
     private var schemaGenerator: SchemaGenerator? = null
 
     override fun init() {
+        val warn: (String) -> Unit = { logger.warn(it, null) }
         settings.documentationPath?.let {
             documentationGenerator =
-                DocumentationGenerator(it, settings.documentationFilename ?: "default.html")
+                DocumentationGenerator(it, settings.documentationFilename ?: "default.html", warn)
         }
         settings.schemaPath?.let {
             schemaGenerator =
                 SchemaGenerator(
                     it,
                     settings.schemaFilename ?: "schema.json",
+                    warn,
                 )
         }
 
         settings.entityRelationshipPath?.let {
             entityRelationshipGenerator =
-                EntityRelationshipGenerator(it, settings.entityRelationshipFilename ?: "default.gv")
+                EntityRelationshipGenerator(it, settings.entityRelationshipFilename ?: "default.gv", warn)
         }
     }
 

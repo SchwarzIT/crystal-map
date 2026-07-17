@@ -26,6 +26,7 @@ import com.schwarz.crystalcore.util.SideOutputModelFile
 import com.schwarz.crystalcore.util.decodeJsonOrNull
 import com.schwarz.crystalcore.util.mergeSideOutputEntries
 import com.schwarz.crystalcore.util.readTextOrNull
+import com.schwarz.crystalcore.util.unpurgeableEntriesWarning
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
@@ -36,6 +37,7 @@ import java.io.File
 class DocumentationGenerator(
     path: String,
     fileName: String,
+    private val warn: (String) -> Unit = {},
 ) {
     private val path = File(path)
 
@@ -52,28 +54,31 @@ class DocumentationGenerator(
     private val docuEntitySegments = mutableMapOf<String, DocumentationSegment>()
 
     /**
-     * Renders the documentation. With [mergeWithPrevious] the current run may
-     * only have seen a subset of the entities (incremental KSP processing), so
-     * the segments are merged over the persisted model of the last run; entries
-     * whose source files disappeared or were reprocessed without producing the
-     * entity again ([reprocessedFilePaths]) are purged. Without the flag the
-     * document is rebuilt from this run's model alone.
+     * With [mergeWithPrevious] the current run may only have seen a subset of
+     * the entities (incremental KSP processing), so the segments are merged
+     * over the persisted model of the last run; entries whose source files
+     * disappeared or were reprocessed without producing the entity again
+     * ([reprocessedFilePaths]) are purged. Without the flag the document is
+     * rebuilt from this run's model alone.
      */
     fun generate(
         mergeWithPrevious: Boolean = false,
         reprocessedFilePaths: Set<String> = emptySet(),
     ) {
-        val previousModelText = if (mergeWithPrevious) modelFile.readText() else null
-        val previousSegments =
-            decodeJsonOrNull<Map<String, DocumentationSegment>>(previousModelText)
-                ?: if (mergeWithPrevious) reconstructSegmentsFromExistingFile() else null
+        val previous =
+            modelFile.loadPrevious(
+                mergeWithPrevious,
+                decode = { decodeJsonOrNull<Map<String, DocumentationSegment>>(it) },
+                reconstruct = { reconstructSegmentsFromExistingFile() },
+            )
 
         val mergedSegments =
             mergeSideOutputEntries(
-                previousEntries = previousSegments ?: emptyMap(),
-                previousSources = previousSegments.orEmpty().mapValues { it.value.sources },
+                previousEntries = previous.model ?: emptyMap(),
+                previousSources = previous.model.orEmpty().mapValues { it.value.sources },
                 currentEntries = docuEntitySegments,
                 reprocessedFilePaths = reprocessedFilePaths,
+                onUnpurgeableEntries = { warn(unpurgeableEntriesWarning(file.name, it)) },
             )
 
         val document =
@@ -123,7 +128,7 @@ class DocumentationGenerator(
 
         path.mkdirs()
         file.writeTextIfChanged(document)
-        modelFile.persist(Json.encodeToString(mergedSegments.toMap()), previousModelText)
+        modelFile.persist(Json.encodeToString(mergedSegments.toMap()), previous.text)
         docuEntitySegments.clear()
     }
 
@@ -164,11 +169,7 @@ class DocumentationGenerator(
             DocumentationSegment(html = segment.render(), sources = sourcePaths)
     }
 
-    // A document written before the sidecar existed (or whose sidecar is corrupt)
-    // can still be merged: every entity segment is a <div id="Name"> block in the
-    // rendered file, so the segments are recovered from the file itself. Recovered
-    // entries carry no source paths and are therefore kept conservatively by the
-    // merge until a later run reprocesses them.
+    // Every entity segment is a <div id="Name"> block in the rendered file.
     private fun reconstructSegmentsFromExistingFile(): Map<String, DocumentationSegment> {
         val existing = file.readTextOrNull() ?: return emptyMap()
         val segments = mutableMapOf<String, DocumentationSegment>()
@@ -177,6 +178,11 @@ class DocumentationGenerator(
             if (end != -1) {
                 segments[match.groupValues[1]] =
                     DocumentationSegment(html = existing.substring(match.range.first, end))
+            } else {
+                warn(
+                    "Could not reconstruct documentation segment '${match.groupValues[1]}' from " +
+                        "${file.name}; it stays missing until its source file is reprocessed.",
+                )
             }
         }
         return segments
@@ -248,6 +254,6 @@ class DocumentationGenerator(
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"
         private const val CROSSMARK_EMOJI = "&#10062;"
-        private val SEGMENT_START_PATTERN = Regex("""<div\s+id="([^"]+)">""")
+        private val SEGMENT_START_PATTERN = Regex("""<div\s+id="([^"]+)"[^>]*>""")
     }
 }

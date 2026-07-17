@@ -25,4 +25,36 @@ class SideOutputModelFile(
     ) {
         file.writeTextIfChanged(encodedModel, previousText ?: file.readTextOrNull())
     }
+
+    /**
+     * The sidecar is the authoritative previous-run model; an output written
+     * before the sidecar existed (or whose sidecar is corrupt) is recovered by
+     * [reconstruct], which receives the unusable sidecar text. Recovered entries
+     * carry no source paths and are kept conservatively by the merge until a
+     * later run reprocesses them.
+     */
+    fun <M : Any> loadPrevious(
+        mergeWithPrevious: Boolean,
+        decode: (String?) -> M?,
+        reconstruct: (String?) -> M?,
+    ): PreviousModel<M> {
+        if (!mergeWithPrevious) {
+            return PreviousModel(model = null, text = null)
+        }
+        val text = readText()
+        return PreviousModel(model = decode(text) ?: reconstruct(text), text = text)
+    }
+
+    data class PreviousModel<M>(
+        val model: M?,
+        val text: String?,
+    )
 }
+
+fun unpurgeableEntriesWarning(
+    outputFileName: String,
+    names: Set<String>,
+): String =
+    "Side output $outputFileName contains entries without recorded source files " +
+        "(${names.sorted().joinToString()}); deleting one of these entities only takes " +
+        "effect after deleting the output file."

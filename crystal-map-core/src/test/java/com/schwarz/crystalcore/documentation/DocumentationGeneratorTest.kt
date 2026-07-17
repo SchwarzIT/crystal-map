@@ -93,6 +93,37 @@ class DocumentationGeneratorTest {
     }
 
     @Test
+    fun `warns about entries that can only be removed by deleting the file`() {
+        generator().apply {
+            addEntitySegments(TestEntityHolder("Alpha"))
+            generate()
+        }
+        modelFile.delete()
+
+        val warnings = mutableListOf<String>()
+        DocumentationGenerator(tempDir.absolutePath, "doc.html", warnings::add)
+            .generate(mergeWithPrevious = true)
+
+        assertTrue(
+            warnings.any { "Alpha" in it },
+            "reconstructed source-less entries must be reported, got: $warnings",
+        )
+    }
+
+    @Test
+    fun `reconstruction tolerates additional attributes on segment divs`() {
+        htmlFile.writeText(
+            """<html><body><main id="main" class="content"><div>""" +
+                """<div id="Alpha" class="extra"><h1>Alpha</h1></div>""" +
+                """</div></main></body></html>""",
+        )
+
+        generator().generate(mergeWithPrevious = true)
+
+        assertTrue(htmlFile.readText().contains("<h1>Alpha</h1>"))
+    }
+
+    @Test
     fun `merge run without previous state produces the current model`() {
         generator().apply {
             addEntitySegments(TestEntityHolder("Alpha"))

@@ -3,6 +3,7 @@ package com.schwarz.crystalcore.meta
 import com.schwarz.crystalapi.schema.EntitySchema
 import com.schwarz.crystalcore.documentation.TestEntityHolder
 import com.schwarz.crystalcore.util.decodeJsonOrNull
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -47,6 +48,56 @@ class SchemaGeneratorTest {
         }
 
         assertEquals("{ not a schema", schemaFile.readText())
+    }
+
+    @Test
+    fun `regenerates a deleted schema file from the sidecar`() {
+        generator().apply {
+            addEntity(TestEntityHolder("Alpha"), listOf(source("Alpha.kt")))
+            addEntity(TestEntityHolder("Beta"), listOf(source("Beta.kt")))
+            generate(mergeWithPrevious = true)
+        }
+        schemaFile.delete()
+
+        generator().generate(mergeWithPrevious = true)
+
+        assertEquals(listOf("Alpha", "Beta"), schemaNames())
+    }
+
+    @Test
+    fun `repairs a corrupt schema file from the sidecar`() {
+        generator().apply {
+            addEntity(TestEntityHolder("Alpha"), listOf(source("Alpha.kt")))
+            generate(mergeWithPrevious = true)
+        }
+        schemaFile.writeText("{ damaged")
+
+        generator().generate(mergeWithPrevious = true)
+
+        assertEquals(listOf("Alpha"), schemaNames())
+    }
+
+    @Test
+    fun `migrates a legacy sources-only sidecar using the schema file as model`() {
+        val alphaSource = source("Alpha.kt")
+        generator().apply {
+            addEntity(TestEntityHolder("Alpha"), listOf(alphaSource))
+            generate(mergeWithPrevious = true)
+        }
+        val modelFile = File(tempDir, "schema.json.model")
+        modelFile.writeText(Json.encodeToString(mapOf("Alpha" to listOf(alphaSource))))
+
+        val betaSource = source("Beta.kt")
+        generator().apply {
+            addEntity(TestEntityHolder("Beta"), listOf(betaSource))
+            generate(mergeWithPrevious = true, reprocessedFilePaths = setOf(betaSource))
+        }
+
+        assertEquals(listOf("Alpha", "Beta"), schemaNames())
+        assertNotNull(
+            decodeJsonOrNull<SchemaGenerator.SchemaModel>(modelFile.readText()),
+            "legacy sidecar must be upgraded to the full model format",
+        )
     }
 
     @Test

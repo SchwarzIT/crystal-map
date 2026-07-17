@@ -5,9 +5,9 @@ import java.io.File
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.PosixFilePermissions
 
 /**
- * Writes [content] to this file unless the file already contains exactly [content].
  * Skipping identical rewrites keeps file timestamps stable for consumers that
  * watch these side outputs (documentation, schema exports).
  */
@@ -34,8 +34,7 @@ fun File.readTextOrNull(): String? =
     }
 
 /**
- * Decodes [text] as JSON, returning null for null input or malformed content.
- * Shared recovery behavior for all generators that persist a model of their
+ * Shared recovery rule for all generators that persist a model of their
  * previous run: a missing or corrupt model must never fail the build.
  */
 inline fun <reified T> decodeJsonOrNull(text: String?): T? =
@@ -52,6 +51,18 @@ private fun File.writeTextAtomically(content: String) {
     val temp = Files.createTempFile(directory.toPath(), name, ".tmp")
     try {
         Files.writeString(temp, content)
+        // createTempFile creates owner-only (0600) files and the move preserves
+        // that; the published side outputs must stay readable for other
+        // accounts (CI archiving, doc-serving web servers).
+        runCatching {
+            val permissions =
+                if (exists()) {
+                    Files.getPosixFilePermissions(toPath())
+                } else {
+                    PosixFilePermissions.fromString("rw-r--r--")
+                }
+            Files.setPosixFilePermissions(temp, permissions)
+        }
         try {
             Files.move(temp, toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
         } catch (e: AtomicMoveNotSupportedException) {

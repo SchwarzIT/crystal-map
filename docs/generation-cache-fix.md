@@ -90,10 +90,11 @@ entities shrank to 1 after touching a single source file. The generators now
 persist a model of their last run and merge:
 
 - **`SchemaGenerator`** — the schema JSON keeps its published format
-  (`List<EntitySchema>`) and is its own model; the per-entity source file paths
-  live in a sidecar (`<fileName>.model`, JSON content). The sidecar deliberately
-  does not use a `.json` extension because the versioning plugin parses every
-  `*.json` file in its schema directories.
+  (`List<EntitySchema>`); the sidecar (`<fileName>.model`, JSON content)
+  carries the full previous-run model (entities plus per-entity source file
+  paths), so a deleted or corrupted schema file is regenerated from the
+  sidecar. The sidecar deliberately does not use a `.json` extension because
+  the versioning plugin parses every `*.json` file in its schema directories.
 - **`DocumentationGenerator` / `EntityRelationshipGenerator`** — HTML and DOT
   cannot be parsed back losslessly, so each persists its segment model
   (rendered segment plus source file paths) in the same kind of `.model`
@@ -120,9 +121,11 @@ model from the rendered output itself — both formats are written by these
 generators in a fixed shape and can be parsed back per entity. Reconstructed
 entries carry no source paths and are kept conservatively (like kapt entries)
 until a later run reprocesses them, so nothing is dropped and nothing freezes.
-The schema JSON is its own model and needs no reconstruction; an existing
-schema file that no longer decodes is kept unchanged (never degraded to the
-reprocessed subset) until it is fixed or deleted.
+The schema sidecar carries the full model; legacy sources-only sidecars
+recover the entities from the schema file itself. Only when neither the
+sidecar nor the schema file decodes is the stale file kept unchanged (never
+degraded to the reprocessed subset), with a warning, until it is fixed or
+deleted.
 
 ### 4. Daemon-safe processor state
 
@@ -142,9 +145,10 @@ was removed.
 
 ## Known limitations
 
-- Entries recorded without source paths (written by kapt or by a pre-sidecar
-  version) cannot be purged automatically until they are reprocessed once;
-  a clean build always produces exact outputs.
+- Entries recorded without source paths (written by kapt or reconstructed from
+  a pre-sidecar output) cannot be purged automatically until they are
+  reprocessed once; the processor warns about such entries, and deleting the
+  output file resets them.
 - All build variants of a module write the side outputs to the same configured
   path (single `ksp {}` block). Entities that exist only in one variant's
   source set therefore accumulate in the shared file; per-variant output paths

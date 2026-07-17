@@ -5,6 +5,7 @@ import com.schwarz.crystalcore.util.SideOutputModelFile
 import com.schwarz.crystalcore.util.decodeJsonOrNull
 import com.schwarz.crystalcore.util.mergeSideOutputEntries
 import com.schwarz.crystalcore.util.readTextOrNull
+import com.schwarz.crystalcore.util.unpurgeableEntriesWarning
 import com.schwarz.crystalcore.util.writeTextIfChanged
 import com.squareup.kotlinpoet.TypeName
 import j2html.TagCreator.b
@@ -22,6 +23,7 @@ import java.io.File
 class EntityRelationshipGenerator(
     path: String,
     fileName: String,
+    private val warn: (String) -> Unit = {},
 ) {
     private val path = File(path)
     private val file = File(path, fileName)
@@ -40,21 +42,24 @@ class EntityRelationshipGenerator(
     )
 
     /**
-     * Renders the relationship graph. With [mergeWithPrevious] the current run
-     * may only have seen a subset of the entities (incremental KSP processing),
-     * so nodes and edges are merged over the persisted model of the last run;
-     * entries whose source files disappeared or were reprocessed without
-     * producing the entity again ([reprocessedFilePaths]) are purged. Without
-     * the flag the graph is rebuilt from this run's model alone.
+     * With [mergeWithPrevious] the current run may only have seen a subset of
+     * the entities (incremental KSP processing), so nodes and edges are merged
+     * over the persisted model of the last run; entries whose source files
+     * disappeared or were reprocessed without producing the entity again
+     * ([reprocessedFilePaths]) are purged. Without the flag the graph is
+     * rebuilt from this run's model alone.
      */
     fun generate(
         mergeWithPrevious: Boolean = false,
         reprocessedFilePaths: Set<String> = emptySet(),
     ) {
-        val previousModelText = if (mergeWithPrevious) modelFile.readText() else null
-        val previous =
-            decodeJsonOrNull<RelationshipModel>(previousModelText)
-                ?: if (mergeWithPrevious) reconstructModelFromExistingFile() else null
+        val previousModel =
+            modelFile.loadPrevious(
+                mergeWithPrevious,
+                decode = { decodeJsonOrNull<RelationshipModel>(it) },
+                reconstruct = { reconstructModelFromExistingFile() },
+            )
+        val previous = previousModel.model
 
         val mergedNodes =
             mergeSideOutputEntries(
@@ -62,6 +67,7 @@ class EntityRelationshipGenerator(
                 previousSources = previous?.sources ?: emptyMap(),
                 currentEntries = docuEntityNodes.mapValues { it.value.render() },
                 reprocessedFilePaths = reprocessedFilePaths,
+                onUnpurgeableEntries = { warn(unpurgeableEntriesWarning(file.name, it)) },
             )
         // Carried-over edges may still list entities that were purged in this
         // run; those targets must be dropped, or the rendered graph would show
@@ -98,7 +104,7 @@ class EntityRelationshipGenerator(
         documentBuilder.append("}\n")
 
         file.writeTextIfChanged(documentBuilder.toString())
-        modelFile.persist(Json.encodeToString(merged), previousModelText)
+        modelFile.persist(Json.encodeToString(merged), previousModel.text)
         clearCollectedEntities()
     }
 
@@ -108,11 +114,7 @@ class EntityRelationshipGenerator(
         docuEntitySources.clear()
     }
 
-    // A graph written before the sidecar existed (or whose sidecar is corrupt) can
-    // still be merged: this generator writes the .gv in a fixed format, so nodes
-    // and edges are recovered from the file itself. Recovered entries carry no
-    // source paths and are therefore kept conservatively by the merge until a
-    // later run reprocesses them.
+    // The .gv is written in a fixed shape, so nodes and edges parse back exactly.
     private fun reconstructModelFromExistingFile(): RelationshipModel? {
         val existing = file.readTextOrNull() ?: return null
         val nodes =
