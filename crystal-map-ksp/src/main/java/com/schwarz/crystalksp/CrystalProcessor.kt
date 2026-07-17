@@ -1,5 +1,6 @@
 package com.schwarz.crystalksp
 
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -43,15 +44,19 @@ class CrystalProcessor(
 
     internal val mCodeGenerator = KSPCodeGenerator(codeGenerator)
 
+    // Only stable identifiers (qualified names) may survive a round: KSP2 invalidates
+    // every Resolver-derived node as soon as any processor generates files
+    // ("PSI has changed since creation"). The declarations are re-obtained from the
+    // final round's Resolver when the workers run in finish().
     data class CachedWorkSet(
-        val allEntityElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allWrapperElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allSchemaClassElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allBaseModelElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allTypeConverterElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allTypeConverterExporterElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allTypeConverterImporterElements: HashSet<KSAnnotated> = hashSetOf(),
-        val allMapperElements: HashSet<KSAnnotated> = hashSetOf(),
+        val allEntityElements: HashSet<String> = hashSetOf(),
+        val allWrapperElements: HashSet<String> = hashSetOf(),
+        val allSchemaClassElements: HashSet<String> = hashSetOf(),
+        val allBaseModelElements: HashSet<String> = hashSetOf(),
+        val allTypeConverterElements: HashSet<String> = hashSetOf(),
+        val allTypeConverterExporterElements: HashSet<String> = hashSetOf(),
+        val allTypeConverterImporterElements: HashSet<String> = hashSetOf(),
+        val allMapperElements: HashSet<String> = hashSetOf(),
     ) {
         fun clear() {
             allEntityElements.clear()
@@ -83,38 +88,38 @@ class CrystalProcessor(
             .getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
             .addProcessingTypes("Entity")
             .forEach {
-                cachedPreWorkset.allEntityElements.add(it)
+                cachedPreWorkset.allEntityElements.addDeclaration(it)
             }
 
         resolver
             .getSymbolsWithAnnotation(MapWrapper::class.qualifiedName!!)
             .addProcessingTypes("Wrapper")
             .forEach {
-                cachedPreWorkset.allWrapperElements.add(it)
+                cachedPreWorkset.allWrapperElements.addDeclaration(it)
             }
 
         resolver.getSymbolsWithAnnotation(SchemaClass::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allSchemaClassElements.add(it)
+            cachedPreWorkset.allSchemaClassElements.addDeclaration(it)
         }
 
         resolver.getSymbolsWithAnnotation(BaseModel::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allBaseModelElements.add(it)
+            cachedPreWorkset.allBaseModelElements.addDeclaration(it)
         }
 
         resolver.getSymbolsWithAnnotation(TypeConverter::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allTypeConverterElements.add(it)
+            cachedPreWorkset.allTypeConverterElements.addDeclaration(it)
         }
 
         resolver.getSymbolsWithAnnotation(TypeConverterExporter::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allTypeConverterExporterElements.add(it)
+            cachedPreWorkset.allTypeConverterExporterElements.addDeclaration(it)
         }
 
         resolver.getSymbolsWithAnnotation(TypeConverterImporter::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allTypeConverterImporterElements.add(it)
+            cachedPreWorkset.allTypeConverterImporterElements.addDeclaration(it)
         }
 
         resolver.getSymbolsWithAnnotation(Mapper::class.qualifiedName!!).forEach {
-            cachedPreWorkset.allMapperElements.add(it)
+            cachedPreWorkset.allMapperElements.addDeclaration(it)
         }
 
         return emptyList()
@@ -228,15 +233,34 @@ class CrystalProcessor(
         return this
     }
 
-    private fun Set<KSAnnotated>.toSourceModel(): Set<ISourceModel<KSNode>> =
+    private fun MutableSet<String>.addDeclaration(symbol: KSAnnotated) {
+        val clazz = symbol as KSClassDeclaration
+        val qualifiedName = clazz.qualifiedName?.asString()
+        if (qualifiedName == null) {
+            logger.error("Annotated class must have a qualified name", clazz)
+        } else {
+            add(qualifiedName)
+        }
+    }
+
+    private fun Set<String>.toSourceModel(): Set<ISourceModel<KSNode>> =
         map {
-            SourceModel(it as KSClassDeclaration)
+            SourceModel(requireClassDeclaration(it))
         }.toSet()
 
-    private fun Set<KSAnnotated>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> =
+    private fun Set<String>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> =
         map {
-            SourceMapperModel(it as KSClassDeclaration)
+            SourceMapperModel(requireClassDeclaration(it))
         }.toSet()
+
+    // Declarations must be re-fetched from the final round's Resolver: nodes collected in
+    // earlier rounds are invalid by now whenever another processor generated files. The
+    // final round's session stays valid in finish() because no files were generated after it.
+    private fun requireClassDeclaration(qualifiedName: String): KSClassDeclaration =
+        ProcessingContext.resolver.getClassDeclarationByName(qualifiedName)
+            ?: throw IllegalStateException(
+                "Class $qualifiedName was collected during processing but can no longer be resolved",
+            )
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
