@@ -15,10 +15,7 @@ fun File.writeTextIfChanged(content: String) {
     writeTextIfChanged(content, readTextOrNull())
 }
 
-/**
- * Variant of [writeTextIfChanged] for callers that already read the file:
- * pass the previously read content as [previousContent] to avoid a second read.
- */
+/** Variant of [writeTextIfChanged] that avoids a second read of the file. */
 fun File.writeTextIfChanged(
     content: String,
     previousContent: String?,
