@@ -22,6 +22,7 @@ import j2html.TagCreator.th
 import j2html.TagCreator.thead
 import j2html.TagCreator.title
 import j2html.TagCreator.tr
+import com.schwarz.crystalcore.util.SideOutputModelFile
 import com.schwarz.crystalcore.util.decodeJsonOrNull
 import com.schwarz.crystalcore.util.mergeSideOutputEntries
 import com.schwarz.crystalcore.util.readTextOrNull
@@ -40,12 +41,7 @@ class DocumentationGenerator(
 
     private val file = File(path, fileName)
 
-    // Persisted model of the last run (segments plus their source files), so
-    // partial (incremental) runs can merge and purge instead of shrinking the
-    // document to the reprocessed subset of entities. Deliberately not named
-    // *.json: the versioning plugin parses every *.json file in its schema
-    // directories.
-    private val modelFile = File(path, "$fileName.model")
+    private val modelFile = SideOutputModelFile(this.path, fileName)
 
     @Serializable
     internal data class DocumentationSegment(
@@ -67,17 +63,10 @@ class DocumentationGenerator(
         mergeWithPrevious: Boolean = false,
         reprocessedFilePaths: Set<String> = emptySet(),
     ) {
-        val previousModelText = if (mergeWithPrevious) modelFile.readTextOrNull() else null
-        val previousSegments = decodeJsonOrNull<Map<String, DocumentationSegment>>(previousModelText)
-        if (mergeWithPrevious && previousSegments == null && !currentRunCoversExistingFile()) {
-            // The existing document predates the persisted model (or the model is
-            // corrupt), and this run saw fewer entities than the document lists,
-            // so it cannot rebuild the full document. Keep the complete-but-stale
-            // file; the next run that covers all entities rebuilds it and
-            // restores the model.
-            docuEntitySegments.clear()
-            return
-        }
+        val previousModelText = if (mergeWithPrevious) modelFile.readText() else null
+        val previousSegments =
+            decodeJsonOrNull<Map<String, DocumentationSegment>>(previousModelText)
+                ?: if (mergeWithPrevious) reconstructSegmentsFromExistingFile() else null
 
         val mergedSegments =
             mergeSideOutputEntries(
@@ -86,11 +75,6 @@ class DocumentationGenerator(
                 currentEntries = docuEntitySegments,
                 reprocessedFilePaths = reprocessedFilePaths,
             )
-        if (mergeWithPrevious && file.exists() && mergedSegments == previousSegments) {
-            // Nothing changed: skip rendering and writing entirely.
-            docuEntitySegments.clear()
-            return
-        }
 
         val document =
             html(
@@ -139,10 +123,7 @@ class DocumentationGenerator(
 
         path.mkdirs()
         file.writeTextIfChanged(document)
-        modelFile.writeTextIfChanged(
-            Json.encodeToString(mergedSegments.toMap()),
-            previousModelText ?: modelFile.readTextOrNull(),
-        )
+        modelFile.persist(Json.encodeToString(mergedSegments.toMap()), previousModelText)
         docuEntitySegments.clear()
     }
 
@@ -183,12 +164,45 @@ class DocumentationGenerator(
             DocumentationSegment(html = segment.render(), sources = sourcePaths)
     }
 
-    // Every entity segment contains exactly one showLink button, so counting it
-    // approximates how many entities the existing document describes.
-    private fun currentRunCoversExistingFile(): Boolean {
-        val existing = file.readTextOrNull() ?: return true
-        val documentedEntities = SHOW_LINK_MARKER.toRegex(RegexOption.LITERAL).findAll(existing).count()
-        return docuEntitySegments.size >= documentedEntities
+    // A document written before the sidecar existed (or whose sidecar is corrupt)
+    // can still be merged: every entity segment is a <div id="Name"> block in the
+    // rendered file, so the segments are recovered from the file itself. Recovered
+    // entries carry no source paths and are therefore kept conservatively by the
+    // merge until a later run reprocesses them.
+    private fun reconstructSegmentsFromExistingFile(): Map<String, DocumentationSegment> {
+        val existing = file.readTextOrNull() ?: return emptyMap()
+        val segments = mutableMapOf<String, DocumentationSegment>()
+        for (match in SEGMENT_START_PATTERN.findAll(existing)) {
+            val end = findMatchingDivEnd(existing, match.range.last + 1)
+            if (end != -1) {
+                segments[match.groupValues[1]] =
+                    DocumentationSegment(html = existing.substring(match.range.first, end))
+            }
+        }
+        return segments
+    }
+
+    private fun findMatchingDivEnd(
+        text: String,
+        startIndex: Int,
+    ): Int {
+        var depth = 1
+        var index = startIndex
+        while (depth > 0) {
+            val open = text.indexOf("<div", index)
+            val close = text.indexOf("</div>", index)
+            if (close == -1) {
+                return -1
+            }
+            if (open != -1 && open < close) {
+                depth++
+                index = open + "<div".length
+            } else {
+                depth--
+                index = close + "</div>".length
+            }
+        }
+        return index
     }
 
     private fun <T> evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
@@ -234,6 +248,6 @@ class DocumentationGenerator(
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"
         private const val CROSSMARK_EMOJI = "&#10062;"
-        private const val SHOW_LINK_MARKER = ">showLink</button>"
+        private val SEGMENT_START_PATTERN = Regex("""<div\s+id="([^"]+)">""")
     }
 }

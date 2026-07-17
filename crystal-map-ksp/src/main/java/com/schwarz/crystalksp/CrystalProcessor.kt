@@ -244,23 +244,28 @@ class CrystalProcessor(
     }
 
     private fun Set<String>.toSourceModel(): Set<ISourceModel<KSNode>> =
-        map {
-            SourceModel(requireClassDeclaration(it))
+        mapNotNull { qualifiedName ->
+            resolveClassDeclaration(qualifiedName)?.let { SourceModel(it) }
         }.toSet()
 
     private fun Set<String>.toMapperSourceModel(): Set<ISourceMapperModel<KSNode>> =
-        map {
-            SourceMapperModel(requireClassDeclaration(it))
+        mapNotNull { qualifiedName ->
+            resolveClassDeclaration(qualifiedName)?.let { SourceMapperModel(it) }
         }.toSet()
 
     // Declarations must be re-fetched from the final round's Resolver: nodes collected in
     // earlier rounds are invalid by now whenever another processor generated files. The
     // final round's session stays valid in finish() because no files were generated after it.
-    private fun requireClassDeclaration(qualifiedName: String): KSClassDeclaration =
-        ProcessingContext.resolver.getClassDeclarationByName(qualifiedName)
-            ?: throw IllegalStateException(
+    private fun resolveClassDeclaration(qualifiedName: String): KSClassDeclaration? {
+        val declaration = ProcessingContext.resolver.getClassDeclarationByName(qualifiedName)
+        if (declaration == null) {
+            mLogger.error(
                 "Class $qualifiedName was collected during processing but can no longer be resolved",
+                null,
             )
+        }
+        return declaration
+    }
 
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"

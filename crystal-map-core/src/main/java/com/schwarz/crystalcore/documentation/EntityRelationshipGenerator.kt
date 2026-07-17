@@ -1,6 +1,7 @@
 package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
+import com.schwarz.crystalcore.util.SideOutputModelFile
 import com.schwarz.crystalcore.util.decodeJsonOrNull
 import com.schwarz.crystalcore.util.mergeSideOutputEntries
 import com.schwarz.crystalcore.util.readTextOrNull
@@ -25,12 +26,7 @@ class EntityRelationshipGenerator(
     private val path = File(path)
     private val file = File(path, fileName)
 
-    // Persisted model of the last run (nodes, edges and their source files), so
-    // partial (incremental) runs can merge and purge instead of shrinking the
-    // graph to the reprocessed subset of entities. Deliberately not named
-    // *.json: the versioning plugin parses every *.json file in its schema
-    // directories.
-    private val modelFile = File(path, "$fileName.model")
+    private val modelFile = SideOutputModelFile(this.path, fileName)
 
     private val docuEntityNodes = mutableMapOf<String, DomContent>()
     private val docuEntityEdges = mutableMapOf<String, List<String>>()
@@ -55,17 +51,10 @@ class EntityRelationshipGenerator(
         mergeWithPrevious: Boolean = false,
         reprocessedFilePaths: Set<String> = emptySet(),
     ) {
-        val previousModelText = if (mergeWithPrevious) modelFile.readTextOrNull() else null
-        val previous = decodeJsonOrNull<RelationshipModel>(previousModelText)
-        if (mergeWithPrevious && previous == null && !currentRunCoversExistingFile()) {
-            // The existing graph predates the persisted model (or the model is
-            // corrupt), and this run saw fewer entities than the graph lists, so
-            // it cannot rebuild the full graph. Keep the complete-but-stale file;
-            // the next run that covers all entities rebuilds it and restores the
-            // model.
-            clearCollectedEntities()
-            return
-        }
+        val previousModelText = if (mergeWithPrevious) modelFile.readText() else null
+        val previous =
+            decodeJsonOrNull<RelationshipModel>(previousModelText)
+                ?: if (mergeWithPrevious) reconstructModelFromExistingFile() else null
 
         val mergedNodes =
             mergeSideOutputEntries(
@@ -74,23 +63,25 @@ class EntityRelationshipGenerator(
                 currentEntries = docuEntityNodes.mapValues { it.value.render() },
                 reprocessedFilePaths = reprocessedFilePaths,
             )
+        // Carried-over edges may still list entities that were purged in this
+        // run; those targets must be dropped, or the rendered graph would show
+        // the removed entity as an implicit (phantom) node.
+        val purgedNodes = (previous?.nodes ?: emptyMap()).keys - mergedNodes.keys
         val merged =
             RelationshipModel(
                 nodes = mergedNodes,
                 edges =
                     (
-                        (previous?.edges ?: emptyMap()).filterKeys { mergedNodes.containsKey(it) } + docuEntityEdges
+                        (previous?.edges ?: emptyMap())
+                            .filterKeys { mergedNodes.containsKey(it) }
+                            .mapValues { (_, targets) -> targets.filterNot { it in purgedNodes } } +
+                            docuEntityEdges
                     ).toSortedMap(),
                 sources =
                     (
                         (previous?.sources ?: emptyMap()).filterKeys { mergedNodes.containsKey(it) } + docuEntitySources
                     ).toSortedMap(),
             )
-        if (mergeWithPrevious && file.exists() && merged == previous) {
-            // Nothing changed: skip rendering and writing entirely.
-            clearCollectedEntities()
-            return
-        }
 
         path.mkdirs()
 
@@ -107,10 +98,7 @@ class EntityRelationshipGenerator(
         documentBuilder.append("}\n")
 
         file.writeTextIfChanged(documentBuilder.toString())
-        modelFile.writeTextIfChanged(
-            Json.encodeToString(merged),
-            previousModelText ?: modelFile.readTextOrNull(),
-        )
+        modelFile.persist(Json.encodeToString(merged), previousModelText)
         clearCollectedEntities()
     }
 
@@ -120,16 +108,30 @@ class EntityRelationshipGenerator(
         docuEntitySources.clear()
     }
 
-    // Every entity node block contains exactly one "[label=<" marker, so
-    // counting it approximates how many entities the existing graph describes.
-    private fun currentRunCoversExistingFile(): Boolean {
-        val existing = file.readTextOrNull() ?: return true
-        val documentedEntities = NODE_LABEL_MARKER.toRegex(RegexOption.LITERAL).findAll(existing).count()
-        return docuEntityNodes.size >= documentedEntities
+    // A graph written before the sidecar existed (or whose sidecar is corrupt) can
+    // still be merged: this generator writes the .gv in a fixed format, so nodes
+    // and edges are recovered from the file itself. Recovered entries carry no
+    // source paths and are therefore kept conservatively by the merge until a
+    // later run reprocesses them.
+    private fun reconstructModelFromExistingFile(): RelationshipModel? {
+        val existing = file.readTextOrNull() ?: return null
+        val nodes =
+            NODE_PATTERN
+                .findAll(existing)
+                .associate { it.groupValues[1] to it.groupValues[2].trim() }
+        val edges = mutableMapOf<String, MutableList<String>>()
+        for (match in EDGE_PATTERN.findAll(existing)) {
+            edges.getOrPut(match.groupValues[1]) { mutableListOf() }.add(match.groupValues[2])
+        }
+        return RelationshipModel(
+            nodes = nodes.toSortedMap(),
+            edges = edges.mapValues { it.value.toList() }.toSortedMap(),
+        )
     }
 
     private companion object {
-        private const val NODE_LABEL_MARKER = "[label=<"
+        private val NODE_PATTERN = Regex("""(\w+) \[label=<\s*(.*?)\s*>];""", RegexOption.DOT_MATCHES_ALL)
+        private val EDGE_PATTERN = Regex("""(\w+)_has -- (\w+);""")
     }
 
     private fun renderRelationshipDiamonds(edges: Map<String, List<String>>): String =

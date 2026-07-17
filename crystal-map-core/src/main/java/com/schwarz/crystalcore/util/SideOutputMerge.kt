@@ -34,11 +34,11 @@ internal fun keepPreviousEntry(
     if (sources.isEmpty()) {
         return true // unknown origin (e.g. kapt): keep conservatively
     }
-    if (sources.none { File(it).exists() }) {
-        return false // all source files deleted
-    }
     if (sources.any { it in reprocessedFilePaths }) {
         return false // source was reprocessed but no longer produces this entry
+    }
+    if (sources.none { File(it).exists() }) {
+        return false // all source files deleted
     }
     return true
 }

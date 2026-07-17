@@ -4,14 +4,16 @@ This document describes why the persistent `GenerationCache` (introduced with
 "Support full incremental build") broke incremental builds, why it could not be
 repaired in place, and how its goals are now achieved safely.
 
-Related commits:
+The resulting design, in short:
 
-| Commit | Change |
-|---|---|
-| `1d83668` | Remove `GenerationCache` from KSP-managed outputs, add content-based skip for doc/schema side outputs |
-| `441d4dd` | Merge doc/schema outputs across incremental processing runs |
-| `5e2cf96` | Clear `ProcessingContext` state on every `finish()` exit path |
-| `20fa546` | Code-review fixes: source-file-based purge, `onError()` cleanup, `.model` sidecars, deprecated cache options, atomic writes |
+- The `GenerationCache` is removed; KSP-managed outputs are always written
+  through `CodeGenerator` so KSP owns their lifecycle.
+- The doc/schema/entity-relationship side outputs merge with the previous run's
+  state via `.model` sidecar files, purge entries per reprocessed or deleted
+  source file, and are written atomically.
+- `ProcessingContext` state is cleared on every processor exit path
+  (`finish()` and `onError()`), since processors survive in the Gradle daemon.
+- The old cache options are deprecated and ignored.
 
 ## Background
 
@@ -63,13 +65,13 @@ checks are content-based.
 
 ## The fix
 
-### 1. KSP-managed Kotlin outputs: always write (`1d83668`)
+### 1. KSP-managed Kotlin outputs: always write
 
 `GenerationCache` and the `crystal.cache.dir` / `crystal.incremental.cache`
 options were removed. `KSPCodeGenerator` now always registers its files.
 Passing the removed options is harmless; unknown KSP options are ignored.
 
-### 2. Side outputs: content-based skip (`1d83668`)
+### 2. Side outputs: content-based skip
 
 The legitimate part of the idea — not rewriting unchanged files — moved to the
 outputs that KSP does *not* manage and therefore never deletes: documentation
@@ -113,10 +115,14 @@ full rebuilds. Entries without recorded sources (kapt, pre-existing files) are
 kept conservatively.
 
 **Migration**: an output file written by an older version has no `.model`
-sidecar. A partial run cannot rebuild the full document, so the generators keep
-the complete-but-stale file frozen until a run covers at least as many entities
-as the document lists (a full rebuild) — that run rebuilds the file and
-restores the sidecar. The schema JSON is not affected (it is its own model).
+sidecar. The documentation and relationship generators reconstruct a mergeable
+model from the rendered output itself — both formats are written by these
+generators in a fixed shape and can be parsed back per entity. Reconstructed
+entries carry no source paths and are kept conservatively (like kapt entries)
+until a later run reprocesses them, so nothing is dropped and nothing freezes.
+The schema JSON is its own model and needs no reconstruction; an existing
+schema file that no longer decodes is kept unchanged (never degraded to the
+reprocessed subset) until it is fixed or deleted.
 
 ### 4. Daemon-safe processor state
 
