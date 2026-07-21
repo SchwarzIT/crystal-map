@@ -1,6 +1,12 @@
 package com.schwarz.crystalcore.documentation
 
 import com.schwarz.crystalcore.model.entity.BaseEntityHolder
+import com.schwarz.crystalcore.util.SideOutputModelFile
+import com.schwarz.crystalcore.util.decodeJsonOrNull
+import com.schwarz.crystalcore.util.mergeSideOutputEntries
+import com.schwarz.crystalcore.util.readTextOrNull
+import com.schwarz.crystalcore.util.unpurgeableEntriesWarning
+import com.schwarz.crystalcore.util.writeTextIfChanged
 import com.squareup.kotlinpoet.TypeName
 import j2html.TagCreator.b
 import j2html.TagCreator.rawHtml
@@ -10,67 +16,158 @@ import j2html.TagCreator.text
 import j2html.TagCreator.th
 import j2html.TagCreator.tr
 import j2html.tags.DomContent
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class EntityRelationshipGenerator(
     path: String,
     fileName: String,
+    private val warn: (String) -> Unit = {},
 ) {
     private val path = File(path)
     private val file = File(path, fileName)
 
+    private val modelFile = SideOutputModelFile(this.path, fileName)
+
     private val docuEntityNodes = mutableMapOf<String, DomContent>()
     private val docuEntityEdges = mutableMapOf<String, List<String>>()
+    private val docuEntitySources = mutableMapOf<String, List<String>>()
 
-    fun generate() {
+    @Serializable
+    internal data class RelationshipModel(
+        val nodes: Map<String, String>,
+        val edges: Map<String, List<String>>,
+        val sources: Map<String, List<String>> = emptyMap(),
+    )
+
+    /**
+     * With [mergeWithPrevious] the current run may only have seen a subset of
+     * the entities (incremental KSP processing), so nodes and edges are merged
+     * over the persisted model of the last run; entries whose source files
+     * disappeared or were reprocessed without producing the entity again
+     * ([reprocessedFilePaths]) are purged. Without the flag the graph is
+     * rebuilt from this run's model alone.
+     */
+    fun generate(
+        mergeWithPrevious: Boolean = false,
+        reprocessedFilePaths: Set<String> = emptySet(),
+    ) {
+        val previousModel =
+            modelFile.loadPrevious(
+                mergeWithPrevious,
+                decode = { decodeJsonOrNull<RelationshipModel>(it) },
+                reconstruct = { reconstructModelFromExistingFile() },
+            )
+        val previous = previousModel.model
+
+        val mergedNodes =
+            mergeSideOutputEntries(
+                previousEntries = previous?.nodes ?: emptyMap(),
+                previousSources = previous?.sources ?: emptyMap(),
+                currentEntries = docuEntityNodes.mapValues { it.value.render() },
+                reprocessedFilePaths = reprocessedFilePaths,
+                onUnpurgeableEntries = { warn(unpurgeableEntriesWarning(file.name, it)) },
+            )
+        // Carried-over edges may still list entities that were purged in this
+        // run; those targets must be dropped, or the rendered graph would show
+        // the removed entity as an implicit (phantom) node.
+        val purgedNodes = (previous?.nodes ?: emptyMap()).keys - mergedNodes.keys
+        val merged =
+            RelationshipModel(
+                nodes = mergedNodes,
+                edges =
+                    (
+                        (previous?.edges ?: emptyMap())
+                            .filterKeys { mergedNodes.containsKey(it) }
+                            .mapValues { (_, targets) -> targets.filterNot { it in purgedNodes } } +
+                            docuEntityEdges
+                    ).toSortedMap(),
+                sources =
+                    (
+                        (previous?.sources ?: emptyMap()).filterKeys { mergedNodes.containsKey(it) } + docuEntitySources
+                    ).toSortedMap(),
+            )
+
         path.mkdirs()
 
         val documentBuilder = StringBuilder()
         documentBuilder.append("graph ER {\n")
         documentBuilder.append("node [shape=diamond];\n")
-        documentBuilder.append(renderRelationshipDiamonds())
+        documentBuilder.append(renderRelationshipDiamonds(merged.edges))
         documentBuilder.append("\n")
-        documentBuilder.append(renderEntityNodes())
+        documentBuilder.append(renderEntityNodes(merged.nodes))
         documentBuilder.append("\n")
-        documentBuilder.append(renderRelationships())
+        documentBuilder.append(renderRelationships(merged.edges))
         documentBuilder.append("\n")
         documentBuilder.append("fontsize=12;\n")
         documentBuilder.append("}\n")
 
-        file.writeText(documentBuilder.toString())
-        docuEntityNodes.clear()
-        docuEntityEdges.clear()
+        file.writeTextIfChanged(documentBuilder.toString())
+        modelFile.persist(Json.encodeToString(merged), previousModel.text)
+        clearCollectedEntities()
     }
 
-    private fun renderRelationshipDiamonds(): String =
-        docuEntityEdges
-            .toSortedMap()
+    private fun clearCollectedEntities() {
+        docuEntityNodes.clear()
+        docuEntityEdges.clear()
+        docuEntitySources.clear()
+    }
+
+    // The .gv is written in a fixed shape, so nodes and edges parse back exactly.
+    private fun reconstructModelFromExistingFile(): RelationshipModel? {
+        val existing = file.readTextOrNull() ?: return null
+        val nodes =
+            NODE_PATTERN
+                .findAll(existing)
+                .associate { it.groupValues[1] to it.groupValues[2].trim() }
+        val edges = mutableMapOf<String, MutableList<String>>()
+        for (match in EDGE_PATTERN.findAll(existing)) {
+            edges.getOrPut(match.groupValues[1]) { mutableListOf() }.add(match.groupValues[2])
+        }
+        return RelationshipModel(
+            nodes = nodes.toSortedMap(),
+            edges = edges.mapValues { it.value.toList() }.toSortedMap(),
+        )
+    }
+
+    private companion object {
+        private val NODE_PATTERN = Regex("""(\w+) \[label=<\s*(.*?)\s*>];""", RegexOption.DOT_MATCHES_ALL)
+        private val EDGE_PATTERN = Regex("""(\w+)_has -- (\w+);""")
+    }
+
+    private fun renderRelationshipDiamonds(edges: Map<String, List<String>>): String =
+        edges
             .filter { it.value.isNotEmpty() }
             .map { "  ${it.key}_has  [label=\"has\"];\n" }
             .joinToString("")
 
-    private fun renderEntityNodes(): String =
-        docuEntityNodes
-            .toSortedMap()
+    private fun renderEntityNodes(nodes: Map<String, String>): String =
+        nodes
             .map { renderEntityNode(it) }
             .joinToString("\n\n")
 
-    private fun renderEntityNode(node: Map.Entry<String, DomContent>): String {
+    private fun renderEntityNode(node: Map.Entry<String, String>): String {
         val nodeBuilder = StringBuilder()
         nodeBuilder.append("node [shape=plain]\n")
         nodeBuilder.append("  rankdir=LR;\n")
         nodeBuilder.append("  ${node.key} [label=<\n")
-        nodeBuilder.append("  ${node.value.render()}\n")
+        nodeBuilder.append("  ${node.value}\n")
         nodeBuilder.append("  >];\n")
         return nodeBuilder.toString()
     }
 
-    fun <T> addEntityNodes(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntityNodes(
+        entityHolder: BaseEntityHolder<T>,
+        sourcePaths: List<String> = emptyList(),
+    ) {
         if (docuEntityNodes.containsKey(entityHolder.sourceClazzSimpleName) ||
             docuEntityEdges.containsKey(entityHolder.sourceClazzSimpleName)
         ) {
             return
         }
+
+        docuEntitySources[entityHolder.sourceClazzSimpleName] = sourcePaths
 
         docuEntityNodes[entityHolder.sourceClazzSimpleName] =
             table(
@@ -112,13 +209,12 @@ class EntityRelationshipGenerator(
     fun extractClassName(fullClassName: TypeName): String =
         fullClassName.toString().split(".").last()
 
-    private fun renderRelationships(): String =
-        docuEntityEdges
-            .toSortedMap()
+    private fun renderRelationships(edges: Map<String, List<String>>): String =
+        edges
             .filter { it.value.isNotEmpty() }
             .map { edge -> "${edge.key} -- ${edge.key}_has;\n" }
             .joinToString("") +
-            docuEntityEdges
+            edges
                 .filter { it.value.isNotEmpty() }
                 .map { edge -> edge.value.map { "${edge.key}_has -- $it;\n" } }
                 .flatten()

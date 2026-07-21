@@ -6,9 +6,6 @@ apply plugin: 'kotlin-kapt'
 apply plugin: "org.jlleitschuh.gradle.ktlint"
 apply plugin: 'java-test-fixtures'
 
-targetCompatibility = JavaVersion.VERSION_17
-sourceCompatibility = JavaVersion.VERSION_17
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -37,6 +34,8 @@ jacocoTestReport {
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
 }

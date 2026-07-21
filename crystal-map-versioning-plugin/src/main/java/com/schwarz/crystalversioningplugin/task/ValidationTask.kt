@@ -8,8 +8,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
+@DisableCachingByDefault(because = "Validation task only reports results and produces no cacheable outputs")
 open class ValidationTask : DefaultTask() {
     @Input
     lateinit var extension: VersioningPluginExtension

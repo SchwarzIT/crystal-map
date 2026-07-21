@@ -3,12 +3,15 @@ apply plugin: 'maven-publish'
 apply plugin: 'java'
 apply plugin: 'kotlinx-serialization'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
+}
+
+test {
+    useJUnitPlatform()
 }
 
 publishing {
@@ -34,6 +37,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-metadata-jvm:2.1.10"
     testImplementation 'com.google.testing.compile:compile-testing:0.23.0'
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation 'dev.zacsweers.kctfork:core:0.11.1'
     testImplementation "org.mockito:mockito-core:$mockito_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_core_version"

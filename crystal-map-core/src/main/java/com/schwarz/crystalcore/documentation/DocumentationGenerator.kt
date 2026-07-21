@@ -22,21 +22,65 @@ import j2html.TagCreator.th
 import j2html.TagCreator.thead
 import j2html.TagCreator.title
 import j2html.TagCreator.tr
+import com.schwarz.crystalcore.util.SideOutputModelFile
+import com.schwarz.crystalcore.util.decodeJsonOrNull
+import com.schwarz.crystalcore.util.mergeSideOutputEntries
+import com.schwarz.crystalcore.util.readTextOrNull
+import com.schwarz.crystalcore.util.unpurgeableEntriesWarning
+import com.schwarz.crystalcore.util.writeTextIfChanged
 import j2html.tags.DomContent
 import j2html.tags.UnescapedText
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class DocumentationGenerator(
     path: String,
     fileName: String,
+    private val warn: (String) -> Unit = {},
 ) {
     private val path = File(path)
 
     private val file = File(path, fileName)
 
-    private val docuEntitySegments = mutableMapOf<String, DomContent>()
+    private val modelFile = SideOutputModelFile(this.path, fileName)
 
-    fun generate() {
+    @Serializable
+    internal data class DocumentationSegment(
+        val html: String,
+        val sources: List<String> = emptyList(),
+    )
+
+    private val docuEntitySegments = mutableMapOf<String, DocumentationSegment>()
+
+    /**
+     * With [mergeWithPrevious] the current run may only have seen a subset of
+     * the entities (incremental KSP processing), so the segments are merged
+     * over the persisted model of the last run; entries whose source files
+     * disappeared or were reprocessed without producing the entity again
+     * ([reprocessedFilePaths]) are purged. Without the flag the document is
+     * rebuilt from this run's model alone.
+     */
+    fun generate(
+        mergeWithPrevious: Boolean = false,
+        reprocessedFilePaths: Set<String> = emptySet(),
+    ) {
+        val previous =
+            modelFile.loadPrevious(
+                mergeWithPrevious,
+                decode = { decodeJsonOrNull<Map<String, DocumentationSegment>>(it) },
+                reconstruct = { reconstructSegmentsFromExistingFile() },
+            )
+
+        val mergedSegments =
+            mergeSideOutputEntries(
+                previousEntries = previous.model ?: emptyMap(),
+                previousSources = previous.model.orEmpty().mapValues { it.value.sources },
+                currentEntries = docuEntitySegments,
+                reprocessedFilePaths = reprocessedFilePaths,
+                onUnpurgeableEntries = { warn(unpurgeableEntriesWarning(file.name, it)) },
+            )
+
         val document =
             html(
                 head(
@@ -77,24 +121,28 @@ class DocumentationGenerator(
                 body(
                     main(
                         attrs("#main.content"),
-                        div(*docuEntitySegments.values.toTypedArray()),
+                        div(*mergedSegments.values.map { rawHtml(it.html) }.toTypedArray()),
                     ),
                 ),
             ).renderFormatted()
 
         path.mkdirs()
-        file.writeText(document)
+        file.writeTextIfChanged(document)
+        modelFile.persist(Json.encodeToString(mergedSegments.toMap()), previous.text)
         docuEntitySegments.clear()
     }
 
-    fun <T> addEntitySegments(entityHolder: BaseEntityHolder<T>) {
+    fun <T> addEntitySegments(
+        entityHolder: BaseEntityHolder<T>,
+        sourcePaths: List<String> = emptyList(),
+    ) {
         if (docuEntitySegments.containsKey(entityHolder.sourceClazzSimpleName)) {
             return
         }
 
         val btnWithSectionLink = "<button onclick=\"alert(window.location.protocol + '//' + window.location.host " +
             "+ window.location.pathname + window.location.search + '#${entityHolder.sourceClazzSimpleName}');\">showLink</button>"
-        docuEntitySegments[entityHolder.sourceClazzSimpleName] =
+        val segment =
             div().withId(entityHolder.sourceClazzSimpleName).with(
                 h1(entityHolder.sourceClazzSimpleName),
                 rawHtml(btnWithSectionLink),
@@ -117,6 +165,50 @@ class DocumentationGenerator(
                     ),
                 ),
             )
+        docuEntitySegments[entityHolder.sourceClazzSimpleName] =
+            DocumentationSegment(html = segment.render(), sources = sourcePaths)
+    }
+
+    // Every entity segment is a <div id="Name"> block in the rendered file.
+    private fun reconstructSegmentsFromExistingFile(): Map<String, DocumentationSegment> {
+        val existing = file.readTextOrNull() ?: return emptyMap()
+        val segments = mutableMapOf<String, DocumentationSegment>()
+        for (match in SEGMENT_START_PATTERN.findAll(existing)) {
+            val end = findMatchingDivEnd(existing, match.range.last + 1)
+            if (end != -1) {
+                segments[match.groupValues[1]] =
+                    DocumentationSegment(html = existing.substring(match.range.first, end))
+            } else {
+                warn(
+                    "Could not reconstruct documentation segment '${match.groupValues[1]}' from " +
+                        "${file.name}; it stays missing until its source file is reprocessed.",
+                )
+            }
+        }
+        return segments
+    }
+
+    private fun findMatchingDivEnd(
+        text: String,
+        startIndex: Int,
+    ): Int {
+        var depth = 1
+        var index = startIndex
+        while (depth > 0) {
+            val open = text.indexOf("<div", index)
+            val close = text.indexOf("</div>", index)
+            if (close == -1) {
+                return -1
+            }
+            if (open != -1 && open < close) {
+                depth++
+                index = open + "<div".length
+            } else {
+                depth--
+                index = close + "</div>".length
+            }
+        }
+        return index
     }
 
     private fun <T> evaluateAvailableTypes(sourceElement: ISourceModel<T>?): DomContent {
@@ -162,5 +254,6 @@ class DocumentationGenerator(
     companion object {
         private const val CHECKMARK_EMOJI = "&#9989;"
         private const val CROSSMARK_EMOJI = "&#10062;"
+        private val SEGMENT_START_PATTERN = Regex("""<div\s+id="([^"]+)"[^>]*>""")
     }
 }

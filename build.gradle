@@ -16,8 +16,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.android.library:com.android.library.gradle.plugin:8.13.1")
-        classpath("com.android.application:com.android.application.gradle.plugin:8.13.1")
+        classpath("com.android.library:com.android.library.gradle.plugin:9.2.1")
+        classpath("com.android.application:com.android.application.gradle.plugin:9.2.1")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:14.0.1"
         classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.9"
@@ -38,7 +38,7 @@ subprojects {
     ktlint {
 
         filter {
-            exclude { it.file.path.contains("$buildDir/generated/") }
+            exclude { it.file.path.contains(layout.buildDirectory.dir("generated").get().asFile.path) }
         }
     }
 
