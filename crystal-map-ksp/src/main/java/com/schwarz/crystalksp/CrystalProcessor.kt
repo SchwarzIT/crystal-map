@@ -82,6 +82,13 @@ class CrystalProcessor(
     // by another processor).
     private val reprocessedFilePaths = mutableSetOf<String>()
 
+    // Accumulated over every round: the dirty sources plus all files generated
+    // by co-running processors in later rounds. None of their outputs exist on
+    // disk when finish() runs, so this is the set ModelWorker may generate for
+    // (unlike reprocessedFilePaths, which must stay first-round-only to keep
+    // the side-output purge semantics).
+    private val regenerationFilePaths = mutableSetOf<String>()
+
     private var isFirstRound = true
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -92,6 +99,7 @@ class CrystalProcessor(
             isFirstRound = false
             resolver.getNewFiles().mapTo(reprocessedFilePaths) { it.filePath }
         }
+        resolver.getNewFiles().mapTo(regenerationFilePaths) { it.filePath }
 
         resolver
             .getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
@@ -155,10 +163,12 @@ class CrystalProcessor(
         ProcessingContext.cleanup()
         cachedPreWorkset.clear()
         reprocessedFilePaths.clear()
+        regenerationFilePaths.clear()
         isFirstRound = true
     }
 
     private fun runWorkers() {
+        expandReferencedWorld()
         workers =
             setOf(
                 ModelWorker<KSNode>(
@@ -185,8 +195,9 @@ class CrystalProcessor(
                                 .toSourceModel(),
                         getterCache = processingEnvironmentWrapper.getterCache,
                     ),
-                    mergeSideOutputs = true,
+                    incremental = true,
                     reprocessedFilePaths = reprocessedFilePaths.toSet(),
+                    regenerationFilePaths = regenerationFilePaths.toSet(),
                     originFilePath = { (it as? KSFile)?.filePath },
                 ),
                 MapperWorker(
@@ -223,25 +234,106 @@ class CrystalProcessor(
         }
 
     private fun Sequence<KSAnnotated>.addProcessingTypes(suffix: String): Sequence<KSAnnotated> {
-        forEach {
-            val clazz = it as KSClassDeclaration
-            val className =
-                com.squareup.kotlinpoet.ClassName(
-                    clazz.packageName.asString(),
-                    clazz.simpleName.asString() + suffix,
-                )
-            if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) &&
-                className.toString() !=
-                ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()
-            ) {
-                logger.error(
-                    "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}",
-                )
-            }
-            ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
-        }
+        forEach { registerProcessingType(it as KSClassDeclaration, suffix) }
         return this
     }
+
+    private fun registerProcessingType(
+        clazz: KSClassDeclaration,
+        suffix: String,
+    ) {
+        val className =
+            com.squareup.kotlinpoet.ClassName(
+                clazz.packageName.asString(),
+                clazz.simpleName.asString() + suffix,
+            )
+        if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) &&
+            className.toString() !=
+            ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()
+        ) {
+            logger.error(
+                "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}",
+            )
+        }
+        ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
+    }
+
+    // getSymbolsWithAnnotation and getAllFiles only cover the dirty files of an
+    // incremental run, so the collected sets alone cannot classify the types a
+    // reprocessed class refers to (a field type may be a wrapper, a @BasedOn
+    // target a base model — usually in files that are not dirty). Referenced
+    // types are therefore resolved here by qualified name, which works
+    // regardless of dirtiness, and referenced crystal classes are added to the
+    // work sets as lookup knowledge. ModelWorker only regenerates models whose
+    // sources were reprocessed, so these additions never recreate existing
+    // files. Type converters cannot be discovered by reference; their outputs
+    // are aggregating instead, which makes KSP dirty every converter source on
+    // any change (see ModelWorker).
+    private fun expandReferencedWorld() {
+        val pending =
+            ArrayDeque(
+                cachedPreWorkset.allEntityElements +
+                    cachedPreWorkset.allWrapperElements +
+                    cachedPreWorkset.allSchemaClassElements +
+                    cachedPreWorkset.allBaseModelElements,
+            )
+        val visited = pending.toMutableSet()
+        while (pending.isNotEmpty()) {
+            val declaration = ProcessingContext.resolver.getClassDeclarationByName(pending.removeFirst()) ?: continue
+            referencedTypeNames(SourceModel(declaration)).forEach { referenced ->
+                if (visited.add(referenced)) {
+                    val referencedDeclaration =
+                        ProcessingContext.resolver.getClassDeclarationByName(referenced)
+                    if (referencedDeclaration != null && addReferencedDeclaration(referencedDeclaration)) {
+                        pending.addLast(referenced)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun referencedTypeNames(model: SourceModel): List<String> =
+        buildList {
+            model.basedOnAnnotation?.basedOnFullQualifiedNames?.let(::addAll)
+            model.fieldAnnotations.forEach { field ->
+                // A field type referencing a class generated in this very run
+                // is an error type without a qualified name; its source is a
+                // dirty file and already collected.
+                runCatching { add(field.fullQualifiedName) }
+            }
+        }
+
+    private fun addReferencedDeclaration(clazz: KSClassDeclaration): Boolean {
+        var added = false
+        if (clazz.hasAnnotation(MapWrapper::class.qualifiedName!!)) {
+            registerProcessingType(clazz, "Wrapper")
+            cachedPreWorkset.allWrapperElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(BaseModel::class.qualifiedName!!)) {
+            cachedPreWorkset.allBaseModelElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(SchemaClass::class.qualifiedName!!)) {
+            cachedPreWorkset.allSchemaClassElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(Entity::class.qualifiedName!!)) {
+            registerProcessingType(clazz, "Entity")
+            cachedPreWorkset.allEntityElements.addDeclaration(clazz)
+            added = true
+        }
+        return added
+    }
+
+    private fun KSClassDeclaration.hasAnnotation(qualifiedName: String): Boolean =
+        annotations.any {
+            it.shortName.asString() == qualifiedName.substringAfterLast('.') &&
+                it.annotationType
+                    .resolve()
+                    .declaration.qualifiedName
+                    ?.asString() == qualifiedName
+        }
 
     private fun MutableSet<String>.addDeclaration(symbol: KSAnnotated) {
         val clazz = symbol as KSClassDeclaration

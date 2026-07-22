@@ -30,10 +30,11 @@ internal class TestEntityHolder(
 
 internal class FakeSourceModel(
     override val sourceClazzSimpleName: String,
+    override val originatingFiles: List<Any> = emptyList(),
+    override val mapWrapperAnnotation: ISourceMapWrapper? = null,
 ) : ISourceModel<Unit> {
     override val entityAnnotation: ISourceEntity? = null
     override val fullQualifiedName: String = "test.$sourceClazzSimpleName"
-    override val mapWrapperAnnotation: ISourceMapWrapper? = null
     override val commentAnnotation: ISourceComment? = null
     override val deprecatedSource: ISourceDeprecated? = null
     override val docIdAnnotation: ISourceDocId? = null

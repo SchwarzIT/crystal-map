@@ -795,8 +795,12 @@ class CrystalProcessorTest {
         )
     }
 
+    // Type converters form a global registry: any entity may need any
+    // converter, but incremental runs only hand the processor its dirty files.
+    // Aggregating outputs make KSP reprocess every converter source on any
+    // change, keeping the registry complete.
     @Test
-    fun testTypeConverterGenerationIsIsolating() {
+    fun testTypeConverterGenerationIsAggregating() {
         val typeConverter =
             SourceFile.kotlin(
                 "DateTypeConverter.kt",
@@ -817,9 +821,9 @@ class CrystalProcessorTest {
         val records = provider.lastCreatedProcessor!!.mCodeGenerator.generationRecords
         val tcRecord = records.find { it.fileName == "DateTypeConverterInstance" }
         assertTrue(tcRecord != null, "Should have generation record for DateTypeConverterInstance")
-        assertFalse(
+        assertTrue(
             tcRecord!!.aggregating,
-            "TypeConverter generation should be isolating (aggregating=false)",
+            "TypeConverter generation must be aggregating so incremental runs re-collect all converters",
         )
     }
 
@@ -1045,8 +1049,11 @@ class CrystalProcessorTest {
         )
     }
 
+    // Same registry constraint as testTypeConverterGenerationIsAggregating:
+    // the exporter output embeds ALL converters, so it must be rebuilt (with
+    // all converter sources reprocessed) on any incremental change.
     @Test
-    fun testTypeConverterExporterIsIsolating() {
+    fun testTypeConverterExporterIsAggregating() {
         val sourceFileContents =
             PACKAGE_HEADER +
                 TYPE_CONVERTER_EXPORTER_HEADER +
@@ -1075,9 +1082,9 @@ class CrystalProcessorTest {
             exporterRecord != null,
             "Should have exporter record, found: ${records.map { it.fileName }}",
         )
-        assertFalse(
+        assertTrue(
             exporterRecord!!.aggregating,
-            "TypeConverterExporter generation should be isolating (aggregating=false)",
+            "TypeConverterExporter generation must be aggregating so incremental runs re-collect all converters",
         )
     }
 

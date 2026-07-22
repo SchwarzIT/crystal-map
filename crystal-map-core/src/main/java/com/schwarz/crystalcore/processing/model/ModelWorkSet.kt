@@ -52,6 +52,8 @@ class ModelWorkSet<T>(
     private val importedTypeConverterModels: MutableList<ImportedTypeConverterHolder> =
         mutableListOf()
 
+    private val importerModels: MutableList<ISourceModel<T>> = mutableListOf()
+
     override fun preValidate(logger: ILogger<T>) {
         for (element in hashSetOf(
             *allBaseModelElements.toTypedArray(),
@@ -169,6 +171,7 @@ class ModelWorkSet<T>(
         }
 
         allTypeConverterImporterElements.forEach { element ->
+            importerModels.add(element)
             importedTypeConverterModels.addAll(
                 TypeConverterHolderFactory.importedTypeConverterHolders(element),
             )
@@ -221,6 +224,8 @@ class ModelWorkSet<T>(
 
     val importedTypeConverters: List<ImportedTypeConverterHolder> get() = importedTypeConverterModels
 
+    val typeConverterImporters: List<ISourceModel<T>> get() = importerModels
+
     val typeConverterExporters: List<TypeConverterExporterHolder<T>>
         get() = typeConverterExporterModels.values.toList()
 
@@ -233,5 +238,6 @@ class ModelWorkSet<T>(
         typeConverterModels.clear()
         typeConverterExporterModels.clear()
         importedTypeConverterModels.clear()
+        importerModels.clear()
     }
 }
