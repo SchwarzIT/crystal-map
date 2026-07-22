@@ -36,6 +36,12 @@ class ModelWorker<T>(
     // sources still exist because KSP only deletes the outputs of dirty
     // sources, and createNewFile rejects existing files.
     private val incremental: Boolean = false,
+    // False when the frontend persists the converter world across incremental
+    // runs (see TypeConverterRegistry in crystal-map-ksp): converter/exporter
+    // outputs may then stay isolating and no importer anchors are needed,
+    // keeping incremental dirty sets small. True forces the aggregating
+    // fallback, where KSP re-collects every converter source on any change.
+    private val converterOutputsAggregating: Boolean = true,
     // Previously generated side-output entries whose origin is in this set are
     // purged when the run no longer produces them.
     private val reprocessedFilePaths: Set<String> = emptySet(),
@@ -84,17 +90,18 @@ class ModelWorker<T>(
 
         // Type converters are a global registry: entities anywhere in the
         // module may need any converter, but an incremental run only hands the
-        // processor its dirty files. Their outputs (and the importer anchors
-        // below) are therefore aggregating — KSP then invalidates them on any
-        // change and reprocesses every converter source, keeping the registry
-        // complete.
+        // processor its dirty files. Unless the frontend persists the converter
+        // world (converterOutputsAggregating = false), their outputs and the
+        // importer anchors below are aggregating — KSP then invalidates them on
+        // any change and reprocesses every converter source, keeping the
+        // registry complete.
         workSet.typeConverters.forEach {
             if (needsRegeneration(it.originatingFiles)) {
                 codeGenerator.generate(
                     TypeConverterObjectGeneration.generateTypeConverterObject(it),
                     settings,
                     it.originatingFiles,
-                    aggregating = true,
+                    aggregating = converterOutputsAggregating,
                 )
             }
         }
@@ -110,16 +117,17 @@ class ModelWorker<T>(
                     ),
                     settings,
                     exporterOrigins,
-                    aggregating = true,
+                    aggregating = converterOutputsAggregating,
                 )
             }
         }
 
         // Importers have no natural output, so without one KSP would never
         // reprocess them incrementally and the imported converters would
-        // vanish from the registry. Only needed for incremental (KSP)
-        // frontends; kapt hands over the full compilation every run.
-        if (incremental) {
+        // vanish from the registry. Only needed in aggregating mode; with a
+        // persisted registry the importers are restored by qualified name, and
+        // kapt hands over the full compilation every run anyway.
+        if (incremental && converterOutputsAggregating) {
             workSet.typeConverterImporters.forEach { importer ->
                 if (needsRegeneration(importer.originatingFiles)) {
                     codeGenerator.generate(

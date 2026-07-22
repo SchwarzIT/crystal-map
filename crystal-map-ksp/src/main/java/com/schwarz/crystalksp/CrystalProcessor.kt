@@ -8,11 +8,15 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSNode
+import com.google.devtools.ksp.symbol.KSType
 import com.schwarz.crystalapi.BaseModel
+import com.schwarz.crystalapi.BasedOn
 import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.TypeConverter
@@ -30,7 +34,10 @@ import com.schwarz.crystalcore.processing.model.ModelWorker
 import com.schwarz.crystalksp.generation.KSPCodeGenerator
 import com.schwarz.crystalksp.model.source.SourceMapperModel
 import com.schwarz.crystalksp.model.source.SourceModel
+import com.schwarz.crystalksp.util.getAnnotation
+import com.schwarz.crystalksp.util.getArgument
 import com.schwarz.crystalksp.validation.mapper.PreMapperValidation
+import java.io.File
 import kotlin.metadata.ClassName
 
 class CrystalProcessor(
@@ -169,6 +176,10 @@ class CrystalProcessor(
 
     private fun runWorkers() {
         expandReferencedWorld()
+        val registryDir = processingEnvironmentWrapper.incrementalRegistryPath
+        if (registryDir != null) {
+            mergeConverterRegistry(File(registryDir, TypeConverterRegistry.FILE_NAME))
+        }
         workers =
             setOf(
                 ModelWorker<KSNode>(
@@ -196,6 +207,7 @@ class CrystalProcessor(
                         getterCache = processingEnvironmentWrapper.getterCache,
                     ),
                     incremental = true,
+                    converterOutputsAggregating = registryDir == null,
                     reprocessedFilePaths = reprocessedFilePaths.toSet(),
                     regenerationFilePaths = regenerationFilePaths.toSet(),
                     originFilePath = { (it as? KSFile)?.filePath },
@@ -280,7 +292,7 @@ class CrystalProcessor(
         val visited = pending.toMutableSet()
         while (pending.isNotEmpty()) {
             val declaration = ProcessingContext.resolver.getClassDeclarationByName(pending.removeFirst()) ?: continue
-            referencedTypeNames(SourceModel(declaration)).forEach { referenced ->
+            referencedTypeNames(declaration).forEach { referenced ->
                 if (visited.add(referenced)) {
                     val referencedDeclaration =
                         ProcessingContext.resolver.getClassDeclarationByName(referenced)
@@ -292,15 +304,33 @@ class CrystalProcessor(
         }
     }
 
-    private fun referencedTypeNames(model: SourceModel): List<String> =
+    // Reads the annotations directly instead of building a SourceModel: its
+    // init block eagerly resolves static accessor signatures, which may
+    // reference generated types whose processing-type registration is exactly
+    // what this closure is about to provide. Types that do not resolve to a
+    // qualified name (error types for classes generated in this very run)
+    // are skipped — their sources are dirty files and already collected.
+    private fun referencedTypeNames(declaration: KSClassDeclaration): List<String> =
         buildList {
-            model.basedOnAnnotation?.basedOnFullQualifiedNames?.let(::addAll)
-            model.fieldAnnotations.forEach { field ->
-                // A field type referencing a class generated in this very run
-                // is an error type without a qualified name; its source is a
-                // dirty file and already collected.
-                runCatching { add(field.fullQualifiedName) }
-            }
+            declaration
+                .getAnnotation(BasedOn::class)
+                ?.getArgument<List<KSType>>("value")
+                ?.forEach { based ->
+                    based.declaration.qualifiedName
+                        ?.asString()
+                        ?.let(::add)
+                }
+            declaration
+                .getAnnotation(Fields::class)
+                ?.getArgument<List<KSAnnotation>>("value")
+                ?.forEach { field ->
+                    field
+                        .getArgument<KSType>("type")
+                        ?.declaration
+                        ?.qualifiedName
+                        ?.asString()
+                        ?.let(::add)
+                }
         }
 
     private fun addReferencedDeclaration(clazz: KSClassDeclaration): Boolean {
@@ -325,6 +355,45 @@ class CrystalProcessor(
         }
         return added
     }
+
+    // Restores the converter/importer world of the previous runs (see
+    // TypeConverterRegistry) and persists the merged result for the next run.
+    // Entries are resolve-or-drop: classes that were deleted or renamed since
+    // simply vanish from the registry instead of failing the build.
+    private fun mergeConverterRegistry(registryFile: File) {
+        val survivors =
+            TypeConverterRegistry.survivors(
+                TypeConverterRegistry.load(registryFile),
+                reprocessedFilePaths,
+            ) { File(it).exists() }
+        survivors.forEach { entry ->
+            if (ProcessingContext.resolver.getClassDeclarationByName(entry.qualifiedName) != null) {
+                when (entry.kind) {
+                    TypeConverterRegistry.Kind.CONVERTER ->
+                        cachedPreWorkset.allTypeConverterElements.add(entry.qualifiedName)
+                    TypeConverterRegistry.Kind.IMPORTER ->
+                        cachedPreWorkset.allTypeConverterImporterElements.add(entry.qualifiedName)
+                }
+            }
+        }
+        TypeConverterRegistry.save(
+            registryFile,
+            registryEntries(TypeConverterRegistry.Kind.CONVERTER, cachedPreWorkset.allTypeConverterElements) +
+                registryEntries(TypeConverterRegistry.Kind.IMPORTER, cachedPreWorkset.allTypeConverterImporterElements),
+        )
+    }
+
+    private fun registryEntries(
+        kind: TypeConverterRegistry.Kind,
+        qualifiedNames: Set<String>,
+    ): List<TypeConverterRegistry.Entry> =
+        qualifiedNames.mapNotNull { qualifiedName ->
+            ProcessingContext.resolver
+                .getClassDeclarationByName(qualifiedName)
+                ?.containingFile
+                ?.filePath
+                ?.let { TypeConverterRegistry.Entry(kind, qualifiedName, it) }
+        }
 
     private fun KSClassDeclaration.hasAnnotation(qualifiedName: String): Boolean =
         annotations.any {
@@ -383,6 +452,14 @@ class CrystalProcessor(
             "crystal.entityframework.documentation.entityrelationship.fileName"
         const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
         const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
+
+        // Directory for the persisted type-converter registry. When set, the
+        // converter world survives incremental runs via the registry file and
+        // converter outputs stay isolating (small dirty sets). When unset,
+        // converter outputs are aggregating instead: correct, but any change
+        // makes KSP reprocess every crystal source.
+        const val FRAMEWORK_INCREMENTAL_REGISTRY_PATH_OPTION_NAME =
+            "crystal.entityframework.incremental.registry"
     }
 }
 
