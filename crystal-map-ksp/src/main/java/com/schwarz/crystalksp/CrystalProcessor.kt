@@ -303,26 +303,23 @@ class CrystalProcessor(
     // are aggregating instead, which makes KSP dirty every converter source on
     // any change (see ModelWorker).
     private fun expandReferencedWorld() {
-        val pending =
-            ArrayDeque(
+        expandReferences(
+            seeds =
                 cachedPreWorkset.allEntityElements +
                     cachedPreWorkset.allWrapperElements +
                     cachedPreWorkset.allSchemaClassElements +
                     cachedPreWorkset.allBaseModelElements,
-            )
-        val visited = pending.toMutableSet()
-        while (pending.isNotEmpty()) {
-            val declaration = ProcessingContext.resolver.getClassDeclarationByName(pending.removeFirst()) ?: continue
-            referencedTypeNames(declaration).forEach { referenced ->
-                if (visited.add(referenced)) {
-                    val referencedDeclaration =
-                        ProcessingContext.resolver.getClassDeclarationByName(referenced)
-                    if (referencedDeclaration != null && addReferencedDeclaration(referencedDeclaration)) {
-                        pending.addLast(referenced)
-                    }
-                }
-            }
-        }
+            referencedTypeNames = { qualifiedName ->
+                ProcessingContext.resolver
+                    .getClassDeclarationByName(qualifiedName)
+                    ?.let(::referencedTypeNames)
+                    ?: emptyList()
+            },
+            addReferenced = { referenced ->
+                val declaration = ProcessingContext.resolver.getClassDeclarationByName(referenced)
+                declaration != null && addReferencedDeclaration(declaration)
+            },
+        )
     }
 
     // Reads the annotations directly instead of building a SourceModel: its
@@ -481,6 +478,27 @@ class CrystalProcessor(
         // makes KSP reprocess every crystal source.
         const val FRAMEWORK_INCREMENTAL_REGISTRY_PATH_OPTION_NAME =
             "crystal.entityframework.incremental.registry"
+    }
+}
+
+// Breadth-first closure over referenced type names, used by
+// CrystalProcessor.expandReferencedWorld. Termination is guaranteed by the
+// visited set: seeds are pre-marked and addReferenced runs only on the first
+// occurrence of a name, so every name is enqueued at most once and cyclic or
+// self-referencing models cannot loop.
+internal fun expandReferences(
+    seeds: Set<String>,
+    referencedTypeNames: (String) -> List<String>,
+    addReferenced: (String) -> Boolean,
+) {
+    val pending = ArrayDeque(seeds)
+    val visited = pending.toMutableSet()
+    while (pending.isNotEmpty()) {
+        referencedTypeNames(pending.removeFirst()).forEach { referenced ->
+            if (visited.add(referenced) && addReferenced(referenced)) {
+                pending.addLast(referenced)
+            }
+        }
     }
 }
 
