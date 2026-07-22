@@ -99,6 +99,15 @@ class CrystalProcessor(
     private var isFirstRound = true
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        try {
+            collectRound(resolver)
+        } catch (e: Exception) {
+            reportCrash(e)
+        }
+        return emptyList()
+    }
+
+    private fun collectRound(resolver: Resolver) {
         ProcessingContext.resolver = resolver
         ProcessingContext.logger = mLogger
 
@@ -145,8 +154,6 @@ class CrystalProcessor(
         resolver.getSymbolsWithAnnotation(Mapper::class.qualifiedName!!).forEach {
             cachedPreWorkset.allMapperElements.addDeclaration(it)
         }
-
-        return emptyList()
     }
 
     override fun finish() {
@@ -155,9 +162,23 @@ class CrystalProcessor(
         // cleared on every exit path, including worker errors.
         try {
             runWorkers()
+        } catch (e: Exception) {
+            reportCrash(e)
         } finally {
             clearProcessingState()
         }
+    }
+
+    // An exception escaping the processor poisons KSP2's daemon-held lookup
+    // caches: every following build fails with "Storage for
+    // [...symbolLookups/...] is already registered" until the daemon is
+    // stopped (google/ksp#2134). Reporting through the logger fails the build
+    // the clean way instead - KSP tears its caches down properly then.
+    private fun reportCrash(e: Exception) {
+        mLogger.error(
+            "crystal-map processor crashed: ${e.stackTraceToString()}",
+            null,
+        )
     }
 
     // KSP calls onError() INSTEAD of finish() when errors were reported during
