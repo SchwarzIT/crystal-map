@@ -8,11 +8,15 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSNode
+import com.google.devtools.ksp.symbol.KSType
 import com.schwarz.crystalapi.BaseModel
+import com.schwarz.crystalapi.BasedOn
 import com.schwarz.crystalapi.Entity
+import com.schwarz.crystalapi.Fields
 import com.schwarz.crystalapi.MapWrapper
 import com.schwarz.crystalapi.SchemaClass
 import com.schwarz.crystalapi.TypeConverter
@@ -30,7 +34,10 @@ import com.schwarz.crystalcore.processing.model.ModelWorker
 import com.schwarz.crystalksp.generation.KSPCodeGenerator
 import com.schwarz.crystalksp.model.source.SourceMapperModel
 import com.schwarz.crystalksp.model.source.SourceModel
+import com.schwarz.crystalksp.util.getAnnotation
+import com.schwarz.crystalksp.util.getArgument
 import com.schwarz.crystalksp.validation.mapper.PreMapperValidation
+import java.io.File
 import kotlin.metadata.ClassName
 
 class CrystalProcessor(
@@ -82,9 +89,25 @@ class CrystalProcessor(
     // by another processor).
     private val reprocessedFilePaths = mutableSetOf<String>()
 
+    // Accumulated over every round: the dirty sources plus all files generated
+    // by co-running processors in later rounds. None of their outputs exist on
+    // disk when finish() runs, so this is the set ModelWorker may generate for
+    // (unlike reprocessedFilePaths, which must stay first-round-only to keep
+    // the side-output purge semantics).
+    private val regenerationFilePaths = mutableSetOf<String>()
+
     private var isFirstRound = true
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        try {
+            collectRound(resolver)
+        } catch (e: Exception) {
+            reportCrash(e)
+        }
+        return emptyList()
+    }
+
+    private fun collectRound(resolver: Resolver) {
         ProcessingContext.resolver = resolver
         ProcessingContext.logger = mLogger
 
@@ -92,6 +115,7 @@ class CrystalProcessor(
             isFirstRound = false
             resolver.getNewFiles().mapTo(reprocessedFilePaths) { it.filePath }
         }
+        resolver.getNewFiles().mapTo(regenerationFilePaths) { it.filePath }
 
         resolver
             .getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
@@ -130,8 +154,6 @@ class CrystalProcessor(
         resolver.getSymbolsWithAnnotation(Mapper::class.qualifiedName!!).forEach {
             cachedPreWorkset.allMapperElements.addDeclaration(it)
         }
-
-        return emptyList()
     }
 
     override fun finish() {
@@ -140,9 +162,23 @@ class CrystalProcessor(
         // cleared on every exit path, including worker errors.
         try {
             runWorkers()
+        } catch (e: Exception) {
+            reportCrash(e)
         } finally {
             clearProcessingState()
         }
+    }
+
+    // An exception escaping the processor poisons KSP2's daemon-held lookup
+    // caches: every following build fails with "Storage for
+    // [...symbolLookups/...] is already registered" until the daemon is
+    // stopped (google/ksp#2134). Reporting through the logger fails the build
+    // the clean way instead - KSP tears its caches down properly then.
+    private fun reportCrash(e: Exception) {
+        mLogger.error(
+            "crystal-map processor crashed: ${e.stackTraceToString()}",
+            null,
+        )
     }
 
     // KSP calls onError() INSTEAD of finish() when errors were reported during
@@ -155,10 +191,16 @@ class CrystalProcessor(
         ProcessingContext.cleanup()
         cachedPreWorkset.clear()
         reprocessedFilePaths.clear()
+        regenerationFilePaths.clear()
         isFirstRound = true
     }
 
     private fun runWorkers() {
+        expandReferencedWorld()
+        val registryDir = processingEnvironmentWrapper.incrementalRegistryPath
+        if (registryDir != null) {
+            mergeConverterRegistry(File(registryDir, TypeConverterRegistry.FILE_NAME))
+        }
         workers =
             setOf(
                 ModelWorker<KSNode>(
@@ -185,8 +227,10 @@ class CrystalProcessor(
                                 .toSourceModel(),
                         getterCache = processingEnvironmentWrapper.getterCache,
                     ),
-                    mergeSideOutputs = true,
+                    incremental = true,
+                    converterOutputsAggregating = registryDir == null,
                     reprocessedFilePaths = reprocessedFilePaths.toSet(),
+                    regenerationFilePaths = regenerationFilePaths.toSet(),
                     originFilePath = { (it as? KSFile)?.filePath },
                 ),
                 MapperWorker(
@@ -223,25 +267,160 @@ class CrystalProcessor(
         }
 
     private fun Sequence<KSAnnotated>.addProcessingTypes(suffix: String): Sequence<KSAnnotated> {
-        forEach {
-            val clazz = it as KSClassDeclaration
-            val className =
-                com.squareup.kotlinpoet.ClassName(
-                    clazz.packageName.asString(),
-                    clazz.simpleName.asString() + suffix,
-                )
-            if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) &&
-                className.toString() !=
-                ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()
-            ) {
-                logger.error(
-                    "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}",
-                )
-            }
-            ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
-        }
+        forEach { registerProcessingType(it as KSClassDeclaration, suffix) }
         return this
     }
+
+    private fun registerProcessingType(
+        clazz: KSClassDeclaration,
+        suffix: String,
+    ) {
+        val className =
+            com.squareup.kotlinpoet.ClassName(
+                clazz.packageName.asString(),
+                clazz.simpleName.asString() + suffix,
+            )
+        if (ProcessingContext.processingTypes.contains(clazz.simpleName.asString() + suffix) &&
+            className.toString() !=
+            ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix].toString()
+        ) {
+            logger.error(
+                "Duplicate $suffix class found: ${clazz.simpleName.asString()} found in ${clazz.packageName.asString()}, ${ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix]}",
+            )
+        }
+        ProcessingContext.processingTypes[clazz.simpleName.asString() + suffix] = className
+    }
+
+    // getSymbolsWithAnnotation and getAllFiles only cover the dirty files of an
+    // incremental run, so the collected sets alone cannot classify the types a
+    // reprocessed class refers to (a field type may be a wrapper, a @BasedOn
+    // target a base model — usually in files that are not dirty). Referenced
+    // types are therefore resolved here by qualified name, which works
+    // regardless of dirtiness, and referenced crystal classes are added to the
+    // work sets as lookup knowledge. ModelWorker only regenerates models whose
+    // sources were reprocessed, so these additions never recreate existing
+    // files. Type converters cannot be discovered by reference; their outputs
+    // are aggregating instead, which makes KSP dirty every converter source on
+    // any change (see ModelWorker).
+    private fun expandReferencedWorld() {
+        expandReferences(
+            seeds =
+                cachedPreWorkset.allEntityElements +
+                    cachedPreWorkset.allWrapperElements +
+                    cachedPreWorkset.allSchemaClassElements +
+                    cachedPreWorkset.allBaseModelElements,
+            referencedTypeNames = { qualifiedName ->
+                ProcessingContext.resolver
+                    .getClassDeclarationByName(qualifiedName)
+                    ?.let(::referencedTypeNames)
+                    ?: emptyList()
+            },
+            addReferenced = { referenced ->
+                val declaration = ProcessingContext.resolver.getClassDeclarationByName(referenced)
+                declaration != null && addReferencedDeclaration(declaration)
+            },
+        )
+    }
+
+    // Reads the annotations directly instead of building a SourceModel: its
+    // init block eagerly resolves static accessor signatures, which may
+    // reference generated types whose processing-type registration is exactly
+    // what this closure is about to provide. Types that do not resolve to a
+    // qualified name (error types for classes generated in this very run)
+    // are skipped — their sources are dirty files and already collected.
+    private fun referencedTypeNames(declaration: KSClassDeclaration): List<String> =
+        buildList {
+            declaration
+                .getAnnotation(BasedOn::class)
+                ?.getArgument<List<KSType>>("value")
+                ?.forEach { based ->
+                    based.declaration.qualifiedName
+                        ?.asString()
+                        ?.let(::add)
+                }
+            declaration
+                .getAnnotation(Fields::class)
+                ?.getArgument<List<KSAnnotation>>("value")
+                ?.forEach { field ->
+                    field
+                        .getArgument<KSType>("type")
+                        ?.declaration
+                        ?.qualifiedName
+                        ?.asString()
+                        ?.let(::add)
+                }
+        }
+
+    private fun addReferencedDeclaration(clazz: KSClassDeclaration): Boolean {
+        var added = false
+        if (clazz.hasAnnotation(MapWrapper::class.qualifiedName!!)) {
+            registerProcessingType(clazz, "Wrapper")
+            cachedPreWorkset.allWrapperElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(BaseModel::class.qualifiedName!!)) {
+            cachedPreWorkset.allBaseModelElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(SchemaClass::class.qualifiedName!!)) {
+            cachedPreWorkset.allSchemaClassElements.addDeclaration(clazz)
+            added = true
+        }
+        if (clazz.hasAnnotation(Entity::class.qualifiedName!!)) {
+            registerProcessingType(clazz, "Entity")
+            cachedPreWorkset.allEntityElements.addDeclaration(clazz)
+            added = true
+        }
+        return added
+    }
+
+    // Restores the converter/importer world of the previous runs (see
+    // TypeConverterRegistry) and persists the merged result for the next run.
+    // Entries are resolve-or-drop: classes that were deleted or renamed since
+    // simply vanish from the registry instead of failing the build.
+    private fun mergeConverterRegistry(registryFile: File) {
+        val survivors =
+            TypeConverterRegistry.survivors(
+                TypeConverterRegistry.load(registryFile),
+                reprocessedFilePaths,
+            ) { File(it).exists() }
+        survivors.forEach { entry ->
+            if (ProcessingContext.resolver.getClassDeclarationByName(entry.qualifiedName) != null) {
+                when (entry.kind) {
+                    TypeConverterRegistry.Kind.CONVERTER ->
+                        cachedPreWorkset.allTypeConverterElements.add(entry.qualifiedName)
+                    TypeConverterRegistry.Kind.IMPORTER ->
+                        cachedPreWorkset.allTypeConverterImporterElements.add(entry.qualifiedName)
+                }
+            }
+        }
+        TypeConverterRegistry.save(
+            registryFile,
+            registryEntries(TypeConverterRegistry.Kind.CONVERTER, cachedPreWorkset.allTypeConverterElements) +
+                registryEntries(TypeConverterRegistry.Kind.IMPORTER, cachedPreWorkset.allTypeConverterImporterElements),
+        )
+    }
+
+    private fun registryEntries(
+        kind: TypeConverterRegistry.Kind,
+        qualifiedNames: Set<String>,
+    ): List<TypeConverterRegistry.Entry> =
+        qualifiedNames.mapNotNull { qualifiedName ->
+            ProcessingContext.resolver
+                .getClassDeclarationByName(qualifiedName)
+                ?.containingFile
+                ?.filePath
+                ?.let { TypeConverterRegistry.Entry(kind, qualifiedName, it) }
+        }
+
+    private fun KSClassDeclaration.hasAnnotation(qualifiedName: String): Boolean =
+        annotations.any {
+            it.shortName.asString() == qualifiedName.substringAfterLast('.') &&
+                it.annotationType
+                    .resolve()
+                    .declaration.qualifiedName
+                    ?.asString() == qualifiedName
+        }
 
     private fun MutableSet<String>.addDeclaration(symbol: KSAnnotated) {
         val clazz = symbol as KSClassDeclaration
@@ -291,6 +470,35 @@ class CrystalProcessor(
             "crystal.entityframework.documentation.entityrelationship.fileName"
         const val FRAMEWORK_SCHEMA_PATH_OPTION_NAME = "crystal.entityframework.schema.generated"
         const val FRAMEWORK_SCHEMA_FILENAME_OPTION_NAME = "crystal.entityframework.schema.fileName"
+
+        // Directory for the persisted type-converter registry. When set, the
+        // converter world survives incremental runs via the registry file and
+        // converter outputs stay isolating (small dirty sets). When unset,
+        // converter outputs are aggregating instead: correct, but any change
+        // makes KSP reprocess every crystal source.
+        const val FRAMEWORK_INCREMENTAL_REGISTRY_PATH_OPTION_NAME =
+            "crystal.entityframework.incremental.registry"
+    }
+}
+
+// Breadth-first closure over referenced type names, used by
+// CrystalProcessor.expandReferencedWorld. Termination is guaranteed by the
+// visited set: seeds are pre-marked and addReferenced runs only on the first
+// occurrence of a name, so every name is enqueued at most once and cyclic or
+// self-referencing models cannot loop.
+internal fun expandReferences(
+    seeds: Set<String>,
+    referencedTypeNames: (String) -> List<String>,
+    addReferenced: (String) -> Boolean,
+) {
+    val pending = ArrayDeque(seeds)
+    val visited = pending.toMutableSet()
+    while (pending.isNotEmpty()) {
+        referencedTypeNames(pending.removeFirst()).forEach { referenced ->
+            if (visited.add(referenced) && addReferenced(referenced)) {
+                pending.addLast(referenced)
+            }
+        }
     }
 }
 

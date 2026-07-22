@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
 @OptIn(ExperimentalCompilerApi::class)
 class CrystalProcessorTest {
@@ -795,8 +797,12 @@ class CrystalProcessorTest {
         )
     }
 
+    // Type converters form a global registry: any entity may need any
+    // converter, but incremental runs only hand the processor its dirty files.
+    // Aggregating outputs make KSP reprocess every converter source on any
+    // change, keeping the registry complete.
     @Test
-    fun testTypeConverterGenerationIsIsolating() {
+    fun testTypeConverterGenerationIsAggregating() {
         val typeConverter =
             SourceFile.kotlin(
                 "DateTypeConverter.kt",
@@ -817,9 +823,9 @@ class CrystalProcessorTest {
         val records = provider.lastCreatedProcessor!!.mCodeGenerator.generationRecords
         val tcRecord = records.find { it.fileName == "DateTypeConverterInstance" }
         assertTrue(tcRecord != null, "Should have generation record for DateTypeConverterInstance")
-        assertFalse(
+        assertTrue(
             tcRecord!!.aggregating,
-            "TypeConverter generation should be isolating (aggregating=false)",
+            "TypeConverter generation must be aggregating so incremental runs re-collect all converters",
         )
     }
 
@@ -1045,8 +1051,11 @@ class CrystalProcessorTest {
         )
     }
 
+    // Same registry constraint as testTypeConverterGenerationIsAggregating:
+    // the exporter output embeds ALL converters, so it must be rebuilt (with
+    // all converter sources reprocessed) on any incremental change.
     @Test
-    fun testTypeConverterExporterIsIsolating() {
+    fun testTypeConverterExporterIsAggregating() {
         val sourceFileContents =
             PACKAGE_HEADER +
                 TYPE_CONVERTER_EXPORTER_HEADER +
@@ -1075,9 +1084,62 @@ class CrystalProcessorTest {
             exporterRecord != null,
             "Should have exporter record, found: ${records.map { it.fileName }}",
         )
-        assertFalse(
+        assertTrue(
             exporterRecord!!.aggregating,
-            "TypeConverterExporter generation should be isolating (aggregating=false)",
+            "TypeConverterExporter generation must be aggregating so incremental runs re-collect all converters",
+        )
+    }
+
+    // With a persisted registry the converter world survives incremental runs
+    // by qualified-name resolution, so the outputs may stay isolating and the
+    // dirty sets stay small.
+    @Test
+    fun testRegistryModeKeepsConvertersIsolatingAndPersistsRegistry(
+        @TempDir registryDir: File,
+    ) {
+        val typeConverter =
+            SourceFile.kotlin(
+                "DateTypeConverter.kt",
+                PACKAGE_HEADER +
+                    TYPE_CONVERTER_HEADER +
+                    "import java.time.OffsetDateTime\n" +
+                    "@TypeConverter\n" +
+                    "abstract class DateTypeConverter : ITypeConverter<OffsetDateTime, String> {\n" +
+                    "override fun write(value: OffsetDateTime?): String? = value?.toString()\n" +
+                    "override fun read(value: String?): OffsetDateTime? = value?.let { OffsetDateTime.parse(it) }\n" +
+                    "}",
+            )
+
+        val provider = CrystalProcessorProvider()
+        val compilation =
+            compileKotlin(
+                typeConverter,
+                provider = provider,
+                extraProcessorOptions =
+                    mapOf(
+                        CrystalProcessor.FRAMEWORK_INCREMENTAL_REGISTRY_PATH_OPTION_NAME to
+                            registryDir.absolutePath,
+                    ),
+            )
+        assertEquals(KotlinCompilation.ExitCode.OK, compilation.exitCode)
+
+        val records = provider.lastCreatedProcessor!!.mCodeGenerator.generationRecords
+        val tcRecord = records.find { it.fileName == "DateTypeConverterInstance" }
+        assertTrue(tcRecord != null, "Should have generation record for DateTypeConverterInstance")
+        assertFalse(
+            tcRecord!!.aggregating,
+            "Registry mode must keep converter outputs isolating",
+        )
+
+        val registryFile = File(registryDir, TypeConverterRegistry.FILE_NAME)
+        assertTrue(registryFile.exists(), "Registry file should be written")
+        val entries = TypeConverterRegistry.load(registryFile)
+        assertTrue(
+            entries.any {
+                it.kind == TypeConverterRegistry.Kind.CONVERTER &&
+                    it.qualifiedName.endsWith("DateTypeConverter")
+            },
+            "Registry should contain the converter, got: $entries",
         )
     }
 
@@ -1301,6 +1363,7 @@ class CrystalProcessorTest {
         useSuspend: Boolean = false,
         getterCache: Boolean = false,
         provider: CrystalProcessorProvider = CrystalProcessorProvider(),
+        extraProcessorOptions: Map<String, String> = emptyMap(),
     ): JvmCompilationResult =
         KotlinCompilation()
             .apply {
@@ -1312,6 +1375,7 @@ class CrystalProcessorTest {
                 jvmTarget = "17"
                 kspProcessorOptions["useSuspend"] = useSuspend.toString()
                 kspProcessorOptions[CrystalProcessor.FRAMEWORK_GETTER_CACHE_OPTION_NAME] = getterCache.toString()
+                kspProcessorOptions.putAll(extraProcessorOptions)
                 inheritClassPath = true
                 // messageOutputStream = System.out // see diagnostics in real time
             }.compile()

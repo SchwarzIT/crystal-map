@@ -13,6 +13,9 @@ class ProcessingEnvironmentWrapper(
     override val entityRelationshipPath: String? = options[CrystalProcessor.FRAMEWORK_ENTITY_RELATIONSHIP_PATH_OPTION_NAME]
     override val entityRelationshipFilename: String? = options[CrystalProcessor.FRAMEWORK_ENTITY_RELATIONSHIP_FILENAME_OPTION_NAME]
 
+    val incrementalRegistryPath: String? =
+        options[CrystalProcessor.FRAMEWORK_INCREMENTAL_REGISTRY_PATH_OPTION_NAME]
+
     val useSuspend: Boolean? =
         options[CrystalProcessor.FRAMEWORK_USE_SUSPEND_OPTION_NAME]
             ?.toBoolean()

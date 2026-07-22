@@ -76,6 +76,9 @@ ksp {
     arg("crystal.entityframework.documentation.fileName", "demo.html")
     arg("crystal.entityframework.schema.generated", "${buildDirPath}/entity_schema")
     arg("crystal.entityframework.schema.fileName", "demo_schema.json")
+    // Persists the type-converter registry across incremental KSP runs; without
+    // it every change falls back to reprocessing all crystal sources.
+    arg("crystal.entityframework.incremental.registry", "${buildDirPath}/crystal-map-registry")
 }
 
 dependencies {
